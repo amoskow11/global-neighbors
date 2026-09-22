@@ -1,0 +1,1082 @@
+<title>Global Neighbors</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --bg:#FAFBFC;
+    --surface:#FFFFFF;
+    --surface-2:#F0F4F7;
+    --border:#DEE6EC;
+    --text:#132A46;
+    --text-muted:#5B6B82;
+    --primary:#1C7293;
+    --primary-strong:#0F4C5C;
+    --primary-soft:#E6F0F3;
+    --accent:#E2711D;
+    --accent-soft:#FCEADA;
+    --success:#2F8F5B;
+    --success-soft:#E4F4EB;
+    --warning:#B8790E;
+    --warning-soft:#FBF0DC;
+    --shadow:0 1px 2px rgba(19,42,70,.06), 0 6px 18px rgba(19,42,70,.07);
+    --shadow-lg:0 8px 16px rgba(19,42,70,.07), 0 20px 46px rgba(19,42,70,.1);
+    --glow-accent:0 10px 26px rgba(226,113,29,.32);
+    --glow-primary:0 10px 26px rgba(28,114,147,.22);
+    --grad-accent:linear-gradient(135deg,#E2711D,#F0934E);
+    --grad-primary:linear-gradient(135deg,#1C7293,#0F4C5C);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0B1826; --surface:#122238; --surface-2:#16304A; --border:#25456A;
+      --text:#EAF1F7; --text-muted:#93A9C1; --primary:#59B6D6; --primary-strong:#8BD1E8;
+      --primary-soft:#173947; --accent:#F0934E; --accent-soft:#3B2413;
+      --success:#59C68A; --success-soft:#12331F; --warning:#E3A83B; --warning-soft:#3A2C0E;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.35);
+      --shadow-lg:0 10px 20px rgba(0,0,0,.35), 0 26px 54px rgba(0,0,0,.4);
+      --glow-accent:0 10px 28px rgba(240,147,78,.28);
+      --glow-primary:0 10px 28px rgba(89,182,214,.2);
+      --grad-accent:linear-gradient(135deg,#F0934E,#E2711D);
+      --grad-primary:linear-gradient(135deg,#59B6D6,#1C7293);
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0B1826; --surface:#122238; --surface-2:#16304A; --border:#25456A;
+    --text:#EAF1F7; --text-muted:#93A9C1; --primary:#59B6D6; --primary-strong:#8BD1E8;
+    --primary-soft:#173947; --accent:#F0934E; --accent-soft:#3B2413;
+    --success:#59C68A; --success-soft:#12331F; --warning:#E3A83B; --warning-soft:#3A2C0E;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.35);
+    --shadow-lg:0 10px 20px rgba(0,0,0,.35), 0 26px 54px rgba(0,0,0,.4);
+    --glow-accent:0 10px 28px rgba(240,147,78,.28);
+    --glow-primary:0 10px 28px rgba(89,182,214,.2);
+    --grad-accent:linear-gradient(135deg,#F0934E,#E2711D);
+    --grad-primary:linear-gradient(135deg,#59B6D6,#1C7293);
+    color-scheme:dark;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Public Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{ font-family:'Newsreader',Georgia,'Times New Roman',serif; text-wrap:balance; margin:0; }
+  p{ margin:0; }
+  button{ font-family:inherit; }
+  ::selection{ background:var(--accent-soft); color:var(--text); }
+  a{ color:var(--primary); }
+
+  .visually-hidden{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+  button, .btn{ cursor:pointer; }
+  button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible{
+    outline:2px solid var(--primary); outline-offset:2px;
+  }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+    font-size:.92rem; font-weight:600; padding:.62rem 1.1rem; border-radius:9px;
+    border:1px solid transparent; transition:transform .15s ease, box-shadow .2s ease, background .15s ease, border-color .15s ease;
+    white-space:nowrap;
+  }
+  .btn:active{ transform:translateY(1px); }
+  .btn-primary{ background:var(--grad-accent); color:#fff; box-shadow:var(--glow-accent); }
+  .btn-primary:hover{ transform:translateY(-1px); box-shadow:0 14px 30px rgba(226,113,29,.4); }
+  .btn-secondary{ background:var(--primary-soft); color:var(--primary-strong); }
+  .btn-secondary:hover{ border-color:var(--primary); transform:translateY(-1px); }
+  .btn-ghost{ background:transparent; color:var(--text-muted); border-color:var(--border); }
+  .btn-ghost:hover{ color:var(--text); border-color:var(--primary); }
+  .btn-sm{ padding:.42rem .78rem; font-size:.82rem; border-radius:7px; }
+  .btn-sm:hover{ transform:none; }
+  .btn:disabled{ opacity:.55; cursor:default; transform:none !important; box-shadow:none !important; }
+
+  .icon{ width:1.15em; height:1.15em; flex:none; }
+
+  /* ---------- Landing ---------- */
+  .landing-page{ position:relative; overflow:hidden; }
+  .landing-page::before{
+    content:''; position:absolute; top:-220px; right:-160px; width:640px; height:640px; border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, rgba(226,113,29,.16), rgba(226,113,29,0) 68%); pointer-events:none;
+  }
+  .landing-page::after{
+    content:''; position:absolute; top:280px; left:-220px; width:560px; height:560px; border-radius:50%;
+    background:radial-gradient(circle at 60% 40%, rgba(28,114,147,.14), rgba(28,114,147,0) 68%); pointer-events:none;
+  }
+  .landing-top{
+    position:relative; display:flex; align-items:center; justify-content:space-between;
+    padding:1.1rem clamp(16px,4vw,3rem); border-bottom:1px solid var(--border);
+  }
+  .wordmark{ display:flex; align-items:center; gap:.6rem; font-weight:700; letter-spacing:.01em; }
+  .wordmark .dot{
+    width:11px; height:11px; border-radius:50%; background:var(--grad-accent);
+    box-shadow:0 0 0 4px var(--accent-soft);
+  }
+  .wordmark span{ font-family:'Newsreader',serif; font-size:1.15rem; font-weight:600; }
+
+  .hero{
+    position:relative; max-width:1180px; margin:0 auto; padding:clamp(2.4rem,6vw,4.4rem) clamp(16px,4vw,3rem) 2rem;
+    display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(1.5rem,4vw,3rem); align-items:center;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:.5rem; font-size:.74rem; font-weight:700;
+    letter-spacing:.09em; text-transform:uppercase; color:var(--accent);
+    background:var(--accent-soft); padding:.32rem .7rem; border-radius:100px; margin-bottom:1.4rem;
+  }
+  .hero h1{ font-size:clamp(2.2rem,4.6vw,3.6rem); font-weight:600; line-height:1.08; max-width:16ch; color:var(--text); }
+  .hero h1 em{ font-style:italic; color:var(--primary); }
+  .hero-sub{ max-width:52ch; font-size:1.08rem; line-height:1.6; color:var(--text-muted); margin-top:1.3rem; }
+  .hero-actions{ display:flex; flex-wrap:wrap; gap:.9rem; margin-top:2rem; align-items:center; }
+  .hero-note{ font-size:.85rem; color:var(--text-muted); }
+  .hero-stats{ display:flex; flex-wrap:wrap; gap:clamp(1.4rem,4vw,2.4rem); margin-top:2.4rem; }
+  .hero-stat b{ display:block; font-family:'Newsreader',serif; font-size:1.7rem; font-weight:600; color:var(--text); }
+  .hero-stat span{ font-size:.78rem; color:var(--text-muted); }
+
+  .hero-visual{
+    position:relative; aspect-ratio:1/1; max-width:420px; margin:0 auto; justify-self:center;
+  }
+  .hero-visual svg{ width:100%; height:100%; }
+  .hero-visual-card{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:.9rem 1.1rem;
+    box-shadow:var(--shadow-lg); display:flex; align-items:center; gap:.6rem; font-size:.82rem; font-weight:700;
+    color:var(--text); white-space:nowrap;
+  }
+  .hero-visual-card .dot{ width:8px; height:8px; border-radius:50%; background:var(--success); flex:none; }
+
+  .feature-strip{
+    position:relative; max-width:1180px; margin:0 auto; padding:1rem clamp(16px,4vw,3rem) 4.5rem;
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1.4rem;
+  }
+  .feature-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.5rem;
+    box-shadow:var(--shadow); transition:transform .18s ease, box-shadow .18s ease; position:relative; overflow:hidden;
+  }
+  .feature-card::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--card-accent, var(--grad-primary));
+  }
+  .feature-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow-lg); }
+  .feature-card .icon-badge{
+    width:2.5rem; height:2.5rem; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    margin-bottom:1rem;
+  }
+  .feature-card h3{ font-size:1.08rem; font-weight:600; margin-bottom:.5rem; }
+  .feature-card p{ font-size:.9rem; color:var(--text-muted); line-height:1.55; }
+
+  .landing-footer{
+    position:relative; max-width:1180px; margin:0 auto; padding:0 clamp(16px,4vw,3rem) 3rem; color:var(--text-muted); font-size:.82rem;
+  }
+
+  @media (max-width:960px){
+    .hero{ grid-template-columns:1fr; }
+    .hero-visual{ display:none; }
+  }
+
+  /* ---------- App shell ---------- */
+  .shell{ display:flex; min-height:100%; }
+  .rail{
+    width:220px; flex:none; border-right:1px solid var(--border); background:var(--surface);
+    display:flex; flex-direction:column; padding:1.1rem .9rem; gap:.2rem;
+  }
+  .rail-brand{ display:flex; align-items:center; gap:.5rem; padding:.4rem .5rem 1.1rem; }
+  .rail-brand span{ font-family:'Newsreader',serif; font-weight:600; font-size:1.05rem; }
+  .rail-link{
+    display:flex; align-items:center; gap:.7rem; padding:.6rem .65rem; border-radius:9px;
+    color:var(--text-muted); font-size:.9rem; font-weight:600; border:none; background:transparent;
+    text-align:left; width:100%; position:relative; transition:background .15s ease, color .15s ease;
+  }
+  .rail-link:hover{ background:var(--surface-2); color:var(--text); }
+  .rail-link.active{ background:var(--primary-soft); color:var(--primary-strong); }
+  .rail-link.active::before{
+    content:''; position:absolute; left:-.9rem; top:.35rem; bottom:.35rem; width:3px; border-radius:3px;
+    background:var(--grad-accent);
+  }
+  .rail-foot{ margin-top:auto; padding:.7rem .5rem 0; border-top:1px solid var(--border); }
+  .rail-foot a{ font-size:.78rem; color:var(--text-muted); text-decoration:none; }
+  .rail-foot a:hover{ color:var(--primary); }
+
+  .main{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between; gap:1rem;
+    padding:.85rem clamp(16px,3vw,2rem); border-bottom:1px solid var(--border); background:var(--surface);
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:5;
+  }
+  .viewing-as{ display:flex; align-items:center; gap:.6rem; font-size:.86rem; color:var(--text-muted); }
+  .org-switch{
+    font-family:inherit; font-size:.86rem; font-weight:600; color:var(--text);
+    background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:.4rem .6rem;
+  }
+  .content{ padding:clamp(16px,3vw,2rem); max-width:1080px; width:100%; margin:0 auto; }
+
+  .page-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; margin-bottom:1.4rem; flex-wrap:wrap; }
+  .page-head h2{ font-size:1.6rem; font-weight:600; padding-left:.85rem; border-left:4px solid var(--accent); }
+  .page-head p{ color:var(--text-muted); font-size:.92rem; margin-top:.3rem; padding-left:.85rem; }
+
+  .toolbar{ display:flex; flex-wrap:wrap; gap:.6rem; margin-bottom:1.3rem; align-items:center; }
+  .search-input{
+    flex:1; min-width:180px; font-family:inherit; font-size:.9rem; padding:.6rem .8rem;
+    border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text);
+  }
+  .chip{
+    font-size:.8rem; font-weight:600; padding:.36rem .72rem; border-radius:100px;
+    border:1px solid var(--border); background:var(--surface); color:var(--text-muted);
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .chip:hover{ border-color:var(--primary); color:var(--text); }
+  .chip.active{ background:var(--grad-primary); color:#fff; border-color:transparent; box-shadow:var(--glow-primary); }
+
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.1rem; }
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.15rem;
+    box-shadow:var(--shadow); transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .org-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:var(--primary); }
+  .org-card-top{ display:flex; justify-content:flex-end; margin-bottom:.4rem; }
+  .org-badge{ font-size:.68rem; font-weight:700; letter-spacing:.03em; padding:.2rem .55rem; border-radius:100px; }
+  .org-badge.real{ background:var(--surface-2); color:var(--text-muted); }
+  .org-badge.demo{ background:var(--accent-soft); color:var(--accent); }
+  .dir-footnote{ font-size:.8rem; color:var(--text-muted); margin-top:1.2rem; max-width:70ch; }
+  .org-card h3{ font-size:1.05rem; font-weight:600; margin-bottom:.2rem; }
+  .org-tagline{ font-size:.86rem; color:var(--text-muted); margin-bottom:.7rem; }
+  .meta-row{ display:flex; flex-wrap:wrap; gap:.5rem; font-size:.78rem; color:var(--text-muted); margin-bottom:.8rem; }
+  .meta-row span{ display:inline-flex; align-items:center; gap:.3rem; }
+  .tag-row{ display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1rem; }
+  .tag{ font-size:.74rem; font-weight:600; padding:.24rem .58rem; border-radius:100px; background:var(--primary-soft); color:var(--primary-strong); }
+  .tag.accent{ background:var(--accent-soft); color:var(--accent); }
+  .card-actions{ display:flex; gap:.5rem; }
+
+  .empty{ color:var(--text-muted); font-size:.9rem; padding:2rem 0; text-align:center; }
+
+  .profile-head{ display:flex; justify-content:space-between; gap:1.2rem; flex-wrap:wrap; align-items:flex-start; margin-bottom:1.6rem; }
+  .profile-head h2{ font-size:1.7rem; }
+  .profile-grid{ display:grid; grid-template-columns:1.5fr 1fr; gap:1.4rem; }
+  .section-label{ font-size:.76rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--text-muted); margin-bottom:.6rem; }
+  .list-plain{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.5rem; }
+  .list-plain li{ font-size:.9rem; padding:.55rem .7rem; background:var(--surface-2); border-radius:8px; }
+  .side-card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.1rem; margin-bottom:1rem; box-shadow:var(--shadow); }
+
+  .request-composer{ margin-top:1rem; }
+  textarea{
+    width:100%; font-family:inherit; font-size:.9rem; padding:.7rem .8rem; border-radius:8px;
+    border:1px solid var(--border); background:var(--surface); color:var(--text); resize:vertical; min-height:5rem;
+  }
+
+  .req-group{ margin-bottom:1.8rem; }
+  .req-group-title{ font-size:.95rem; font-weight:700; margin-bottom:.7rem; display:flex; align-items:center; gap:.5rem; }
+  .count-pill{ font-size:.72rem; font-weight:700; background:var(--surface-2); color:var(--text-muted); border-radius:100px; padding:.1rem .5rem; }
+  .req-card{ display:flex; justify-content:space-between; gap:1rem; align-items:flex-start; flex-wrap:wrap; }
+  .req-note{ font-size:.88rem; color:var(--text); line-height:1.5; margin-top:.35rem; max-width:52ch; }
+  .req-date{ font-size:.76rem; color:var(--text-muted); margin-top:.4rem; }
+  .status-pill{ font-size:.74rem; font-weight:700; padding:.22rem .6rem; border-radius:100px; white-space:nowrap; }
+  .status-pending{ background:var(--warning-soft); color:var(--warning); }
+  .status-accepted{ background:var(--success-soft); color:var(--success); }
+  .status-declined{ background:var(--surface-2); color:var(--text-muted); }
+
+  .thread{ margin-top:.9rem; border-top:1px solid var(--border); padding-top:.9rem; display:flex; flex-direction:column; gap:.6rem; }
+  .msg{ max-width:80%; padding:.55rem .75rem; border-radius:10px; font-size:.87rem; line-height:1.45; }
+  .msg-them{ background:var(--surface-2); align-self:flex-start; border-bottom-left-radius:3px; }
+  .msg-me{ background:var(--primary-soft); color:var(--primary-strong); align-self:flex-end; border-bottom-right-radius:3px; }
+  .msg-meta{ font-size:.72rem; color:var(--text-muted); margin-top:.15rem; }
+  .msg-form{ display:flex; gap:.5rem; margin-top:.7rem; }
+  .msg-form input{ flex:1; font-family:inherit; font-size:.87rem; padding:.55rem .7rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); }
+
+  .res-card{ display:flex; flex-direction:column; gap:.55rem; }
+  .res-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:.6rem; }
+  .res-type{ font-size:.72rem; font-weight:700; padding:.2rem .55rem; border-radius:100px; white-space:nowrap; }
+  .res-type.offer{ background:var(--success-soft); color:var(--success); }
+  .res-type.need{ background:var(--accent-soft); color:var(--accent); }
+  .res-org{ font-size:.8rem; color:var(--text-muted); }
+  .res-detail{ font-size:.87rem; color:var(--text); line-height:1.5; }
+  .res-date{ font-size:.75rem; color:var(--text-muted); }
+
+  .bp-card{ display:flex; flex-direction:column; gap:.55rem; }
+  .bp-summary{ font-size:.87rem; color:var(--text); line-height:1.5; }
+  .bp-foot{ display:flex; justify-content:space-between; align-items:center; gap:.6rem; margin-top:.3rem; }
+  .adopted-count{ font-size:.78rem; color:var(--text-muted); }
+
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(11,24,38,.45); display:flex; align-items:flex-start;
+    justify-content:center; padding:5vh 16px; z-index:50; overflow-y:auto;
+  }
+  .modal{
+    background:var(--surface); border-radius:14px; padding:1.5rem; max-width:460px; width:100%;
+    box-shadow:0 20px 60px rgba(0,0,0,.25); margin-bottom:5vh;
+  }
+  .modal h3{ font-size:1.15rem; margin-bottom:1rem; }
+  .field{ margin-bottom:.9rem; }
+  .field label{ display:block; font-size:.8rem; font-weight:600; color:var(--text-muted); margin-bottom:.35rem; }
+  .field input, .field select, .field textarea{
+    width:100%; font-family:inherit; font-size:.9rem; padding:.6rem .7rem; border-radius:8px;
+    border:1px solid var(--border); background:var(--surface); color:var(--text);
+  }
+  .field-row{ display:flex; gap:.7rem; }
+  .field-row .field{ flex:1; }
+  .modal-actions{ display:flex; justify-content:flex-end; gap:.6rem; margin-top:1.2rem; }
+
+  .toast{
+    position:fixed; bottom:1.2rem; left:50%; transform:translateX(-50%) translateY(10px); opacity:0;
+    background:var(--text); color:var(--bg); padding:.65rem 1.1rem; border-radius:9px; font-size:.86rem;
+    font-weight:600; box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:80; pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (prefers-reduced-motion:reduce){
+    .toast, .btn, .rail-link{ transition:none; }
+  }
+
+  @media (max-width:900px){
+    .profile-grid{ grid-template-columns:1fr; }
+    .feature-strip{ grid-template-columns:1fr; }
+  }
+  @media (max-width:720px){
+    .shell{ flex-direction:column; }
+    .rail{
+      width:100%; flex-direction:row; align-items:center; border-right:none; border-bottom:1px solid var(--border);
+      padding:.6rem .7rem; overflow-x:auto; gap:.3rem;
+    }
+    .rail-brand{ display:none; }
+    .rail-link{ flex-direction:column; gap:.25rem; font-size:.68rem; padding:.5rem .6rem; white-space:nowrap; }
+    .rail-link.active::before{ left:.35rem; right:.35rem; top:auto; bottom:-.15rem; height:3px; width:auto; }
+    .rail-foot{ display:none; }
+    .topbar{ flex-wrap:wrap; }
+  }
+</style>
+
+<div id="root"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============ ICONS ============ */
+  var ICONS = {
+    directory: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="16.2" y1="16.2" x2="21" y2="21"></line></svg>',
+    requests: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H8l-4 4V4z"></path></svg>',
+    resources: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path><path d="M12 13v8"></path></svg>',
+    blueprints: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.6"></circle><circle cx="18" cy="5.5" r="2.6"></circle><circle cx="18" cy="18.5" r="2.6"></circle><line x1="8.3" y1="10.8" x2="15.7" y2="6.7"></line><line x1="8.3" y1="13.2" x2="15.7" y2="17.3"></line></svg>',
+    profile: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V6.5L12 3l8 3.5V21"></path><path d="M9 21v-6h6v6"></path><line x1="9" y1="9" x2="9" y2="9.01"></line><line x1="15" y1="9" x2="15" y2="9.01"></line><line x1="9" y1="13" x2="9" y2="13.01"></line><line x1="15" y1="13" x2="15" y2="13.01"></line></svg>',
+    pin: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.4"></circle></svg>',
+    people: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20v-1.6a3.6 3.6 0 0 0-3.6-3.6H6.6A3.6 3.6 0 0 0 3 18.4V20"></path><circle cx="9.8" cy="7.4" r="3.4"></circle><path d="M21 20v-1.6a3.2 3.2 0 0 0-2.4-3.1"></path><path d="M15 4.2a3.4 3.4 0 0 1 0 6.4"></path></svg>',
+    arrow: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg>',
+    close: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>'
+  };
+
+  /* ============ MOCK DATA ============ */
+  var DATA = {
+    orgs: [
+      { id:'neighbors-table', kind:'demo', name:"Neighbors’ Table", tagline:"Mobile food pantry & community kitchen", location:"Providence, RI", causes:["Food Security","Community Health"], staff:9, founded:2016,
+        mission:"Neighbors’ Table runs a weekly mobile pantry and community kitchen across five Providence neighborhoods, serving roughly 400 households a month.",
+        needs:["Refrigerated van (Tuesday mornings)","Grant-writing support","Weekend volunteers"],
+        offers:["Commercial kitchen space (evenings)","Food-safety training"],
+        contact:{name:"Dara Whitfield", role:"Partnerships Lead"} },
+      { id:'riverside-food-bank', kind:'demo', name:"Riverside Community Food Bank", tagline:"Regional food rescue & distribution", location:"Portland, OR", causes:["Food Security","Logistics"], staff:18, founded:2004,
+        mission:"Riverside recovers surplus food from 60+ regional grocers and restaurants and distributes it through a network of 40 partner pantries.",
+        needs:["Cold-chain transport partners","Bilingual outreach volunteers (Spanish/Vietnamese)"],
+        offers:["Spare cold-storage capacity","Food-safety certification workshops"],
+        contact:{name:"Marcus Ibe", role:"Operations Director"} },
+      { id:'bright-path', kind:'demo', name:"Bright Path Youth Mentoring", tagline:"1:1 mentoring for at-risk teens", location:"Austin, TX", causes:["Youth Development","Education"], staff:12, founded:2011,
+        mission:"Bright Path pairs trained adult mentors with teens navigating foster care or housing instability, focused on high-school completion.",
+        needs:["Background-checked volunteer mentors","Meeting space near East Austin"],
+        offers:["Mentor-training curriculum","Youth data-privacy templates"],
+        contact:{name:"Priya Raman", role:"Program Manager"} },
+      { id:'clearwater-housing', kind:'demo', name:"Clearwater Housing Alliance", tagline:"Transitional housing & tenant advocacy", location:"Columbus, OH", causes:["Housing","Legal Aid"], staff:34, founded:1998,
+        mission:"Clearwater operates three transitional housing sites and provides eviction-defense support for tenants across Franklin County.",
+        needs:["Pro bono legal volunteers","Furniture donations"],
+        offers:["Case-management software seats","Landlord-mediation training"],
+        contact:{name:"Sam Okafor", role:"Community Partnerships"} },
+      { id:'second-chance-literacy', kind:'demo', name:"Second Chance Literacy Project", tagline:"Adult literacy & GED prep", location:"Detroit, MI", causes:["Education","Workforce Development"], staff:15, founded:2009,
+        mission:"Second Chance runs evening literacy and GED-prep classes for adults re-entering the workforce, in partnership with local employers.",
+        needs:["Evening classroom space (2 nights/week)","Curriculum translation volunteers"],
+        offers:["Tutor-training program","Job-readiness workshops"],
+        contact:{name:"Renee Castillo", role:"Executive Director"} },
+      { id:'coastal-relief', kind:'demo', name:"Coastal Relief Network", tagline:"Hurricane response & recovery coordination", location:"Charleston, SC", causes:["Disaster Response","Housing"], staff:22, founded:2013,
+        mission:"Coastal Relief coordinates volunteer deployment and supply distribution across the Lowcountry after major storms.",
+        needs:["Warehouse space (off-season)","Ham radio operators"],
+        offers:["Incident-command training","Donated-goods sorting protocols"],
+        contact:{name:"Tobias Reyes", role:"Volunteer Coordinator"} },
+
+      /* ---- Real national NGOs (public directory — reference only, no fabricated details) ---- */
+      { id:'real-redcross', kind:'real', name:"American Red Cross", tagline:"Disaster relief & emergency assistance", location:"Washington, D.C.", causes:["Disaster Response","Community Health"],
+        mission:"Responds to home fires and large-scale disasters nationwide, and supports blood donation and emergency preparedness training.",
+        website:"https://www.redcross.org" },
+      { id:'real-feedingamerica', kind:'real', name:"Feeding America", tagline:"National food bank network", location:"Chicago, IL", causes:["Food Security","Logistics"],
+        mission:"A nationwide network of 200+ member food banks working to end hunger through food distribution and advocacy.",
+        website:"https://www.feedingamerica.org" },
+      { id:'real-habitat', kind:'real', name:"Habitat for Humanity International", tagline:"Affordable homeownership & housing", location:"Atlanta, GA", causes:["Housing","Workforce Development"],
+        mission:"Builds and rehabilitates homes alongside families in need, and advocates for access to affordable housing worldwide.",
+        website:"https://www.habitat.org" },
+      { id:'real-bgca', kind:'real', name:"Boys & Girls Clubs of America", tagline:"After-school youth development", location:"Atlanta, GA", causes:["Youth Development","Education"],
+        mission:"Runs local clubs offering academic support, mentoring, and enrichment programs for young people after school and in summer.",
+        website:"https://www.bgca.org" },
+      { id:'real-unitedway', kind:'real', name:"United Way Worldwide", tagline:"Local community impact network", location:"Alexandria, VA", causes:["Community Health","Workforce Development"],
+        mission:"Supports a global network of local United Ways focused on education, income, and health outcomes in their communities.",
+        website:"https://www.unitedway.org" },
+      { id:'real-irc', kind:'real', name:"International Rescue Committee", tagline:"Refugee resettlement & crisis response", location:"New York, NY", causes:["Disaster Response","Legal Aid"],
+        mission:"Helps people whose lives are shattered by conflict and disaster survive, recover, and resettle, including U.S. refugee resettlement services.",
+        website:"https://www.rescue.org" },
+      { id:'real-savethechildren', kind:'real', name:"Save the Children (U.S.)", tagline:"Child education, health & emergency response", location:"Fairfield, CT", causes:["Education","Youth Development"],
+        mission:"Works in U.S. communities and internationally on early childhood education, child health, and emergency response for children.",
+        website:"https://www.savethechildren.org" },
+      { id:'real-directrelief', kind:'real', name:"Direct Relief", tagline:"Medical aid for disaster & poverty response", location:"Santa Barbara, CA", causes:["Community Health","Disaster Response"],
+        mission:"Provides medicines and medical supplies to health workers responding to disasters and to communities facing poverty worldwide.",
+        website:"https://www.directrelief.org" },
+      { id:'real-goodwill', kind:'real', name:"Goodwill Industries International", tagline:"Job training & workforce services", location:"Rockville, MD", causes:["Workforce Development","Community Health"],
+        mission:"Funds job training, employment placement, and career services through a network of local Goodwill organizations.",
+        website:"https://www.goodwill.org" },
+      { id:'real-americares', kind:'real', name:"AmeriCares", tagline:"Global health & disaster medical relief", location:"Stamford, CT", causes:["Community Health","Disaster Response"],
+        mission:"Delivers medicine, medical supplies, and health programs to people affected by poverty or disaster in the U.S. and abroad.",
+        website:"https://www.americares.org" },
+
+      /* ---- Real Boston-area nonprofits (public directory — reference only) ---- */
+      { id:'real-gbfb', kind:'real', name:"Greater Boston Food Bank", tagline:"Regional food bank & hunger relief", location:"Boston, MA", causes:["Food Security","Logistics"],
+        mission:"Distributes food and grocery products to a network of hundreds of hunger-relief agencies across Eastern Massachusetts.",
+        website:"https://www.gbfb.org" },
+      { id:'real-bhchp', kind:'real', name:"Boston Health Care for the Homeless Program", tagline:"Health care for people experiencing homelessness", location:"Boston, MA", causes:["Community Health","Housing"],
+        mission:"Delivers medical, dental, and behavioral health care to people experiencing homelessness across Greater Boston.",
+        website:"https://www.bhchp.org" },
+      { id:'real-rosiesplace', kind:'real', name:"Rosie’s Place", tagline:"Sanctuary & services for poor & homeless women", location:"Boston, MA", causes:["Housing","Community Health"],
+        mission:"Provides a safe place, meals, housing advocacy, and education for poor and homeless women in Boston.",
+        website:"https://www.rosiesplace.org" },
+      { id:'real-cityyear', kind:'real', name:"City Year Boston", tagline:"AmeriCorps tutors & mentors in Boston schools", location:"Boston, MA", causes:["Education","Youth Development"],
+        mission:"Places young AmeriCorps members in Boston public schools to provide academic and social-emotional support to students.",
+        website:"https://www.cityyear.org/boston" },
+      { id:'real-cradles', kind:'real', name:"Cradles to Crayons", tagline:"Essential goods for children in need", location:"Boston, MA", causes:["Youth Development","Community Health"],
+        mission:"Provides children from birth through age 12 with the clothing, books, and supplies they need to thrive at home and in school.",
+        website:"https://www.cradlestocrayons.org" },
+      { id:'real-gleaners', kind:'real', name:"Boston Area Gleaners", tagline:"Farm surplus rescue & food access", location:"Greater Boston, MA", causes:["Food Security","Logistics"],
+        mission:"Harvests surplus produce from regional farms and distributes it to hunger-relief organizations across Eastern Massachusetts.",
+        website:"https://bostonareagleaners.org" },
+      { id:'real-bigsister', kind:'real', name:"Big Sister Association of Greater Boston", tagline:"Mentoring for girls", location:"Boston, MA", causes:["Youth Development"],
+        mission:"Matches girls with adult mentors in one-to-one relationships that build confidence and support healthy development.",
+        website:"https://www.bigsister.org" },
+      { id:'real-victoryprograms', kind:'real', name:"Victory Programs", tagline:"Housing, health & recovery services", location:"Boston, MA", causes:["Housing","Community Health"],
+        mission:"Runs housing and health programs for people experiencing homelessness, addiction, or chronic illness across Boston.",
+        website:"https://www.vpi.org" },
+      { id:'real-massadvocates', kind:'real', name:"Massachusetts Advocates for Children", tagline:"Education equity & child advocacy", location:"Boston, MA", causes:["Education","Legal Aid"],
+        mission:"Advocates and provides legal support to remove barriers to education for children facing trauma, disability, or discrimination.",
+        website:"https://www.massadvocates.org" },
+      { id:'real-scienceclub', kind:'real', name:"Science Club for Girls", tagline:"Free STEM programs for girls", location:"Cambridge, MA", causes:["Education","Youth Development"],
+        mission:"Offers free science, technology, engineering, and math programs and mentoring for girls from underrepresented communities.",
+        website:"https://www.scienceclubforgirls.org" },
+      { id:'real-catholiccharities', kind:'real', name:"Catholic Charities Boston", tagline:"Housing, food & family services", location:"Boston, MA", causes:["Housing","Community Health","Workforce Development"],
+        mission:"Provides housing stabilization, food assistance, refugee resettlement, and family support services across Greater Boston.",
+        website:"https://www.ccab.org" },
+      { id:'real-housingfamilies', kind:'real', name:"Housing Families Inc.", tagline:"Homelessness prevention & housing stability", location:"Malden, MA", causes:["Housing"],
+        mission:"Works to prevent and end family homelessness north of Boston through shelter, housing search, and stabilization services.",
+        website:"https://housingfamilies.org" }
+    ],
+    requests: [
+      { id:'r1', fromOrgId:'riverside-food-bank', toOrgId:'neighbors-table', status:'pending',
+        note:"We recover more produce than our pantries can move on Tuesdays — could Neighbors’ Table take a standing Tuesday drop?", date:'2026-09-12' },
+      { id:'r2', fromOrgId:'neighbors-table', toOrgId:'bright-path', status:'pending',
+        note:"Our commercial kitchen sits empty on weekday mornings — want to run a teen cooking-skills session there?", date:'2026-09-15' },
+      { id:'r3', fromOrgId:'coastal-relief', toOrgId:'neighbors-table', status:'accepted',
+        note:"Loved your mobile-pantry routing model — want to compare notes before hurricane season?", date:'2026-08-30' },
+      { id:'r4', fromOrgId:'neighbors-table', toOrgId:'clearwater-housing', status:'declined',
+        note:"Could we co-host a resource fair for families facing eviction?", date:'2026-08-20',
+        declineNote:"Timing conflicts with our Q3 site move — let’s revisit in Q4." }
+    ],
+    threads: {
+      r3: [
+        { from:'coastal-relief', text:"Thanks for connecting! Our mobile distribution routes get chaotic during activation — would love to see how you sequence your Tuesday stops.", date:'Aug 31' },
+        { from:'neighbors-table', text:"Happy to share. We use a simple density map plus volunteer capacity per stop — I’ll send our routing sheet template this week.", date:'Sep 1' },
+        { from:'coastal-relief', text:"That would be huge. Also curious how you handle no-show volunteers on route day.", date:'Sep 2' }
+      ]
+    },
+    resources: [
+      { id:'res1', orgId:'riverside-food-bank', type:'offer', category:'Storage & Equipment', title:"Spare cold-storage capacity, 2 pallets/week", detail:"Walk-in cooler space open most weeks — first come, first served, pickup coordination required.", posted:'Sep 10' },
+      { id:'res2', orgId:'clearwater-housing', type:'need', category:'Volunteers', title:"Pro bono attorneys for eviction-defense clinic", detail:"Monthly clinic needs 3–4 volunteer attorneys or supervised law students, evenings.", posted:'Sep 8' },
+      { id:'res3', orgId:'bright-path', type:'offer', category:'Training & Curriculum', title:"Mentor-training curriculum, ready to license", detail:"Six-week training program we built in-house — happy to share the full curriculum with any youth-serving org.", posted:'Sep 5' },
+      { id:'res4', orgId:'neighbors-table', type:'need', category:'Transportation', title:"Refrigerated van, Tuesday mornings", detail:"Looking for a standing loan or low-cost rental for our Tuesday mobile-pantry route.", posted:'Sep 13' },
+      { id:'res5', orgId:'second-chance-literacy', type:'need', category:'Space', title:"Evening classroom space, 2 nights/week", detail:"Our current host site is closing in October — need 20-seat classroom access Tue/Thu evenings.", posted:'Sep 11' },
+      { id:'res6', orgId:'coastal-relief', type:'offer', category:'Training & Curriculum', title:"FEMA-aligned incident-command training", detail:"We run quarterly ICS-100/200 sessions and have open seats for partner-org staff.", posted:'Sep 2' },
+      { id:'res7', orgId:'riverside-food-bank', type:'need', category:'Volunteers', title:"Bilingual outreach volunteers (Spanish/Vietnamese)", detail:"Weekend outreach shifts at three distribution sites — language support is our biggest gap.", posted:'Sep 14' },
+      { id:'res8', orgId:'clearwater-housing', type:'offer', category:'Software & Tools', title:"Two spare seats on our case-management platform", detail:"Licensed through June — happy to sublicense to a partner org needing case tracking.", posted:'Aug 28' }
+    ],
+    blueprints: [
+      { id:'bp1', orgId:'riverside-food-bank', title:"Zero-waste grocery rescue: partner agreement template", summary:"The exact agreement language we use with grocers, plus a pickup-scheduling checklist that took us two years to get right.", tags:["Food Rescue","Operations"], adopted:14 },
+      { id:'bp2', orgId:'coastal-relief', title:"48-hour volunteer activation playbook", summary:"Our step-by-step plan for standing up a volunteer response within 48 hours of a disaster declaration.", tags:["Disaster Response","Volunteer Management"], adopted:9 },
+      { id:'bp3', orgId:'bright-path', title:"Mentor background-check & onboarding workflow", summary:"A compliance-safe onboarding flow for youth-serving volunteers, built with input from our legal counsel.", tags:["Youth Safety","Volunteer Management"], adopted:21 },
+      { id:'bp4', orgId:'second-chance-literacy', title:"Employer-partnership pipeline for adult learners", summary:"How we turned three local employer relationships into a standing job-placement pipeline for GED graduates.", tags:["Workforce Development","Partnerships"], adopted:6 },
+      { id:'bp5', orgId:'clearwater-housing', title:"Eviction-defense intake & triage script", summary:"The phone or in-person intake script our front desk uses to triage tenants before a legal-aid callback.", tags:["Legal Aid","Housing"], adopted:11 }
+    ]
+  };
+  var nextId = 100;
+
+  /* ============ STATE ============ */
+  var state = {
+    view:'landing',            // 'landing' | 'app'
+    tab:'directory',           // 'directory' | 'profile' | 'requests' | 'resources' | 'blueprints'
+    activeOrgId:'neighbors-table',
+    dirQuery:'',
+    dirCause:'All',
+    dirSource:'all',           // 'all' | 'demo' | 'real'
+    selectedOrgId:null,        // profile drill-in from directory
+    composerOrgId:null,        // org id currently showing the request composer
+    openThreadId:null,
+    resFilter:'all',           // 'all' | 'offer' | 'need'
+    resCategory:'All',
+    modal:null                 // 'post-resource' | 'share-blueprint' | null
+  };
+
+  /* ============ HELPERS ============ */
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function orgById(id){ return DATA.orgs.filter(function(o){ return o.id===id; })[0]; }
+  function activeOrg(){ return orgById(state.activeOrgId); }
+  function allCauses(){
+    var set = {};
+    DATA.orgs.forEach(function(o){ o.causes.forEach(function(c){ set[c]=true; }); });
+    return Object.keys(set).sort();
+  }
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+  }
+
+  /* ============ RENDER: LANDING ============ */
+  function heroVisual(){
+    return '<div class="hero-visual" aria-hidden="true">'
+      + '<svg viewBox="0 0 420 420">'
+      +   '<defs>'
+      +     '<linearGradient id="edgeGrad" x1="0" y1="0" x2="1" y2="1">'
+      +       '<stop offset="0" stop-color="var(--primary)" stop-opacity=".55"/>'
+      +       '<stop offset="1" stop-color="var(--accent)" stop-opacity=".45"/>'
+      +     '</linearGradient>'
+      +   '</defs>'
+      +   '<circle cx="210" cy="210" r="176" fill="none" stroke="var(--border)" stroke-width="1" stroke-dasharray="2 8"/>'
+      +   '<g stroke="url(#edgeGrad)" stroke-width="1.6" fill="none">'
+      +     '<line x1="210" y1="210" x2="96" y2="120"/>'
+      +     '<line x1="210" y1="210" x2="330" y2="96"/>'
+      +     '<line x1="210" y1="210" x2="346" y2="248"/>'
+      +     '<line x1="210" y1="210" x2="256" y2="352"/>'
+      +     '<line x1="210" y1="210" x2="100" y2="312"/>'
+      +     '<line x1="210" y1="210" x2="70" y2="204"/>'
+      +     '<line x1="96" y1="120" x2="330" y2="96"/>'
+      +     '<line x1="346" y1="248" x2="256" y2="352"/>'
+      +   '</g>'
+      +   '<circle cx="210" cy="210" r="17" fill="var(--accent)"/>'
+      +   '<circle cx="96" cy="120" r="10" fill="var(--primary)"/>'
+      +   '<circle cx="330" cy="96" r="8" fill="var(--surface)" stroke="var(--primary)" stroke-width="2"/>'
+      +   '<circle cx="346" cy="248" r="11" fill="var(--primary)"/>'
+      +   '<circle cx="256" cy="352" r="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>'
+      +   '<circle cx="100" cy="312" r="9" fill="var(--surface)" stroke="var(--primary)" stroke-width="2"/>'
+      +   '<circle cx="70" cy="204" r="7" fill="var(--accent)"/>'
+      +   '</svg>'
+      +   '<div class="hero-visual-card"><span class="dot"></span>New partnership request · Riverside Food Bank</div>'
+      + '</div>';
+  }
+  function renderLanding(){
+    var realCount = DATA.orgs.filter(function(o){ return o.kind==='real'; }).length;
+    var demoCount = DATA.orgs.filter(function(o){ return o.kind==='demo'; }).length;
+    var causeCount = allCauses().length;
+    return '<div class="landing-page">'
+    + '<div class="landing-top">'
+    +   '<div class="wordmark"><span class="dot"></span><span>Global Neighbors</span></div>'
+    +   '<button class="btn btn-secondary" data-action="enter-app">Enter the network</button>'
+    + '</div>'
+    + '<div class="hero">'
+    +   '<div>'
+    +     '<div class="eyebrow">Prototype — mock data throughout</div>'
+    +     '<h1>The infrastructure layer for <em>nonprofit collaboration.</em></h1>'
+    +     '<p class="hero-sub">Global Neighbors matches localized need with vetted nonprofit partners, and lets those nonprofits discover each other, share what already works, and stop rebuilding the same program from scratch.</p>'
+    +     '<div class="hero-actions">'
+    +       '<button class="btn btn-primary" data-action="enter-app">Explore the network ' + ICONS.arrow + '</button>'
+    +       '<span class="hero-note">No sign-up — you’ll browse as a sample org, Neighbors’ Table.</span>'
+    +     '</div>'
+    +     '<div class="hero-stats">'
+    +       '<div class="hero-stat"><b>' + demoCount + '</b><span>Interactive demo orgs</span></div>'
+    +       '<div class="hero-stat"><b>' + realCount + '</b><span>Real orgs in the reference directory</span></div>'
+    +       '<div class="hero-stat"><b>' + causeCount + '</b><span>Cause areas covered</span></div>'
+    +     '</div>'
+    +   '</div>'
+    +   heroVisual()
+    + '</div>'
+    + '<div class="feature-strip">'
+    +   featureCard('primary', ICONS.directory, 'Find the right partner fast', 'Search a directory of vetted nonprofits by cause area and location instead of cold emails and old conference contacts.')
+    +   featureCard('accent', ICONS.resources, 'Put spare capacity to work', 'Post what you have too much of — storage, training seats, meeting space — and what you’re short on.')
+    +   featureCard('primary', ICONS.blueprints, 'Stop rebuilding the wheel', 'Browse operational playbooks other nonprofits already got working, and adopt one instead of starting from zero.')
+    + '</div>'
+    + '<div class="landing-footer">Global Neighbors is a concept prototype. Organizations, people, and messages shown here are illustrative, not real.</div>'
+    + '</div>';
+  }
+  function featureCard(tone, icon, title, body){
+    var bg = tone==='accent' ? 'var(--accent-soft)' : 'var(--primary-soft)';
+    var fg = tone==='accent' ? 'var(--accent)' : 'var(--primary-strong)';
+    var grad = tone==='accent' ? 'var(--grad-accent)' : 'var(--grad-primary)';
+    return '<div class="feature-card" style="--card-accent:' + grad + ';">'
+      + '<div class="icon-badge" style="background:' + bg + ';color:' + fg + ';">' + icon + '</div>'
+      + '<h3>' + title + '</h3><p>' + body + '</p></div>';
+  }
+
+  /* ============ RENDER: APP SHELL ============ */
+  var TABS = [
+    {id:'directory', label:'Directory', icon:ICONS.directory},
+    {id:'requests', label:'Requests', icon:ICONS.requests},
+    {id:'resources', label:'Resources', icon:ICONS.resources},
+    {id:'blueprints', label:'Blueprints', icon:ICONS.blueprints},
+    {id:'profile', label:'My Profile', icon:ICONS.profile}
+  ];
+
+  function renderApp(){
+    var rail = '<div class="rail">'
+      + '<div class="rail-brand"><span class="wordmark-dot" style="width:10px;height:10px;border-radius:50%;background:var(--grad-accent);box-shadow:0 0 0 3px var(--accent-soft);display:inline-block;"></span><span>Global Neighbors</span></div>'
+      + TABS.map(function(t){
+          var active = (state.tab===t.id) ? ' active' : '';
+          return '<button class="rail-link' + active + '" data-action="set-tab" data-tab="' + t.id + '">' + t.icon + '<span>' + t.label + '</span></button>';
+        }).join('')
+      + '<div class="rail-foot"><a href="#" data-action="back-to-landing">← Back to landing</a></div>'
+      + '</div>';
+
+    var orgOptions = DATA.orgs.filter(function(o){ return o.kind==='demo'; }).map(function(o){
+      return '<option value="' + o.id + '"' + (o.id===state.activeOrgId?' selected':'') + '>' + esc(o.name) + '</option>';
+    }).join('');
+
+    var topbar = '<div class="topbar">'
+      + '<div class="viewing-as">Viewing as'
+      + '<select class="org-switch" data-action="switch-org">' + orgOptions + '</select>'
+      + '</div>'
+      + '<div class="hero-note">' + activeOrg().location + '</div>'
+      + '</div>';
+
+    var body = '';
+    if(state.tab==='directory') body = state.selectedOrgId ? renderOrgProfile(state.selectedOrgId, true) : renderDirectory();
+    else if(state.tab==='profile') body = renderOrgProfile(state.activeOrgId, false);
+    else if(state.tab==='requests') body = renderRequests();
+    else if(state.tab==='resources') body = renderResources();
+    else if(state.tab==='blueprints') body = renderBlueprints();
+
+    var main = '<div class="main">' + topbar + '<div class="content">' + body + '</div></div>';
+    return '<div class="shell">' + rail + main + '</div>' + renderModal();
+  }
+
+  function renderDirectory(){
+    var q = state.dirQuery.toLowerCase();
+    var list = DATA.orgs.filter(function(o){ return o.id !== state.activeOrgId; }).filter(function(o){
+      var matchesQuery = !q || (o.name.toLowerCase().indexOf(q)>-1) || (o.tagline.toLowerCase().indexOf(q)>-1) || (o.location.toLowerCase().indexOf(q)>-1);
+      var matchesCause = state.dirCause==='All' || o.causes.indexOf(state.dirCause) > -1;
+      var matchesSource = state.dirSource==='all' || o.kind===state.dirSource;
+      return matchesQuery && matchesCause && matchesSource;
+    });
+
+    var sourceChips = [
+      {id:'all', label:'All organizations'},
+      {id:'demo', label:'Interactive demo orgs'},
+      {id:'real', label:'Real-world directory'}
+    ].map(function(s){
+      var active = s.id===state.dirSource ? ' active' : '';
+      return '<button class="chip' + active + '" data-action="set-source" data-source="' + s.id + '">' + s.label + '</button>';
+    }).join('');
+
+    var causeChips = ['All'].concat(allCauses()).map(function(c){
+      var active = c===state.dirCause ? ' active' : '';
+      return '<button class="chip' + active + '" data-action="set-cause" data-cause="' + esc(c) + '">' + esc(c) + '</button>';
+    }).join('');
+
+    var cards = list.map(function(o){
+      var isReal = o.kind==='real';
+      var badge = isReal
+        ? '<span class="org-badge real">Real org</span>'
+        : '<span class="org-badge demo">Demo · interactive</span>';
+      var metaExtra = isReal ? '' : '<span>' + ICONS.people + o.staff + ' staff</span>';
+      var actions = isReal
+        ? '<button class="btn btn-secondary btn-sm" data-action="view-org" data-org="' + o.id + '">View profile</button>'
+        : '<button class="btn btn-secondary btn-sm" data-action="view-org" data-org="' + o.id + '">View profile</button>'
+          + '<button class="btn btn-ghost btn-sm" data-action="open-composer" data-org="' + o.id + '">Request partnership</button>';
+      return '<div class="card org-card">'
+        + '<div class="org-card-top">' + badge + '</div>'
+        + '<h3>' + esc(o.name) + '</h3>'
+        + '<div class="org-tagline">' + esc(o.tagline) + '</div>'
+        + '<div class="meta-row">'
+        +   '<span>' + ICONS.pin + esc(o.location) + '</span>'
+        +   metaExtra
+        + '</div>'
+        + '<div class="tag-row">' + o.causes.map(function(c){ return '<span class="tag">' + esc(c) + '</span>'; }).join('') + '</div>'
+        + '<div class="card-actions">' + actions + '</div>'
+        + '</div>';
+    }).join('');
+
+    return '<div class="page-head"><div><h2>Nonprofit directory</h2><p>Browse vetted organizations by cause area and location — a mix of interactive demo orgs and a real-world reference directory (national &amp; Greater Boston).</p></div></div>'
+      + '<div class="toolbar">'
+      +   '<input class="search-input" type="text" placeholder="Search by name, focus, or city…" value="' + esc(state.dirQuery) + '" data-action="dir-search">'
+      + '</div>'
+      + '<div class="toolbar">' + sourceChips + '</div>'
+      + '<div class="toolbar">' + causeChips + '</div>'
+      + (list.length ? '<div class="grid">' + cards + '</div>' : '<div class="empty">No organizations match that search yet.</div>')
+      + '<div class="dir-footnote">Real-organization entries show each organization’s public mission and a link to their official site — no needs, offers, or contact details are simulated for them. Compiled with reference to '
+      +   '<a href="https://www.charitycharge.com/nonprofit-resources/boston-nonprofits/" target="_blank" rel="noopener">Charity Charge, “15 Amazing Boston Nonprofits Championing Change”</a> and '
+      +   '<a href="https://nonprofitnewsfeed.com/resource/top-100-nonprofits/" target="_blank" rel="noopener">Nonprofit News Feed, “List of 100 Largest Nonprofits by Revenue”</a>.</div>';
+  }
+
+  function renderOrgProfile(orgId, isDrillIn){
+    var o = orgById(orgId);
+    var isSelf = orgId === state.activeOrgId;
+    var isReal = o.kind === 'real';
+    var back = isDrillIn ? '<button class="btn btn-ghost btn-sm" style="margin-bottom:1rem;" data-action="close-org">← Back to directory</button>' : '';
+
+    var actions;
+    if(isReal){
+      actions = '<a class="btn btn-secondary btn-sm" href="' + o.website + '" target="_blank" rel="noopener">Visit official site</a>';
+    } else if(isSelf){
+      actions = '<span class="hero-note">This is how other organizations see your profile.</span>';
+    } else {
+      actions = '<button class="btn btn-primary btn-sm" data-action="open-composer" data-org="' + o.id + '">Request partnership</button>';
+    }
+
+    var composer = (!isReal && state.composerOrgId === o.id) ? renderComposer(o.id) : '';
+
+    var metaRow = '<div class="meta-row" style="margin-bottom:1.2rem;">'
+      +   '<span>' + ICONS.pin + esc(o.location) + '</span>'
+      +   (isReal ? '' : ('<span>' + ICONS.people + o.staff + ' staff</span><span>Founded ' + o.founded + '</span>'))
+      + '</div>';
+
+    var rightColumn = isReal
+      ? '<div class="side-card">'
+          + '<div class="section-label">Real organization</div>'
+          + '<p style="font-size:.88rem; line-height:1.55; color:var(--text-muted);">Shown for reference from public information. Global Neighbors has no live connection to them yet — no needs, offers, or requests are simulated for real organizations.</p>'
+          + '<a class="btn btn-secondary btn-sm" style="margin-top:.7rem;" href="' + o.website + '" target="_blank" rel="noopener">' + esc(o.website.replace('https://','')) + '</a>'
+        + '</div>'
+      : '<div class="side-card"><div class="section-label">Currently needs</div><ul class="list-plain">' + o.needs.map(function(n){ return '<li>' + esc(n) + '</li>'; }).join('') + '</ul></div>'
+        + '<div class="side-card"><div class="section-label">Can offer</div><ul class="list-plain">' + o.offers.map(function(n){ return '<li>' + esc(n) + '</li>'; }).join('') + '</ul></div>'
+        + '<div class="side-card"><div class="section-label">Contact</div><p style="font-size:.9rem;">' + esc(o.contact.name) + '<br><span style="color:var(--text-muted);">' + esc(o.contact.role) + '</span></p></div>';
+
+    return back
+      + '<div class="profile-head">'
+      +   '<div><h2>' + esc(o.name) + '</h2><div class="org-tagline">' + esc(o.tagline) + '</div></div>'
+      +   '<div>' + actions + '</div>'
+      + '</div>'
+      + metaRow
+      + '<div class="tag-row">' + o.causes.map(function(c){ return '<span class="tag">' + esc(c) + '</span>'; }).join('') + '</div>'
+      + '<div class="profile-grid">'
+      +   '<div>'
+      +     '<div class="card" style="margin-bottom:1rem;"><div class="section-label">Mission</div><p style="font-size:.94rem; line-height:1.6;">' + esc(o.mission) + '</p></div>'
+      +     composer
+      +   '</div>'
+      +   '<div>' + rightColumn + '</div>'
+      + '</div>';
+  }
+
+  function renderComposer(orgId){
+    return '<div class="card request-composer">'
+      + '<div class="section-label">Send a partnership request</div>'
+      + '<textarea id="composer-text" placeholder="Introduce yourselves and what you’d like to explore together…"></textarea>'
+      + '<div class="card-actions" style="margin-top:.7rem;">'
+      +   '<button class="btn btn-primary btn-sm" data-action="send-request" data-org="' + orgId + '">Send request</button>'
+      +   '<button class="btn btn-ghost btn-sm" data-action="cancel-composer">Cancel</button>'
+      + '</div></div>';
+  }
+
+  function renderRequests(){
+    var mine = state.activeOrgId;
+    var incoming = DATA.requests.filter(function(r){ return r.toOrgId===mine && r.status==='pending'; });
+    var sent = DATA.requests.filter(function(r){ return r.fromOrgId===mine && r.status==='pending'; });
+    var connected = DATA.requests.filter(function(r){ return r.status==='accepted' && (r.fromOrgId===mine || r.toOrgId===mine); });
+    var declined = DATA.requests.filter(function(r){ return r.status==='declined' && (r.fromOrgId===mine || r.toOrgId===mine); });
+
+    function counterpart(r){ return orgById(r.fromOrgId===mine ? r.toOrgId : r.fromOrgId); }
+
+    var incomingHtml = incoming.map(function(r){
+      var org = counterpart(r);
+      return '<div class="card req-card">'
+        + '<div><h3 style="font-size:.98rem;">' + esc(org.name) + '</h3><div class="req-note">' + esc(r.note) + '</div><div class="req-date">' + r.date + '</div></div>'
+        + '<div class="card-actions"><button class="btn btn-primary btn-sm" data-action="respond-request" data-id="' + r.id + '" data-status="accepted">Accept</button>'
+        + '<button class="btn btn-ghost btn-sm" data-action="respond-request" data-id="' + r.id + '" data-status="declined">Decline</button></div>'
+        + '</div>';
+    }).join('') || '<div class="empty">No incoming requests right now.</div>';
+
+    var sentHtml = sent.map(function(r){
+      var org = counterpart(r);
+      return '<div class="card req-card">'
+        + '<div><h3 style="font-size:.98rem;">' + esc(org.name) + '</h3><div class="req-note">' + esc(r.note) + '</div><div class="req-date">Sent ' + r.date + '</div></div>'
+        + '<span class="status-pill status-pending">Awaiting reply</span>'
+        + '</div>';
+    }).join('') || '<div class="empty">You haven’t sent any requests yet — try the directory.</div>';
+
+    var connectedHtml = connected.map(function(r){
+      var org = counterpart(r);
+      var open = state.openThreadId === r.id;
+      var thread = DATA.threads[r.id] || [];
+      var threadHtml = open ? (
+        '<div class="thread">' + thread.map(function(m){
+          var mine2 = m.from === state.activeOrgId;
+          return '<div class="msg ' + (mine2?'msg-me':'msg-them') + '">' + esc(m.text) + '<div class="msg-meta">' + (mine2?'You':esc(orgById(m.from).name)) + ' · ' + m.date + '</div></div>';
+        }).join('')
+        + '<form class="msg-form" data-action="send-message" data-thread="' + r.id + '">'
+        +   '<input type="text" placeholder="Write a message…" required>'
+        +   '<button class="btn btn-primary btn-sm" type="submit">Send</button>'
+        + '</form></div>'
+      ) : '';
+      return '<div class="card req-card" style="flex-direction:column; align-items:stretch;">'
+        + '<div style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap;">'
+        +   '<div><h3 style="font-size:.98rem;">' + esc(org.name) + '</h3><div class="req-note">' + esc(r.note) + '</div></div>'
+        +   '<button class="btn btn-secondary btn-sm" data-action="toggle-thread" data-id="' + r.id + '">' + (open?'Hide messages':'Open messages') + '</button>'
+        + '</div>' + threadHtml
+        + '</div>';
+    }).join('') || '<div class="empty">No connections yet — accept a request to start messaging.</div>';
+
+    var declinedHtml = declined.map(function(r){
+      var org = counterpart(r);
+      return '<div class="card req-card">'
+        + '<div><h3 style="font-size:.98rem;">' + esc(org.name) + '</h3><div class="req-note">' + esc(r.note) + '</div>'
+        + (r.declineNote ? '<div class="req-date">Note: ' + esc(r.declineNote) + '</div>' : '') + '</div>'
+        + '<span class="status-pill status-declined">Declined</span></div>';
+    }).join('');
+
+    return '<div class="page-head"><div><h2>Partnership requests</h2><p>Manage requests to and from other organizations.</p></div></div>'
+      + '<div class="req-group"><div class="req-group-title">Incoming <span class="count-pill">' + incoming.length + '</span></div>' + incomingHtml + '</div>'
+      + '<div class="req-group"><div class="req-group-title">Sent <span class="count-pill">' + sent.length + '</span></div>' + sentHtml + '</div>'
+      + '<div class="req-group"><div class="req-group-title">Connected <span class="count-pill">' + connected.length + '</span></div>' + connectedHtml + '</div>'
+      + (declined.length ? '<div class="req-group"><div class="req-group-title">Declined <span class="count-pill">' + declined.length + '</span></div>' + declinedHtml + '</div>' : '');
+  }
+
+  function renderResources(){
+    var categories = ['All'].concat(Object.keys(DATA.resources.reduce(function(acc,r){ acc[r.category]=true; return acc; }, {})).sort());
+    var list = DATA.resources.filter(function(r){
+      var matchesType = state.resFilter==='all' || r.type===state.resFilter;
+      var matchesCat = state.resCategory==='All' || r.category===state.resCategory;
+      return matchesType && matchesCat;
+    }).slice().reverse();
+
+    var typeChips = ['all','offer','need'].map(function(t){
+      var label = t==='all'?'All':(t==='offer'?'Offering':'Needing');
+      var active = t===state.resFilter?' active':'';
+      return '<button class="chip' + active + '" data-action="set-res-filter" data-filter="' + t + '">' + label + '</button>';
+    }).join('');
+
+    var catChips = categories.map(function(c){
+      var active = c===state.resCategory?' active':'';
+      return '<button class="chip' + active + '" data-action="set-res-category" data-cat="' + esc(c) + '">' + esc(c) + '</button>';
+    }).join('');
+
+    var cards = list.map(function(r){
+      var org = orgById(r.orgId);
+      return '<div class="card res-card">'
+        + '<div class="res-top"><span class="res-type ' + r.type + '">' + (r.type==='offer'?'Offering':'Needing') + '</span><span class="res-date">' + r.posted + '</span></div>'
+        + '<h3 style="font-size:1rem; font-weight:600;">' + esc(r.title) + '</h3>'
+        + '<div class="res-org">' + esc(org.name) + ' · ' + esc(org.location) + '</div>'
+        + '<div class="res-detail">' + esc(r.detail) + '</div>'
+        + '<div class="card-actions">'
+        +   '<span class="tag">' + esc(r.category) + '</span>'
+        + '</div>'
+        + '<div class="card-actions">'
+        +   '<button class="btn btn-secondary btn-sm" data-action="respond-resource" data-id="' + r.id + '">' + (r.orgId===state.activeOrgId ? 'This is yours' : "I'm interested") + '</button>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+
+    return '<div class="page-head">'
+      +   '<div><h2>Resources</h2><p>What organizations have spare, and what they’re short on.</p></div>'
+      +   '<button class="btn btn-primary" data-action="open-modal" data-modal="post-resource">+ Post a resource</button>'
+      + '</div>'
+      + '<div class="toolbar">' + typeChips + '</div>'
+      + '<div class="toolbar">' + catChips + '</div>'
+      + (list.length ? '<div class="grid">' + cards + '</div>' : '<div class="empty">Nothing matches those filters yet.</div>');
+  }
+
+  function renderBlueprints(){
+    var list = DATA.blueprints.slice().reverse();
+    var cards = list.map(function(b){
+      var org = orgById(b.orgId);
+      return '<div class="card bp-card">'
+        + '<div class="tag-row">' + b.tags.map(function(t){ return '<span class="tag accent">' + esc(t) + '</span>'; }).join('') + '</div>'
+        + '<h3 style="font-size:1.02rem; font-weight:600;">' + esc(b.title) + '</h3>'
+        + '<div class="res-org">Shared by ' + esc(org.name) + '</div>'
+        + '<div class="bp-summary">' + esc(b.summary) + '</div>'
+        + '<div class="bp-foot">'
+        +   '<span class="adopted-count">Adopted by ' + b.adopted + ' organizations</span>'
+        +   (b._adopted
+              ? '<button class="btn btn-secondary btn-sm" disabled>Adopted ✓</button>'
+              : '<button class="btn btn-secondary btn-sm" data-action="adopt-blueprint" data-id="' + b.id + '">Adopt this blueprint</button>')
+        + '</div>'
+        + '</div>';
+    }).join('');
+
+    return '<div class="page-head">'
+      +   '<div><h2>Blueprint library</h2><p>Operational playbooks other organizations already got working.</p></div>'
+      +   '<button class="btn btn-primary" data-action="open-modal" data-modal="share-blueprint">+ Share a blueprint</button>'
+      + '</div>'
+      + '<div class="grid">' + cards + '</div>';
+  }
+
+  function renderModal(){
+    if(!state.modal) return '';
+    if(state.modal==='post-resource'){
+      return '<div class="modal-backdrop" data-action="close-modal">'
+        + '<div class="modal" onclick="event.stopPropagation()">'
+        +   '<h3>Post a resource</h3>'
+        +   '<form data-action="submit-resource">'
+        +     '<div class="field-row">'
+        +       '<div class="field"><label for="res-type">Type</label><select id="res-type"><option value="offer">Offering</option><option value="need">Needing</option></select></div>'
+        +       '<div class="field"><label for="res-cat">Category</label><select id="res-cat">'
+        +         ['Volunteers','Storage & Equipment','Training & Curriculum','Transportation','Space','Software & Tools','Funding'].map(function(c){ return '<option>' + c + '</option>'; }).join('')
+        +       '</select></div>'
+        +     '</div>'
+        +     '<div class="field"><label for="res-title">Title</label><input id="res-title" type="text" required placeholder="e.g. Spare van, weekday mornings"></div>'
+        +     '<div class="field"><label for="res-detail">Details</label><textarea id="res-detail" required placeholder="A sentence or two of context…"></textarea></div>'
+        +     '<div class="modal-actions">'
+        +       '<button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button>'
+        +       '<button type="submit" class="btn btn-primary">Post</button>'
+        +     '</div>'
+        +   '</form>'
+        + '</div></div>';
+    }
+    return '<div class="modal-backdrop" data-action="close-modal">'
+      + '<div class="modal" onclick="event.stopPropagation()">'
+      +   '<h3>Share a blueprint</h3>'
+      +   '<form data-action="submit-blueprint">'
+      +     '<div class="field"><label for="bp-title">Title</label><input id="bp-title" type="text" required placeholder="e.g. Volunteer onboarding checklist"></div>'
+      +     '<div class="field"><label for="bp-summary">Summary</label><textarea id="bp-summary" required placeholder="What does it help another org do?"></textarea></div>'
+      +     '<div class="field"><label for="bp-tags">Tags (comma separated)</label><input id="bp-tags" type="text" placeholder="e.g. Operations, Volunteer Management"></div>'
+      +     '<div class="modal-actions">'
+      +       '<button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button>'
+      +       '<button type="submit" class="btn btn-primary">Share</button>'
+      +     '</div>'
+      +   '</form>'
+      + '</div></div>';
+  }
+
+  /* ============ RENDER DISPATCH ============ */
+  function render(){
+    var root = document.getElementById('root');
+    root.innerHTML = state.view==='landing' ? renderLanding() : renderApp();
+    if(state.tab==='directory' && !state.selectedOrgId){
+      var input = document.querySelector('.search-input');
+      if(input && document.activeElement !== input){ /* no-op, focus preserved by user click flow */ }
+    }
+  }
+
+  /* ============ EVENTS ============ */
+  document.addEventListener('click', function(e){
+    var el = e.target.closest('[data-action]');
+    if(!el) return;
+    var action = el.getAttribute('data-action');
+
+    if(action==='enter-app'){ state.view='app'; state.tab='directory'; render(); return; }
+    if(action==='back-to-landing'){ e.preventDefault(); state.view='landing'; render(); return; }
+    if(action==='set-tab'){
+      state.tab = el.getAttribute('data-tab');
+      state.selectedOrgId=null; state.composerOrgId=null;
+      render(); return;
+    }
+    if(action==='view-org'){ state.selectedOrgId = el.getAttribute('data-org'); render(); return; }
+    if(action==='close-org'){ state.selectedOrgId=null; state.composerOrgId=null; render(); return; }
+    if(action==='open-composer'){ state.selectedOrgId = el.getAttribute('data-org'); state.composerOrgId = el.getAttribute('data-org'); render(); return; }
+    if(action==='cancel-composer'){ state.composerOrgId=null; render(); return; }
+    if(action==='send-request'){
+      var toOrg = el.getAttribute('data-org');
+      var textEl = document.getElementById('composer-text');
+      var text = textEl ? textEl.value.trim() : '';
+      if(!text){ toast('Add a short note before sending.'); return; }
+      DATA.requests.push({ id:'r'+(nextId++), fromOrgId:state.activeOrgId, toOrgId:toOrg, status:'pending', note:text, date:'Just now' });
+      state.composerOrgId=null;
+      toast('Partnership request sent to ' + orgById(toOrg).name + '.');
+      render(); return;
+    }
+    if(action==='respond-request'){
+      var id = el.getAttribute('data-id'), status = el.getAttribute('data-status');
+      DATA.requests.forEach(function(r){ if(r.id===id){ r.status=status; if(status==='declined'){ r.declineNote=''; } } });
+      if(status==='accepted' && !DATA.threads[id]) DATA.threads[id]=[];
+      toast(status==='accepted' ? 'Request accepted — you’re connected.' : 'Request declined.');
+      render(); return;
+    }
+    if(action==='toggle-thread'){
+      var tid = el.getAttribute('data-id');
+      state.openThreadId = state.openThreadId===tid ? null : tid;
+      render(); return;
+    }
+    if(action==='set-cause'){ state.dirCause = el.getAttribute('data-cause'); render(); return; }
+    if(action==='set-source'){ state.dirSource = el.getAttribute('data-source'); render(); return; }
+    if(action==='set-res-filter'){ state.resFilter = el.getAttribute('data-filter'); render(); return; }
+    if(action==='set-res-category'){ state.resCategory = el.getAttribute('data-cat'); render(); return; }
+    if(action==='respond-resource'){
+      var rid = el.getAttribute('data-id');
+      var res = DATA.resources.filter(function(r){ return r.id===rid; })[0];
+      if(res && res.orgId!==state.activeOrgId) toast('Interest sent to ' + orgById(res.orgId).name + '.');
+      return;
+    }
+    if(action==='adopt-blueprint'){
+      var bid = el.getAttribute('data-id');
+      DATA.blueprints.forEach(function(b){ if(b.id===bid){ b.adopted += 1; b._adopted = true; } });
+      toast('Added to your adopted blueprints.');
+      render(); return;
+    }
+    if(action==='open-modal'){ state.modal = el.getAttribute('data-modal'); render(); return; }
+    if(action==='close-modal'){ state.modal=null; render(); return; }
+  });
+
+  document.addEventListener('input', function(e){
+    if(e.target.classList.contains('search-input')){
+      state.dirQuery = e.target.value;
+      var caret = e.target.selectionStart;
+      render();
+      var again = document.querySelector('.search-input');
+      if(again){ again.focus(); try{ again.setSelectionRange(caret, caret); }catch(err){} }
+    }
+  });
+
+  document.addEventListener('change', function(e){
+    if(e.target.classList.contains('org-switch')){
+      state.activeOrgId = e.target.value;
+      state.selectedOrgId=null; state.composerOrgId=null; state.openThreadId=null;
+      render();
+    }
+  });
+
+  document.addEventListener('submit', function(e){
+    var form = e.target;
+    var action = form.getAttribute('data-action');
+    if(action==='send-message'){
+      e.preventDefault();
+      var input = form.querySelector('input');
+      var text = input.value.trim();
+      if(!text) return;
+      var threadId = form.getAttribute('data-thread');
+      if(!DATA.threads[threadId]) DATA.threads[threadId]=[];
+      DATA.threads[threadId].push({ from:state.activeOrgId, text:text, date:'Just now' });
+      render();
+      return;
+    }
+    if(action==='submit-resource'){
+      e.preventDefault();
+      var type = document.getElementById('res-type').value;
+      var cat = document.getElementById('res-cat').value;
+      var title = document.getElementById('res-title').value.trim();
+      var detail = document.getElementById('res-detail').value.trim();
+      if(!title || !detail) return;
+      DATA.resources.push({ id:'res'+(nextId++), orgId:state.activeOrgId, type:type, category:cat, title:title, detail:detail, posted:'Just now' });
+      state.modal=null;
+      toast('Resource posted.');
+      render();
+      return;
+    }
+    if(action==='submit-blueprint'){
+      e.preventDefault();
+      var btitle = document.getElementById('bp-title').value.trim();
+      var summary = document.getElementById('bp-summary').value.trim();
+      var tagsRaw = document.getElementById('bp-tags').value.trim();
+      if(!btitle || !summary) return;
+      var tags = tagsRaw ? tagsRaw.split(',').map(function(t){ return t.trim(); }).filter(Boolean) : ['General'];
+      DATA.blueprints.push({ id:'bp'+(nextId++), orgId:state.activeOrgId, title:btitle, summary:summary, tags:tags, adopted:0 });
+      state.modal=null;
+      toast('Blueprint shared with the network.');
+      render();
+      return;
+    }
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape' && state.modal){ state.modal=null; render(); }
+  });
+
+  render();
+})();
+</script>
