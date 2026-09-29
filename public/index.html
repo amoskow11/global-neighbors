@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Global Neighbors connects people who need help with neighbors, nonprofits, and NGOs, from Greater Boston to the world.">
+<title>Global Neighbors</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --bg:#FAFBFC;
+    --surface:#FFFFFF;
+    --surface-2:#F0F4F7;
+    --border:#DEE6EC;
+    --text:#132A46;
+    --text-muted:#5B6B82;
+    --primary:#1C7293;
+    --primary-strong:#0F4C5C;
+    --primary-soft:#E6F0F3;
+    --accent:#E2711D;
+    --accent-soft:#FCEADA;
+    --success:#2F8F5B;
+    --success-soft:#E4F4EB;
+    --warning:#B8790E;
+    --warning-soft:#FBF0DC;
+    --danger:#B3261E;
+    --danger-soft:#FBE3E1;
+    --shadow:0 1px 2px rgba(19,42,70,.06), 0 6px 18px rgba(19,42,70,.07);
+    --shadow-lg:0 8px 16px rgba(19,42,70,.07), 0 20px 46px rgba(19,42,70,.1);
+    --glow-accent:0 10px 26px rgba(226,113,29,.32);
+    --glow-primary:0 10px 26px rgba(28,114,147,.22);
+    --grad-accent:linear-gradient(135deg,#E2711D,#F0934E);
+    --grad-primary:linear-gradient(135deg,#1C7293,#0F4C5C);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0B1826; --surface:#122238; --surface-2:#16304A; --border:#25456A;
+      --text:#EAF1F7; --text-muted:#93A9C1; --primary:#59B6D6; --primary-strong:#8BD1E8;
+      --primary-soft:#173947; --accent:#F0934E; --accent-soft:#3B2413;
+      --success:#59C68A; --success-soft:#12331F; --warning:#E3A83B; --warning-soft:#3A2C0E; --danger:#F2A09A; --danger-soft:#3D1715;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.35);
+      --shadow-lg:0 10px 20px rgba(0,0,0,.35), 0 26px 54px rgba(0,0,0,.4);
+      --glow-accent:0 10px 28px rgba(240,147,78,.28);
+      --glow-primary:0 10px 28px rgba(89,182,214,.2);
+      --grad-accent:linear-gradient(135deg,#F0934E,#E2711D);
+      --grad-primary:linear-gradient(135deg,#59B6D6,#1C7293);
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0B1826; --surface:#122238; --surface-2:#16304A; --border:#25456A;
+    --text:#EAF1F7; --text-muted:#93A9C1; --primary:#59B6D6; --primary-strong:#8BD1E8;
+    --primary-soft:#173947; --accent:#F0934E; --accent-soft:#3B2413;
+    --success:#59C68A; --success-soft:#12331F; --warning:#E3A83B; --warning-soft:#3A2C0E; --danger:#F2A09A; --danger-soft:#3D1715;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.35);
+    --shadow-lg:0 10px 20px rgba(0,0,0,.35), 0 26px 54px rgba(0,0,0,.4);
+    --glow-accent:0 10px 28px rgba(240,147,78,.28);
+    --glow-primary:0 10px 28px rgba(89,182,214,.2);
+    --grad-accent:linear-gradient(135deg,#F0934E,#E2711D);
+    --grad-primary:linear-gradient(135deg,#59B6D6,#1C7293);
+    color-scheme:dark;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Public Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{ font-family:'Newsreader',Georgia,'Times New Roman',serif; text-wrap:balance; margin:0; }
+  p{ margin:0; }
+  button{ font-family:inherit; }
+  ::selection{ background:var(--accent-soft); color:var(--text); }
+  a{ color:var(--primary); }
+
+  .visually-hidden{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+  button, .btn{ cursor:pointer; }
+  button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible{
+    outline:2px solid var(--primary); outline-offset:2px;
+  }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+    font-size:.92rem; font-weight:600; padding:.62rem 1.1rem; border-radius:9px;
+    border:1px solid transparent; transition:transform .15s ease, box-shadow .2s ease, background .15s ease, border-color .15s ease;
+    white-space:nowrap;
+  }
+  .btn:active{ transform:translateY(1px); }
+  .btn-primary{ background:var(--grad-accent); color:#fff; box-shadow:var(--glow-accent); }
+  .btn-primary:hover{ transform:translateY(-1px); box-shadow:0 14px 30px rgba(226,113,29,.4); }
+  .btn-secondary{ background:var(--primary-soft); color:var(--primary-strong); }
+  .btn-secondary:hover{ border-color:var(--primary); transform:translateY(-1px); }
+  .btn-ghost{ background:transparent; color:var(--text-muted); border-color:var(--border); }
+  .btn-ghost:hover{ color:var(--text); border-color:var(--primary); }
+  .btn-sm{ padding:.42rem .78rem; font-size:.82rem; border-radius:7px; }
+  .btn-sm:hover{ transform:none; }
+  .btn:disabled{ opacity:.55; cursor:default; transform:none !important; box-shadow:none !important; }
+
+  .icon{ width:1.15em; height:1.15em; flex:none; }
+
+  /* ---------- Landing ---------- */
+  .landing-page{ position:relative; overflow:hidden; }
+  .landing-page::before{
+    content:''; position:absolute; top:-220px; right:-160px; width:640px; height:640px; border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, rgba(226,113,29,.16), rgba(226,113,29,0) 68%); pointer-events:none;
+  }
+  .landing-page::after{
+    content:''; position:absolute; top:280px; left:-220px; width:560px; height:560px; border-radius:50%;
+    background:radial-gradient(circle at 60% 40%, rgba(28,114,147,.14), rgba(28,114,147,0) 68%); pointer-events:none;
+  }
+  .landing-top{
+    position:relative; display:flex; align-items:center; justify-content:space-between;
+    padding:1.1rem clamp(16px,4vw,3rem); border-bottom:1px solid var(--border);
+  }
+  .wordmark{ display:flex; align-items:center; gap:.6rem; font-weight:700; letter-spacing:.01em; }
+  .wordmark .dot{
+    width:11px; height:11px; border-radius:50%; background:var(--grad-accent);
+    box-shadow:0 0 0 4px var(--accent-soft);
+  }
+  .wordmark span{ font-family:'Newsreader',serif; font-size:1.15rem; font-weight:600; }
+
+  .hero{
+    position:relative; max-width:1180px; margin:0 auto; padding:clamp(2.4rem,6vw,4.4rem) clamp(16px,4vw,3rem) 2rem;
+    display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(1.5rem,4vw,3rem); align-items:center;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:.5rem; font-size:.74rem; font-weight:700;
+    letter-spacing:.09em; text-transform:uppercase; color:var(--accent);
+    background:var(--accent-soft); padding:.32rem .7rem; border-radius:100px; margin-bottom:1.4rem;
+  }
+  .hero h1{ font-size:clamp(2.2rem,4.6vw,3.6rem); font-weight:600; line-height:1.08; max-width:16ch; color:var(--text); }
+  .hero h1 em{ font-style:italic; color:var(--primary); }
+  .hero-sub{ max-width:52ch; font-size:1.08rem; line-height:1.6; color:var(--text-muted); margin-top:1.3rem; }
+  .hero-actions{ display:flex; flex-wrap:wrap; gap:.9rem; margin-top:2rem; align-items:center; }
+  .hero-note{ font-size:.85rem; color:var(--text-muted); }
+  .hero-stats{ display:flex; flex-wrap:wrap; gap:clamp(1.4rem,4vw,2.4rem); margin-top:2.4rem; }
+  .hero-stat b{ display:block; font-family:'Newsreader',serif; font-size:1.7rem; font-weight:600; color:var(--text); }
+  .hero-stat span{ font-size:.78rem; color:var(--text-muted); }
+
+  .hero-visual{
+    position:relative; aspect-ratio:1/1; max-width:420px; margin:0 auto; justify-self:center;
+  }
+  .hero-visual svg{ width:100%; height:100%; }
+  .hero-visual-card{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:.9rem 1.1rem;
+    box-shadow:var(--shadow-lg); display:flex; align-items:center; gap:.6rem; font-size:.82rem; font-weight:700;
+    color:var(--text); white-space:nowrap;
+  }
+  .hero-visual-card .dot{ width:8px; height:8px; border-radius:50%; background:var(--success); flex:none; }
+
+  .feature-strip{
+    position:relative; max-width:1180px; margin:0 auto; padding:1rem clamp(16px,4vw,3rem) 4.5rem;
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:1.4rem;
+  }
+  .feature-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.5rem;
+    box-shadow:var(--shadow); transition:transform .18s ease, box-shadow .18s ease; position:relative; overflow:hidden;
+  }
+  .feature-card::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--card-accent, var(--grad-primary));
+  }
+  .feature-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow-lg); }
+  .feature-card .icon-badge{
+    width:2.5rem; height:2.5rem; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    margin-bottom:1rem;
+  }
+  .feature-card h3{ font-size:1.08rem; font-weight:600; margin-bottom:.5rem; }
+  .feature-card p{ font-size:.9rem; color:var(--text-muted); line-height:1.55; }
+
+  .landing-footer{
+    position:relative; max-width:1180px; margin:0 auto; padding:0 clamp(16px,4vw,3rem) 3rem; color:var(--text-muted); font-size:.82rem;
+  }
+
+  @media (max-width:960px){
+    .hero{ grid-template-columns:1fr; }
+    .hero-visual{ display:none; }
+  }
+
+  /* ---------- App shell ---------- */
+  .shell{ display:flex; min-height:100%; }
+  .rail{
+    width:220px; flex:none; border-right:1px solid var(--border); background:var(--surface);
+    display:flex; flex-direction:column; padding:1.1rem .9rem; gap:.2rem;
+  }
+  .rail-brand{ display:flex; align-items:center; gap:.5rem; padding:.4rem .5rem 1.1rem; }
+  .rail-brand span{ font-family:'Newsreader',serif; font-weight:600; font-size:1.05rem; }
+  .rail-link{
+    display:flex; align-items:center; gap:.7rem; padding:.6rem .65rem; border-radius:9px;
+    color:var(--text-muted); font-size:.9rem; font-weight:600; border:none; background:transparent;
+    text-align:left; width:100%; position:relative; transition:background .15s ease, color .15s ease;
+  }
+  .rail-link:hover{ background:var(--surface-2); color:var(--text); }
+  .rail-link.active{ background:var(--primary-soft); color:var(--primary-strong); }
+  .rail-link.active::before{
+    content:''; position:absolute; left:-.9rem; top:.35rem; bottom:.35rem; width:3px; border-radius:3px;
+    background:var(--grad-accent);
+  }
+  .rail-foot{ margin-top:auto; padding:.7rem .5rem 0; border-top:1px solid var(--border); }
+  .rail-foot a{ font-size:.78rem; color:var(--text-muted); text-decoration:none; }
+  .rail-foot a:hover{ color:var(--primary); }
+
+  .main{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between; gap:1rem;
+    padding:.85rem clamp(16px,3vw,2rem); border-bottom:1px solid var(--border); background:var(--surface);
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:5;
+  }
+  .viewing-as{ display:flex; align-items:center; gap:.6rem; font-size:.86rem; color:var(--text-muted); }
+  .org-switch{
+    font-family:inherit; font-size:.86rem; font-weight:600; color:var(--text);
+    background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:.4rem .6rem;
+  }
+  .content{ padding:clamp(16px,3vw,2rem); max-width:1080px; width:100%; margin:0 auto; }
+
+  .page-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; margin-bottom:1.4rem; flex-wrap:wrap; }
+  .page-head h2{ font-size:1.6rem; font-weight:600; padding-left:.85rem; border-left:4px solid var(--accent); }
+  .page-head p{ color:var(--text-muted); font-size:.92rem; margin-top:.3rem; padding-left:.85rem; }
+
+  .toolbar{ display:flex; flex-wrap:wrap; gap:.6rem; margin-bottom:1.3rem; align-items:center; }
+  .search-input{
+    flex:1; min-width:180px; font-family:inherit; font-size:.9rem; padding:.6rem .8rem;
+    border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text);
+  }
+  .chip{
+    font-size:.8rem; font-weight:600; padding:.36rem .72rem; border-radius:100px;
+    border:1px solid var(--border); background:var(--surface); color:var(--text-muted);
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .chip:hover{ border-color:var(--primary); color:var(--text); }
+  .chip.active{ background:var(--grad-primary); color:#fff; border-color:transparent; box-shadow:var(--glow-primary); }
+
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.1rem; }
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.15rem;
+    box-shadow:var(--shadow); transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .org-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:var(--primary); }
+  .org-card-top{ display:flex; justify-content:flex-end; margin-bottom:.4rem; }
+  .org-badge{ font-size:.68rem; font-weight:700; letter-spacing:.03em; padding:.2rem .55rem; border-radius:100px; }
+  .org-badge.real{ background:var(--surface-2); color:var(--text-muted); }
+  .org-badge.demo{ background:var(--accent-soft); color:var(--accent); }
+  .dir-footnote{ font-size:.8rem; color:var(--text-muted); margin-top:1.2rem; max-width:70ch; }
+  .org-card h3{ font-size:1.05rem; font-weight:600; margin-bottom:.2rem; }
+  .org-tagline{ font-size:.86rem; color:var(--text-muted); margin-bottom:.7rem; }
+  .meta-row{ display:flex; flex-wrap:wrap; gap:.5rem; font-size:.78rem; color:var(--text-muted); margin-bottom:.8rem; }
+  .meta-row span{ display:inline-flex; align-items:center; gap:.3rem; }
+  .tag-row{ display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1rem; }
+  .tag{ font-size:.74rem; font-weight:600; padding:.24rem .58rem; border-radius:100px; background:var(--primary-soft); color:var(--primary-strong); }
+  .tag.accent{ background:var(--accent-soft); color:var(--accent); }
+  .card-actions{ display:flex; gap:.5rem; }
+
+  .empty{ color:var(--text-muted); font-size:.9rem; padding:2rem 0; text-align:center; }
+
+  .profile-head{ display:flex; justify-content:space-between; gap:1.2rem; flex-wrap:wrap; align-items:flex-start; margin-bottom:1.6rem; }
+  .profile-head h2{ font-size:1.7rem; }
+  .profile-grid{ display:grid; grid-template-columns:1.5fr 1fr; gap:1.4rem; }
+  .section-label{ font-size:.76rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--text-muted); margin-bottom:.6rem; }
+  .list-plain{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.5rem; }
+  .list-plain li{ font-size:.9rem; padding:.55rem .7rem; background:var(--surface-2); border-radius:8px; }
+  .side-card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.1rem; margin-bottom:1rem; box-shadow:var(--shadow); }
+
+  .request-composer{ margin-top:1rem; }
+  textarea{
+    width:100%; font-family:inherit; font-size:.9rem; padding:.7rem .8rem; border-radius:8px;
+    border:1px solid var(--border); background:var(--surface); color:var(--text); resize:vertical; min-height:5rem;
+  }
+
+  .req-group{ margin-bottom:1.8rem; }
+  .req-group-title{ font-size:.95rem; font-weight:700; margin-bottom:.7rem; display:flex; align-items:center; gap:.5rem; }
+  .count-pill{ font-size:.72rem; font-weight:700; background:var(--surface-2); color:var(--text-muted); border-radius:100px; padding:.1rem .5rem; }
+  .req-card{ display:flex; justify-content:space-between; gap:1rem; align-items:flex-start; flex-wrap:wrap; }
+  .req-note{ font-size:.88rem; color:var(--text); line-height:1.5; margin-top:.35rem; max-width:52ch; }
+  .req-date{ font-size:.76rem; color:var(--text-muted); margin-top:.4rem; }
+  .status-pill{ font-size:.74rem; font-weight:700; padding:.22rem .6rem; border-radius:100px; white-space:nowrap; }
+  .status-pending{ background:var(--warning-soft); color:var(--warning); }
+  .status-accepted{ background:var(--success-soft); color:var(--success); }
+  .status-declined{ background:var(--surface-2); color:var(--text-muted); }
+
+  .thread{ margin-top:.9rem; border-top:1px solid var(--border); padding-top:.9rem; display:flex; flex-direction:column; gap:.6rem; }
+  .msg{ max-width:80%; padding:.55rem .75rem; border-radius:10px; font-size:.87rem; line-height:1.45; }
+  .msg-them{ background:var(--surface-2); align-self:flex-start; border-bottom-left-radius:3px; }
+  .msg-me{ background:var(--primary-soft); color:var(--primary-strong); align-self:flex-end; border-bottom-right-radius:3px; }
+  .msg-meta{ font-size:.72rem; color:var(--text-muted); margin-top:.15rem; }
+  .msg-form{ display:flex; gap:.5rem; margin-top:.7rem; }
+  .msg-form input{ flex:1; font-family:inherit; font-size:.87rem; padding:.55rem .7rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); }
+
+  .res-card{ display:flex; flex-direction:column; gap:.55rem; }
+  .res-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:.6rem; }
+  .res-type{ font-size:.72rem; font-weight:700; padding:.2rem .55rem; border-radius:100px; white-space:nowrap; }
+  .res-type.offer{ background:var(--success-soft); color:var(--success); }
+  .res-type.need{ background:var(--accent-soft); color:var(--accent); }
+  .res-org{ font-size:.8rem; color:var(--text-muted); }
+  .res-detail{ font-size:.87rem; color:var(--text); line-height:1.5; }
+  .res-date{ font-size:.75rem; color:var(--text-muted); }
+
+  .bp-card{ display:flex; flex-direction:column; gap:.55rem; }
+  .bp-summary{ font-size:.87rem; color:var(--text); line-height:1.5; }
+  .bp-foot{ display:flex; justify-content:space-between; align-items:center; gap:.6rem; margin-top:.3rem; }
+  .adopted-count{ font-size:.78rem; color:var(--text-muted); }
+
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(11,24,38,.45); display:flex; align-items:flex-start;
+    justify-content:center; padding:5vh 16px; z-index:50; overflow-y:auto;
+  }
+  .modal{
+    background:var(--surface); border-radius:14px; padding:1.5rem; max-width:460px; width:100%;
+    box-shadow:0 20px 60px rgba(0,0,0,.25); margin-bottom:5vh;
+  }
+  .modal h3{ font-size:1.15rem; margin-bottom:1rem; }
+  .field{ margin-bottom:.9rem; }
+  .field label{ display:block; font-size:.8rem; font-weight:600; color:var(--text-muted); margin-bottom:.35rem; }
+  .field input, .field select, .field textarea{
+    width:100%; font-family:inherit; font-size:.9rem; padding:.6rem .7rem; border-radius:8px;
+    border:1px solid var(--border); background:var(--surface); color:var(--text);
+  }
+  .field-row{ display:flex; gap:.7rem; }
+  .field-row .field{ flex:1; }
+  .modal-actions{ display:flex; justify-content:flex-end; gap:.6rem; margin-top:1.2rem; }
+
+  .toast{
+    position:fixed; bottom:1.2rem; left:50%; transform:translateX(-50%) translateY(10px); opacity:0;
+    background:var(--text); color:var(--bg); padding:.65rem 1.1rem; border-radius:9px; font-size:.86rem;
+    font-weight:600; box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:80; pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ---------- Help board ---------- */
+  .seg{ display:inline-flex; flex-wrap:wrap; gap:2px; padding:3px; margin-bottom:1.1rem; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; }
+  .seg button{ border:none; background:transparent; font-size:.84rem; font-weight:600; color:var(--text-muted); padding:.42rem .85rem; border-radius:7px; display:inline-flex; align-items:center; gap:.4rem; }
+  .seg button:hover{ color:var(--text); }
+  .seg button.active{ background:var(--surface); color:var(--text); box-shadow:var(--shadow); }
+  .toolbar-label{ font-size:.72rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--text-muted); margin-right:.15rem; }
+  .filter-select{ font-family:inherit; font-size:.84rem; font-weight:600; padding:.42rem .6rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); max-width:100%; }
+  .help-card{ display:flex; flex-direction:column; gap:.55rem; }
+  .help-card:hover{ border-color:var(--primary); box-shadow:var(--shadow-lg); }
+  .help-top{ display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
+  .help-top .res-date{ margin-left:auto; }
+  .res-type.ask{ background:var(--accent-soft); color:var(--accent); }
+  .urgent-pill{ font-size:.72rem; font-weight:700; padding:.2rem .55rem; border-radius:100px; background:var(--danger-soft); color:var(--danger); }
+  .help-snippet{ font-size:.87rem; line-height:1.5; color:var(--text); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .pay-tag{ font-size:.74rem; font-weight:700; padding:.24rem .58rem; border-radius:100px; background:var(--surface-2); color:var(--text-muted); }
+  .pay-tag.paid, .pay-tag.stipend{ background:var(--success-soft); color:var(--success); }
+  .pay-tag.funding{ background:var(--warning-soft); color:var(--warning); }
+  .tag.muted{ background:var(--surface-2); color:var(--text-muted); }
+  .help-foot{ display:flex; justify-content:space-between; align-items:center; gap:.6rem; flex-wrap:wrap; margin-top:auto; padding-top:.35rem; }
+  .reply-count{ font-size:.78rem; color:var(--text-muted); }
+  .kind-badge{ font-size:.64rem; font-weight:700; letter-spacing:.03em; padding:.1rem .42rem; border-radius:100px; background:var(--surface-2); color:var(--text-muted); margin-left:.35rem; vertical-align:middle; }
+  .suggest{ display:flex; flex-direction:column; gap:.45rem; }
+  .suggest-item{ display:block; width:100%; text-align:left; font-family:inherit; font-size:.86rem; font-weight:600; color:var(--text); background:var(--surface-2); border:1px solid transparent; border-radius:8px; padding:.55rem .7rem; }
+  .suggest-item:hover{ border-color:var(--primary); }
+  .suggest-item small{ display:block; font-size:.74rem; font-weight:500; color:var(--text-muted); margin-top:.12rem; }
+  .response{ margin-bottom:.8rem; }
+  .response-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:.8rem; flex-wrap:wrap; }
+  .modal.wide{ max-width:580px; }
+  .posting-as{ font-size:.8rem; color:var(--text-muted); margin:-.4rem 0 1rem; }
+
+  @media (prefers-reduced-motion:reduce){
+    .toast, .btn, .rail-link{ transition:none; }
+  }
+
+  @media (max-width:900px){
+    .profile-grid{ grid-template-columns:1fr; }
+    .feature-strip{ grid-template-columns:1fr; }
+  }
+  @media (max-width:560px){
+    .field-row{ flex-direction:column; gap:0; }
+  }
+  @media (max-width:720px){
+    .shell{ flex-direction:column; }
+    .rail{
+      width:100%; flex-direction:row; align-items:center; border-right:none; border-bottom:1px solid var(--border);
+      padding:.6rem .7rem; overflow-x:auto; gap:.3rem;
+    }
+    .rail-brand{ display:none; }
+    .rail-link{ flex-direction:column; gap:.25rem; font-size:.68rem; padding:.5rem .6rem; white-space:nowrap; }
+    .rail-link.active::before{ left:.35rem; right:.35rem; top:auto; bottom:-.15rem; height:3px; width:auto; }
+    .rail-foot{ display:none; }
+    .topbar{ flex-wrap:wrap; }
+  }
+
+  /* ---------- Accounts ---------- */
+  .auth-wrap{ min-height:100%; display:flex; align-items:flex-start; justify-content:center; padding:clamp(1.5rem,6vh,4rem) 16px 3rem; }
+  .auth-card{ width:100%; max-width:470px; background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow-lg); padding:clamp(1.2rem,4vw,1.8rem); }
+  .type-pick{ display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:1rem; }
+  .type-pick label{ display:flex; flex-direction:column; gap:.2rem; border:1px solid var(--border); border-radius:10px; padding:.7rem .8rem; cursor:pointer; font-size:.9rem; position:relative; }
+  .type-pick label span{ font-size:.76rem; color:var(--text-muted); }
+  .type-pick input{ position:absolute; opacity:0; }
+  .type-pick label:has(input:checked){ border-color:var(--primary); background:var(--primary-soft); }
+  .type-pick label:has(input:focus-visible){ outline:2px solid var(--primary); outline-offset:2px; }
+  .form-error{ background:var(--danger-soft); color:var(--danger); font-size:.86rem; font-weight:600; padding:.6rem .8rem; border-radius:8px; margin-bottom:1rem; }
+  .hint{ font-size:.76rem; color:var(--text-muted); margin-top:.35rem; line-height:1.45; }
+  .field-label{ display:block; font-size:.8rem; font-weight:600; color:var(--text-muted); margin-bottom:.45rem; }
+  .cause-pick{ display:flex; flex-wrap:wrap; gap:.4rem; }
+  .cause-pick label{ font-size:.78rem; font-weight:600; padding:.34rem .68rem; border-radius:100px; border:1px solid var(--border); color:var(--text-muted); cursor:pointer; }
+  .cause-pick input{ position:absolute; opacity:0; width:1px; height:1px; }
+  .cause-pick label:has(input:checked){ background:var(--primary-soft); color:var(--primary-strong); border-color:var(--primary); }
+  .cause-pick label:has(input:focus-visible){ outline:2px solid var(--primary); outline-offset:2px; }
+  .btn-danger{ background:var(--danger-soft); color:var(--danger); }
+  .btn-danger:hover{ border-color:var(--danger); }
+  @media (max-width:520px){ .type-pick{ grid-template-columns:1fr; } }
+</style>
+
+<div id="root"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============ ICONS ============ */
+  var ICONS = {
+    directory: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="16.2" y1="16.2" x2="21" y2="21"></line></svg>',
+    help: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"></path></svg>',
+    profile: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"></path></svg>',
+    pin: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.4"></circle></svg>',
+    globe: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z"></path></svg>',
+    lock: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>',
+    arrow: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg>'
+  };
+
+  /* ============ REFERENCE DATA ============ */
+  // Real organizations, listed from public information for reference only.
+  var REAL_ORGS = [
+      /* ---- Real national NGOs (public directory — reference only, no fabricated details) ---- */
+      { id:'real-redcross', kind:'real', name:"American Red Cross", tagline:"Disaster relief & emergency assistance", location:"Washington, D.C.", causes:["Disaster Response","Community Health"],
+        mission:"Responds to home fires and large-scale disasters nationwide, and supports blood donation and emergency preparedness training.",
+        website:"https://www.redcross.org" },
+      { id:'real-feedingamerica', kind:'real', name:"Feeding America", tagline:"National food bank network", location:"Chicago, IL", causes:["Food Security","Logistics"],
+        mission:"A nationwide network of 200+ member food banks working to end hunger through food distribution and advocacy.",
+        website:"https://www.feedingamerica.org" },
+      { id:'real-habitat', kind:'real', region:'Global', name:"Habitat for Humanity International", tagline:"Affordable homeownership & housing", location:"Atlanta, GA", causes:["Housing","Workforce Development"],
+        mission:"Builds and rehabilitates homes alongside families in need, and advocates for access to affordable housing worldwide.",
+        website:"https://www.habitat.org" },
+      { id:'real-bgca', kind:'real', name:"Boys & Girls Clubs of America", tagline:"After-school youth development", location:"Atlanta, GA", causes:["Youth Development","Education"],
+        mission:"Runs local clubs offering academic support, mentoring, and enrichment programs for young people after school and in summer.",
+        website:"https://www.bgca.org" },
+      { id:'real-unitedway', kind:'real', name:"United Way Worldwide", tagline:"Local community impact network", location:"Alexandria, VA", causes:["Community Health","Workforce Development"],
+        mission:"Supports a global network of local United Ways focused on education, income, and health outcomes in their communities.",
+        website:"https://www.unitedway.org" },
+      { id:'real-irc', kind:'real', region:'Global', name:"International Rescue Committee", tagline:"Refugee resettlement & crisis response", location:"New York, NY", causes:["Disaster Response","Immigrant & Refugee Services"],
+        mission:"Helps people whose lives are shattered by conflict and disaster survive, recover, and resettle, including U.S. refugee resettlement services.",
+        website:"https://www.rescue.org" },
+      { id:'real-savethechildren', kind:'real', region:'Global', name:"Save the Children (U.S.)", tagline:"Child education, health & emergency response", location:"Fairfield, CT", causes:["Education","Youth Development"],
+        mission:"Works in U.S. communities and internationally on early childhood education, child health, and emergency response for children.",
+        website:"https://www.savethechildren.org" },
+      { id:'real-directrelief', kind:'real', region:'Global', name:"Direct Relief", tagline:"Medical aid for disaster & poverty response", location:"Santa Barbara, CA", causes:["Community Health","Disaster Response"],
+        mission:"Provides medicines and medical supplies to health workers responding to disasters and to communities facing poverty worldwide.",
+        website:"https://www.directrelief.org" },
+      { id:'real-goodwill', kind:'real', name:"Goodwill Industries International", tagline:"Job training & workforce services", location:"Rockville, MD", causes:["Workforce Development","Community Health"],
+        mission:"Funds job training, employment placement, and career services through a network of local Goodwill organizations.",
+        website:"https://www.goodwill.org" },
+      { id:'real-americares', kind:'real', region:'Global', name:"AmeriCares", tagline:"Global health & disaster medical relief", location:"Stamford, CT", causes:["Community Health","Disaster Response"],
+        mission:"Delivers medicine, medical supplies, and health programs to people affected by poverty or disaster in the U.S. and abroad.",
+        website:"https://www.americares.org" },
+
+      /* ---- Real Boston-area nonprofits (public directory — reference only) ---- */
+      { id:'real-gbfb', kind:'real', name:"Greater Boston Food Bank", tagline:"Regional food bank & hunger relief", location:"Boston, MA", causes:["Food Security","Logistics"],
+        mission:"Distributes food and grocery products to a network of hundreds of hunger-relief agencies across Eastern Massachusetts.",
+        website:"https://www.gbfb.org" },
+      { id:'real-bhchp', kind:'real', name:"Boston Health Care for the Homeless Program", tagline:"Health care for people experiencing homelessness", location:"Boston, MA", causes:["Community Health","Housing"],
+        mission:"Delivers medical, dental, and behavioral health care to people experiencing homelessness across Greater Boston.",
+        website:"https://www.bhchp.org" },
+      { id:'real-rosiesplace', kind:'real', name:"Rosie’s Place", tagline:"Sanctuary & services for poor & homeless women", location:"Boston, MA", causes:["Housing","Community Health"],
+        mission:"Provides a safe place, meals, housing advocacy, and education for poor and homeless women in Boston.",
+        website:"https://www.rosiesplace.org" },
+      { id:'real-cityyear', kind:'real', name:"City Year Boston", tagline:"AmeriCorps tutors & mentors in Boston schools", location:"Boston, MA", causes:["Education","Youth Development"],
+        mission:"Places young AmeriCorps members in Boston public schools to provide academic and social-emotional support to students.",
+        website:"https://www.cityyear.org/boston" },
+      { id:'real-cradles', kind:'real', name:"Cradles to Crayons", tagline:"Essential goods for children in need", location:"Boston, MA", causes:["Youth Development","Community Health"],
+        mission:"Provides children from birth through age 12 with the clothing, books, and supplies they need to thrive at home and in school.",
+        website:"https://www.cradlestocrayons.org" },
+      { id:'real-gleaners', kind:'real', name:"Boston Area Gleaners", tagline:"Farm surplus rescue & food access", location:"Greater Boston, MA", causes:["Food Security","Logistics"],
+        mission:"Harvests surplus produce from regional farms and distributes it to hunger-relief organizations across Eastern Massachusetts.",
+        website:"https://bostonareagleaners.org" },
+      { id:'real-bigsister', kind:'real', name:"Big Sister Association of Greater Boston", tagline:"Mentoring for girls", location:"Boston, MA", causes:["Youth Development"],
+        mission:"Matches girls with adult mentors in one-to-one relationships that build confidence and support healthy development.",
+        website:"https://www.bigsister.org" },
+      { id:'real-victoryprograms', kind:'real', name:"Victory Programs", tagline:"Housing, health & recovery services", location:"Boston, MA", causes:["Housing","Community Health"],
+        mission:"Runs housing and health programs for people experiencing homelessness, addiction, or chronic illness across Boston.",
+        website:"https://www.vpi.org" },
+      { id:'real-massadvocates', kind:'real', name:"Massachusetts Advocates for Children", tagline:"Education equity & child advocacy", location:"Boston, MA", causes:["Education","Legal Aid"],
+        mission:"Advocates and provides legal support to remove barriers to education for children facing trauma, disability, or discrimination.",
+        website:"https://www.massadvocates.org" },
+      { id:'real-scienceclub', kind:'real', name:"Science Club for Girls", tagline:"Free STEM programs for girls", location:"Cambridge, MA", causes:["Education","Youth Development"],
+        mission:"Offers free science, technology, engineering, and math programs and mentoring for girls from underrepresented communities.",
+        website:"https://www.scienceclubforgirls.org" },
+      { id:'real-catholiccharities', kind:'real', name:"Catholic Charities Boston", tagline:"Housing, food & family services", location:"Boston, MA", causes:["Housing","Immigrant & Refugee Services","Food Security"],
+        mission:"Provides housing stabilization, food assistance, refugee resettlement, and family support services across Greater Boston.",
+        website:"https://www.ccab.org" },
+      { id:'real-housingfamilies', kind:'real', name:"Housing Families Inc.", tagline:"Homelessness prevention & housing stability", location:"Malden, MA", causes:["Housing"],
+        mission:"Works to prevent and end family homelessness north of Boston through shelter, housing search, and stabilization services.",
+        website:"https://housingfamilies.org" },
+      { id:'real-pinestreet', kind:'real', name:"Pine Street Inn", tagline:"Shelter, housing & job training", location:"Boston, MA", causes:["Housing","Community Health"],
+        mission:"New England’s largest provider of homeless services, offering emergency shelter, permanent supportive housing, street outreach, and job training.",
+        website:"https://www.pinestreetinn.org" },
+      { id:'real-projectbread', kind:'real', name:"Project Bread", tagline:"Statewide anti-hunger organization", location:"Boston, MA", causes:["Food Security"],
+        mission:"Connects people facing hunger in Massachusetts to food resources through its FoodSource Hotline and advocates for policies like universal school meals.",
+        website:"https://www.projectbread.org" },
+      { id:'real-communityservings', kind:'real', name:"Community Servings", tagline:"Medically tailored meals", location:"Jamaica Plain, Boston, MA", causes:["Food Security","Community Health"],
+        mission:"Prepares and delivers medically tailored meals to individuals and families living with critical and chronic illnesses.",
+        website:"https://www.servings.org" },
+      { id:'real-foodforfree', kind:'real', name:"Food For Free", tagline:"Fresh food rescue & distribution", location:"Cambridge, MA", causes:["Food Security","Logistics"],
+        mission:"Rescues fresh food that would otherwise go to waste and distributes it to emergency food programs and community partners across Greater Boston.",
+        website:"https://foodforfree.org" },
+      { id:'real-lovinspoonfuls', kind:'real', name:"Spoonfuls (formerly Lovin’ Spoonfuls)", tagline:"Food recovery for Greater Boston & New England", location:"Boston, MA", causes:["Food Security","Logistics"],
+        mission:"New England’s largest food recovery operation, rescuing fresh food from grocers, farms, and wholesalers and delivering it to community agencies.",
+        website:"https://spoonfuls.org" },
+      { id:'real-ethos', kind:'real', name:"Ethos", tagline:"Home care & Meals on Wheels for elders", location:"Jamaica Plain, Boston, MA", causes:["Elder Care","Food Security"],
+        mission:"Provides home care, Meals on Wheels, and support services that help older adults and people with disabilities live independently in Boston.",
+        website:"https://www.ethocare.org" },
+      { id:'real-friendshipworks', kind:'real', name:"FriendshipWorks", tagline:"Volunteer companionship for older adults", location:"Boston, MA", causes:["Elder Care","Community Health"],
+        mission:"Matches trained volunteers with isolated older adults for friendly visiting, and provides volunteer escorts to medical appointments.",
+        website:"https://www.fw4elders.org" },
+      { id:'real-littlebrothers', kind:'real', name:"Little Brothers – Friends of the Elderly (Boston)", tagline:"Friendship for elders living alone", location:"Boston, MA", causes:["Elder Care"],
+        mission:"Works to relieve isolation and loneliness among older neighbors, including by pairing residents of affordable and public housing with local college students.",
+        website:"https://lbfeboston.org" },
+      { id:'real-gbls', kind:'real', name:"Greater Boston Legal Services", tagline:"Free civil legal aid", location:"Boston, MA", causes:["Legal Aid","Housing"],
+        mission:"Provides free civil legal aid to low-income people on housing, public benefits, immigration, employment, and family matters.",
+        website:"https://www.gbls.org" },
+      { id:'real-bostoncares', kind:'real', name:"Boston Cares", tagline:"Flexible volunteering across Greater Boston", location:"Boston, MA", causes:["Volunteer Mobilization","Community Health"],
+        mission:"Connects individuals and groups to flexible, hands-on volunteer projects with hundreds of Greater Boston nonprofits and schools.",
+        website:"https://www.bostoncares.org" },
+      { id:'real-abcd', kind:'real', name:"Action for Boston Community Development (ABCD)", tagline:"Boston’s anti-poverty agency", location:"Boston, MA", causes:["Economic Development","Community Health","Education"],
+        mission:"Runs Head Start, fuel assistance, job training, and neighborhood service centers to help low-income Boston residents build economic stability.",
+        website:"https://bostonabcd.org" },
+      { id:'real-yearup', kind:'real', name:"Year Up", tagline:"Career training for young adults", location:"Boston, MA", causes:["Workforce Development"],
+        mission:"Gives young adults professional skills training, corporate internships, and career support to close the opportunity divide.",
+        website:"https://www.yearup.org" },
+      { id:'real-jumpstart', kind:'real', name:"Jumpstart", tagline:"Early literacy for preschoolers", location:"Boston, MA", causes:["Education","Youth Development"],
+        mission:"Trains college students and community volunteers to deliver language and literacy programming to preschool children.",
+        website:"https://www.jstart.org" },
+      { id:'real-bcil', kind:'real', name:"Boston Center for Independent Living", tagline:"Disability-led advocacy & peer support", location:"Boston, MA", causes:["Disability & Access","Housing"],
+        mission:"A disability-led organization providing peer mentoring, advocacy, and independent-living skills so people with disabilities can live in the community.",
+        website:"https://bostoncil.org" },
+      { id:'real-womenslunchplace', kind:'real', name:"Women’s Lunch Place", tagline:"Day shelter & meals for women", location:"Boston, MA", causes:["Housing","Food Security"],
+        mission:"A day shelter offering nutritious meals, advocacy, and services for women experiencing homelessness or poverty.",
+        website:"https://womenslunchplace.org" },
+      { id:'real-stfrancishouse', kind:'real', name:"St. Francis House", tagline:"Day shelter & rehabilitation programs", location:"Boston, MA", causes:["Housing","Community Health"],
+        mission:"Boston’s largest day shelter, providing meals, clothing, and counseling, housing, and job-readiness programs.",
+        website:"https://www.stfrancishouse.org" },
+      { id:'real-bridge', kind:'real', name:"Bridge Over Troubled Waters", tagline:"Services for homeless & at-risk youth", location:"Boston, MA", causes:["Housing","Youth Development"],
+        mission:"Helps homeless, runaway, and at-risk young people through street outreach, shelter, transitional housing, and education.",
+        website:"https://www.bridgeotw.org" },
+      { id:'real-ymcaboston', kind:'real', name:"YMCA of Greater Boston", tagline:"Youth, health & community programs", location:"Boston, MA", causes:["Youth Development","Community Health"],
+        mission:"Runs youth development, healthy living, and social responsibility programs, including food distribution and early education, across Greater Boston.",
+        website:"https://ymcaboston.org" },
+      { id:'real-bcnc', kind:'real', name:"Boston Chinatown Neighborhood Center", tagline:"Immigrant family services", location:"Boston, MA", causes:["Immigrant & Refugee Services","Education"],
+        mission:"Supports immigrant families with early education, youth programs, and adult English and workforce classes.",
+        website:"https://www.bcnc.net" },
+      { id:'real-haleyhouse', kind:'real', name:"Haley House", tagline:"Soup kitchen, housing & job training", location:"Boston, MA", causes:["Food Security","Workforce Development","Housing"],
+        mission:"Runs a soup kitchen, affordable housing, and a bakery café that offers transitional employment training.",
+        website:"https://haleyhouse.org" },
+      { id:'real-foodproject', kind:'real', name:"The Food Project", tagline:"Youth-powered sustainable farming", location:"Lincoln & Boston, MA", causes:["Food Security","Youth Development","Environment"],
+        mission:"Engages teens in sustainable agriculture to grow and distribute healthy food in Boston and on the North Shore.",
+        website:"https://thefoodproject.org" },
+      { id:'real-mira', kind:'real', name:"MIRA Coalition", tagline:"Immigrant & refugee advocacy", location:"Boston, MA", causes:["Immigrant & Refugee Services","Legal Aid"],
+        mission:"The Massachusetts Immigrant and Refugee Advocacy Coalition promotes immigrant rights through policy advocacy, citizenship assistance, and training.",
+        website:"https://www.miracoalition.org" },
+      { id:'real-morethanwords', kind:'real', name:"More Than Words", tagline:"Youth-run social enterprise", location:"Boston & Waltham, MA", causes:["Youth Development","Workforce Development"],
+        mission:"Empowers young adults who are in foster care, court-involved, homeless, or out of school to take charge of their lives by running a real business.",
+        website:"https://mtwyouth.org" },
+      { id:'real-massaudubon', kind:'real', name:"Mass Audubon", tagline:"Nature conservation & education", location:"Lincoln, MA", causes:["Environment","Education"],
+        mission:"Protects the nature of Massachusetts through wildlife sanctuaries, conservation science, advocacy, and environmental education.",
+        website:"https://www.massaudubon.org" },
+      { id:'real-pih', kind:'real', region:'Global', name:"Partners In Health", tagline:"Global health care, headquartered in Boston", location:"Boston, MA (works worldwide)", causes:["Global Health","Community Health"],
+        mission:"Delivers high-quality health care alongside communities and governments in countries including Haiti, Rwanda, Sierra Leone, Peru, and Malawi.",
+        website:"https://www.pih.org" },
+      { id:'real-oxfamamerica', kind:'real', region:'Global', name:"Oxfam America", tagline:"Fighting poverty & inequality", location:"Boston, MA (works worldwide)", causes:["Economic Development","Disaster Response","Water & Sanitation"],
+        mission:"Works to end the injustice of poverty through humanitarian response, long-term development programs, and advocacy.",
+        website:"https://www.oxfamamerica.org" },
+
+      /* ---- Real international NGOs (public directory — reference only) ---- */
+      { id:'real-charitywater', kind:'real', region:'Global', name:"charity: water", tagline:"Clean water projects worldwide", location:"New York, NY", causes:["Water & Sanitation"],
+        mission:"Funds clean and safe drinking water projects with local partners in countries across Africa, Asia, and Latin America.",
+        website:"https://www.charitywater.org" },
+      { id:'real-waterorg', kind:'real', region:'Global', name:"Water.org", tagline:"Affordable financing for water & sanitation", location:"Kansas City, MO", causes:["Water & Sanitation","Economic Development"],
+        mission:"Helps families gain access to safe water and sanitation through small, affordable loans and market-based solutions.",
+        website:"https://water.org" },
+      { id:'real-waterproject', kind:'real', region:'Africa', name:"The Water Project", tagline:"Wells & water points in sub-Saharan Africa", location:"Concord, NH · Kenya, Uganda, Sierra Leone", causes:["Water & Sanitation"],
+        mission:"Works with rural communities in sub-Saharan Africa, including Kenya, to build and maintain reliable sources of safe water.",
+        website:"https://thewaterproject.org" },
+      { id:'real-wateraid', kind:'real', region:'Global', name:"WaterAid", tagline:"Water, sanitation & hygiene", location:"London, UK", causes:["Water & Sanitation","Global Health"],
+        mission:"Works to make clean water, decent toilets, and good hygiene normal for everyone, everywhere.",
+        website:"https://www.wateraid.org" },
+      { id:'real-msf', kind:'real', region:'Global', name:"Doctors Without Borders (MSF)", tagline:"Emergency medical humanitarian aid", location:"Geneva, Switzerland", causes:["Global Health","Disaster Response"],
+        mission:"Provides independent medical humanitarian care to people affected by conflict, epidemics, disasters, and exclusion from health care.",
+        website:"https://www.msf.org" },
+      { id:'real-care', kind:'real', region:'Global', name:"CARE", tagline:"Poverty-fighting & emergency relief", location:"Atlanta, GA · Geneva", causes:["Economic Development","Disaster Response","Food Security"],
+        mission:"Works around the globe to save lives, defeat poverty, and achieve social justice, with a focus on women and girls.",
+        website:"https://www.care.org" },
+      { id:'real-imc', kind:'real', region:'Global', name:"International Medical Corps", tagline:"Emergency medical relief & training", location:"Los Angeles, CA", causes:["Global Health","Disaster Response"],
+        mission:"Delivers emergency medical services and health training to communities affected by disaster, disease, and conflict.",
+        website:"https://internationalmedicalcorps.org" },
+      { id:'real-wck', kind:'real', region:'Global', name:"World Central Kitchen", tagline:"Meals in the wake of crises", location:"Washington, D.C.", causes:["Disaster Response","Food Security"],
+        mission:"Serves fresh meals to communities impacted by natural disasters and humanitarian crises, working with local chefs and restaurants.",
+        website:"https://wck.org" },
+      { id:'real-mercycorps', kind:'real', region:'Global', name:"Prosper Global (formerly Mercy Corps)", tagline:"Crisis response & resilience", location:"Portland, OR", causes:["Disaster Response","Economic Development"],
+        mission:"Helps communities survive crises and build more resilient futures through emergency aid, livelihoods, and market programs.",
+        website:"https://www.prosperglobal.org" },
+      { id:'real-heifer', kind:'real', region:'Global', name:"Heifer International", tagline:"Smallholder farming & livelihoods", location:"Little Rock, AR", causes:["Economic Development","Food Security"],
+        mission:"Works with smallholder farmers and communities to build sustainable livelihoods and living incomes.",
+        website:"https://www.heifer.org" },
+      { id:'real-kiva', kind:'real', region:'Global', name:"Kiva", tagline:"Crowdfunded microloans", location:"San Francisco, CA", causes:["Economic Development"],
+        mission:"Lets people lend as little as $25 to entrepreneurs and students in underserved communities around the world.",
+        website:"https://www.kiva.org" },
+      { id:'real-helpage', kind:'real', region:'Global', name:"HelpAge International", tagline:"Rights & wellbeing of older people", location:"London, UK", causes:["Elder Care","Global Health"],
+        mission:"A global network working so older people can lead dignified, healthy, and secure lives, including in humanitarian emergencies.",
+        website:"https://www.helpage.org" },
+      { id:'real-roomtoread', kind:'real', region:'Global', name:"Room to Read", tagline:"Literacy & girls’ education", location:"San Francisco, CA", causes:["Education","Youth Development"],
+        mission:"Focuses on children’s literacy and girls’ education in low-income communities across Asia and Africa.",
+        website:"https://www.roomtoread.org" },
+      { id:'real-givedirectly', kind:'real', region:'Africa', name:"GiveDirectly", tagline:"Direct cash transfers", location:"New York, NY · Nairobi, Kenya", causes:["Economic Development"],
+        mission:"Sends unconditional cash transfers directly to people living in poverty via mobile money, with large programs in Kenya and elsewhere in Africa.",
+        website:"https://www.givedirectly.org" },
+      { id:'real-amref', kind:'real', region:'Africa', name:"Amref Health Africa", tagline:"African-led community health", location:"Nairobi, Kenya", causes:["Global Health","Water & Sanitation"],
+        mission:"Africa’s largest African-led health NGO, training health workers and strengthening community health systems across the continent.",
+        website:"https://amref.org" },
+      { id:'real-shofco', kind:'real', region:'Africa', name:"Shining Hope for Communities (SHOFCO)", tagline:"Grassroots movement in Kenya’s urban slums", location:"Nairobi, Kenya", causes:["Community Health","Education","Water & Sanitation"],
+        mission:"Founded in Kibera, provides health care, clean water, girls’ education, and community organizing in urban informal settlements.",
+        website:"https://www.shofco.org" },
+      { id:'real-livinggoods', kind:'real', region:'Africa', name:"Living Goods", tagline:"Digitally-enabled community health workers", location:"Nairobi, Kenya · Kampala, Uganda", causes:["Global Health","Community Health"],
+        mission:"Supports community health workers who deliver care door-to-door, with programs in Kenya, Uganda, and Burkina Faso.",
+        website:"https://livinggoods.org" },
+      { id:'real-oneacrefund', kind:'real', region:'Africa', name:"One Acre Fund", tagline:"Support for smallholder farmers", location:"Kakamega, Kenya", causes:["Economic Development","Food Security"],
+        mission:"Supplies smallholder farmers with financing, farm inputs, and training to grow more food and earn more income.",
+        website:"https://oneacrefund.org" },
+      { id:'real-solarsister', kind:'real', region:'Africa', name:"Solar Sister", tagline:"Women-led clean energy businesses", location:"Nigeria · Tanzania", causes:["Environment","Economic Development"],
+        mission:"Recruits, trains, and supports women entrepreneurs to deliver solar lights and clean cookstoves to off-grid communities.",
+        website:"https://solarsister.org" },
+      { id:'real-brac', kind:'real', region:'South Asia', name:"BRAC", tagline:"Poverty reduction at scale", location:"Dhaka, Bangladesh", causes:["Economic Development","Education","Global Health","Disaster Response"],
+        mission:"One of the world’s largest development organizations, running programs in education, health, microfinance, and climate resilience.",
+        website:"https://www.brac.net" },
+      { id:'real-pratham', kind:'real', region:'South Asia', name:"Pratham", tagline:"Foundational learning for children", location:"Mumbai, India", causes:["Education","Youth Development"],
+        mission:"Improves the quality of education in India through low-cost, replicable reading and math programs for children.",
+        website:"https://www.pratham.org" },
+      { id:'real-akshayapatra', kind:'real', region:'South Asia', name:"The Akshaya Patra Foundation", tagline:"School midday meals", location:"Bengaluru, India", causes:["Food Security","Education"],
+        mission:"Runs school meal programs in India, serving freshly cooked midday meals to schoolchildren.",
+        website:"https://www.akshayapatra.org" },
+      { id:'real-barefoot', kind:'real', region:'South Asia', name:"Barefoot College", tagline:"Rural women as solar engineers", location:"Tilonia, Rajasthan, India", causes:["Environment","Economic Development","Education"],
+        mission:"Trains rural women, many without formal schooling, to become solar engineers and community leaders.",
+        website:"https://www.barefootcollege.org" },
+      { id:'real-gramvikas', kind:'real', region:'South Asia', name:"Gram Vikas", tagline:"Village water & sanitation", location:"Odisha, India", causes:["Water & Sanitation","Community Health"],
+        mission:"Works with rural communities in Odisha to provide piped water, sanitation, and other village infrastructure.",
+        website:"https://www.gramvikas.org" },
+      { id:'real-techo', kind:'real', region:'Latin America', name:"TECHO", tagline:"Housing in informal settlements", location:"Santiago, Chile", causes:["Housing","Community Health"],
+        mission:"A youth-led organization working with families in informal settlements across Latin America to build transitional housing and community infrastructure.",
+        website:"https://www.techo.org" },
+      { id:'real-promujer', kind:'real', region:'Latin America', name:"Pro Mujer", tagline:"Financial & health services for women", location:"Latin America", causes:["Economic Development","Community Health"],
+        mission:"Provides women across Latin America with access to financial services, health care, and training.",
+        website:"https://promujer.org" }
+  ];
+
+  var REGIONS = ['Greater Boston','North America','Latin America','Africa','South Asia','Global'];
+  var HELP_CATS = {
+    'Groceries & errands':['Elder Care','Food Security'],
+    'Elder care & companionship':['Elder Care'],
+    'Clean water & sanitation':['Water & Sanitation'],
+    'Food & meals':['Food Security'],
+    'Housing & repairs':['Housing','Disability & Access'],
+    'Health & medical':['Global Health','Community Health'],
+    'Education & tutoring':['Education','Youth Development'],
+    'Transportation & rides':['Elder Care','Disability & Access'],
+    'Jobs & livelihoods':['Workforce Development','Economic Development'],
+    'Legal & paperwork':['Legal Aid','Immigrant & Refugee Services'],
+    'Disaster & emergency':['Disaster Response'],
+    'Energy & solar':['Environment','Economic Development'],
+    'Tech & skills':['Workforce Development','Volunteer Mobilization']
+  };
+  var CAUSES = ['Community Health','Disability & Access','Disaster Response','Economic Development','Education',
+    'Elder Care','Environment','Food Security','Global Health','Housing','Immigrant & Refugee Services',
+    'Legal Aid','Logistics','Volunteer Mobilization','Water & Sanitation','Workforce Development','Youth Development'];
+  var SCALES = ['Neighborhood','Village','City','Region','Remote'];
+  var URGENCIES = ['Ongoing','Urgent','This week','This month','Hiring now','Flexible'];
+
+  /* ============ STATE ============ */
+  var state = {
+    booting:true,
+    user:null,                 // signed-in user from /api/me
+    view:'landing',            // 'landing' | 'auth' | 'app'
+    authMode:'signup',         // 'signup' | 'login'
+    signupType:'person',
+    formError:'',
+    busy:false,
+    tab:'help',                // 'help' | 'directory' | 'profile'
+    posts:[], postsLoading:false,
+    helpView:'browse', helpQuery:'', helpType:'all', helpRegion:'All', helpCat:'All', helpPay:'all',
+    selectedHelpId:null, helpDetail:null, openThread:null,
+    memberOrgs:[],
+    dirQuery:'', dirCause:'All', dirSource:'all', dirRegion:'All',
+    selectedOrgId:null,        // real org id, or 'member:<uuid>'
+    memberProfile:null,
+    modal:null
+  };
+
+  /* ============ HELPERS ============ */
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ t.classList.remove('show'); }, 2800);
+  }
+  function fmtDate(ms){
+    var d = Date.now() - ms;
+    if(d < 60e3) return 'Just now';
+    if(d < 3600e3) return Math.floor(d/60e3) + 'm ago';
+    if(d < 86400e3) return Math.floor(d/3600e3) + 'h ago';
+    return new Date(ms).toLocaleDateString(undefined, { month:'short', day:'numeric' });
+  }
+  function regionOf(o){ return o.region || (/, MA$/.test(o.location) ? 'Greater Boston' : 'North America'); }
+  function regionLabel(r){ return r==='Global' ? 'Global / multi-country' : r; }
+  function scaleLabel(s){ return s==='Remote' ? 'Remote — anywhere' : s; }
+  function isOrg(){ return state.user && state.user.accountType==='org'; }
+  function opts(list, sel, labelFn){
+    return list.map(function(v){ return '<option value="' + esc(v) + '"' + (v===sel?' selected':'') + '>' + esc(labelFn ? labelFn(v) : v) + '</option>'; }).join('');
+  }
+  function val(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+  // Member (registered) orgs look like directory entries so both lists render the same way.
+  function memberAsOrg(m){
+    return { id:'member:' + m.id, userId:m.id, kind:'member', name:m.displayName, tagline:m.headline || 'Member organization',
+      location:m.location, region:m.region, causes:m.causes || [], mission:m.bio, website:m.website };
+  }
+  function allOrgs(){ return state.memberOrgs.map(memberAsOrg).concat(REAL_ORGS); }
+  function orgById(id){ return allOrgs().filter(function(o){ return o.id===id; })[0]; }
+  function allCauses(){
+    var set = {};
+    allOrgs().forEach(function(o){ o.causes.forEach(function(c){ set[c]=true; }); });
+    return Object.keys(set).sort();
+  }
+  function regionFit(orgRegion, postReg){
+    if(orgRegion===postReg) return 3;
+    if(orgRegion==='Global') return 1.5;
+    if(postReg==='Greater Boston' && orgRegion==='North America') return 1;
+    return 0;
+  }
+  function suggestOrgs(p){
+    var causes = HELP_CATS[p.category] || [];
+    return allOrgs().map(function(o){
+      var overlap = o.causes.filter(function(c){ return causes.indexOf(c)>-1; }).length;
+      var fit = regionFit(regionOf(o), p.region);
+      return { org:o, score:(overlap && fit) ? overlap*2 + fit + (o.kind==='member' ? .5 : 0) : 0 };
+    }).filter(function(s){ return s.score>0 && s.org.userId!==p.author.id; })
+      .sort(function(a,b){ return b.score-a.score; })
+      .slice(0,5).map(function(s){ return s.org; });
+  }
+
+  /* ============ API ============ */
+  function api(method, path, body){
+    var init = { method:method, credentials:'same-origin', headers:{ 'Content-Type':'application/json' } };
+    if(method!=='GET') init.body = JSON.stringify(body || {});
+    return fetch('/api/' + path, init).then(function(res){
+      return res.json().catch(function(){ return {}; }).then(function(data){
+        if(res.status===401 && state.user && path.indexOf('auth/')!==0){
+          state.user = null; state.view = 'auth'; state.authMode = 'login';
+          state.formError = 'Your session ended. Please log in again.';
+          render();
+        }
+        if(!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
+        return data;
+      });
+    }, function(){ throw new Error('Can’t reach the server. Check your connection and try again.'); });
+  }
+  // Runs one request at a time and re-renders; errors show as a toast unless handled.
+  function run(promise, onError){
+    state.busy = true; render();
+    return promise.then(function(r){ state.busy = false; render(); return r; }, function(err){
+      state.busy = false;
+      if(onError) onError(err); else toast(err.message);
+      render();
+    });
+  }
+
+  function loadPosts(){
+    state.postsLoading = true;
+    return api('GET', 'help?view=' + state.helpView).then(function(d){
+      state.posts = d.posts; state.postsLoading = false; render();
+    }, function(err){ state.postsLoading = false; toast(err.message); render(); });
+  }
+  function loadMemberOrgs(){
+    return api('GET', 'orgs').then(function(d){ state.memberOrgs = d.orgs; render(); }, function(){});
+  }
+  function openHelp(id){
+    state.tab='help'; state.selectedHelpId=id; state.helpDetail=null; state.openThread=null;
+    render(); window.scrollTo(0,0);
+    loadMemberOrgs();
+    return api('GET', 'help/' + id).then(function(d){ state.helpDetail = d.post; render(); }, function(err){
+      toast(err.message); state.selectedHelpId=null; render();
+    });
+  }
+  function enterApp(user){
+    state.user = user; state.view = 'app'; state.tab = 'help'; state.helpView = 'browse';
+    state.selectedHelpId = null; state.selectedOrgId = null; state.formError = '';
+    render(); window.scrollTo(0,0);
+    loadPosts(); loadMemberOrgs();
+  }
+
+  /* ============ RENDER: LANDING ============ */
+  function renderLanding(){
+    var bostonCount = REAL_ORGS.filter(function(o){ return regionOf(o)==='Greater Boston'; }).length;
+    return '<div class="landing-page">'
+    + '<div class="landing-top">'
+    +   '<div class="wordmark"><span class="dot"></span><span>Global Neighbors</span></div>'
+    +   '<button class="btn btn-secondary" data-action="show-auth" data-mode="login">Log in</button>'
+    + '</div>'
+    + '<div class="hero" style="grid-template-columns:1fr;">'
+    +   '<div>'
+    +     '<div class="eyebrow">Early access</div>'
+    +     '<h1 style="max-width:20ch;">Help that travels from <em>next door to across the world.</em></h1>'
+    +     '<p class="hero-sub">Global Neighbors connects people who need a hand, from a grocery run in Dorchester to a broken water pump in rural Kenya, with the neighbors, nonprofits, and NGOs who can help.</p>'
+    +     '<div class="hero-actions">'
+    +       '<button class="btn btn-primary" data-action="show-auth" data-mode="signup" data-type="person">Join as an individual ' + ICONS.arrow + '</button>'
+    +       '<button class="btn btn-secondary" data-action="show-auth" data-mode="signup" data-type="org">Join as an organization</button>'
+    +     '</div>'
+    +     '<p class="hero-note" style="margin-top:.8rem;">Free. Want to look around first? <a href="/demo.html">Try the interactive demo</a>, which uses sample data only.</p>'
+    +     '<div class="hero-stats">'
+    +       '<div class="hero-stat"><b>' + REAL_ORGS.length + '</b><span>Nonprofits &amp; NGOs in the directory</span></div>'
+    +       '<div class="hero-stat"><b>' + bostonCount + '</b><span>In Greater Boston</span></div>'
+    +       '<div class="hero-stat"><b>' + Object.keys(HELP_CATS).length + '</b><span>Kinds of help</span></div>'
+    +     '</div>'
+    +   '</div>'
+    + '</div>'
+    + '<div class="feature-strip">'
+    +   featureCard('accent', ICONS.help, 'Ask for help, or offer it', 'Post what you need, from errands for an older neighbor to clean water for a village. Volunteers, paid helpers, and organizations reply.')
+    +   featureCard('primary', ICONS.directory, 'Find the right organization', 'Search nonprofits and NGOs by cause and region, from Greater Boston to Nairobi, Dhaka, and Medellín.')
+    +   featureCard('primary', ICONS.lock, 'Private by default', 'Replies and messages are visible only to you and the person who posted. You choose what to share, and you can delete your account at any time.')
+    + '</div>'
+    + '<div class="landing-footer">Global Neighbors is in early access. Organizations in the reference directory are listed from public information and are not affiliated with Global Neighbors. Member organizations describe themselves and are not yet verified.</div>'
+    + '</div>';
+  }
+  function featureCard(tone, icon, title, body){
+    var bg = tone==='accent' ? 'var(--accent-soft)' : 'var(--primary-soft)';
+    var fg = tone==='accent' ? 'var(--accent)' : 'var(--primary-strong)';
+    var grad = tone==='accent' ? 'var(--grad-accent)' : 'var(--grad-primary)';
+    return '<div class="feature-card" style="--card-accent:' + grad + ';">'
+      + '<div class="icon-badge" style="background:' + bg + ';color:' + fg + ';">' + icon + '</div>'
+      + '<h3>' + title + '</h3><p>' + body + '</p></div>';
+  }
+
+  /* ============ RENDER: AUTH ============ */
+  function renderAuth(){
+    var signup = state.authMode==='signup';
+    var t = state.signupType;
+    var seg = '<div class="seg" role="tablist" style="width:100%;">'
+      + '<button role="tab" aria-selected="' + signup + '" style="flex:1;justify-content:center;" class="' + (signup?'active':'') + '" data-action="auth-mode" data-mode="signup">Create account</button>'
+      + '<button role="tab" aria-selected="' + !signup + '" style="flex:1;justify-content:center;" class="' + (!signup?'active':'') + '" data-action="auth-mode" data-mode="login">Log in</button>'
+      + '</div>';
+    var err = state.formError ? '<div class="form-error" role="alert">' + esc(state.formError) + '</div>' : '';
+    var body;
+    if(signup){
+      body = '<form data-action="signup" novalidate>'
+        + '<div class="type-pick" role="radiogroup" aria-label="Account type">'
+        +   '<label><input type="radio" name="acct" value="person"' + (t==='person'?' checked':'') + ' data-role="signup-type"><b>Individual</b><span>Person, family, or community member</span></label>'
+        +   '<label><input type="radio" name="acct" value="org"' + (t==='org'?' checked':'') + ' data-role="signup-type"><b>Organization</b><span>Nonprofit, NGO, or community group</span></label>'
+        + '</div>'
+        + '<div class="field"><label for="su-name">' + (t==='org' ? 'Organization name' : 'Your name') + '</label><input id="su-name" autocomplete="' + (t==='org'?'organization':'name') + '" maxlength="80" required></div>'
+        + (t==='person' ? '<p class="hint" style="margin:-.5rem 0 .9rem;">Shown to other members. First name and last initial is fine.</p>' : '')
+        + '<div class="field"><label for="su-email">Email</label><input id="su-email" type="email" autocomplete="email" maxlength="254" required></div>'
+        + '<div class="field"><label for="su-pass">Password</label><input id="su-pass" type="password" autocomplete="new-password" minlength="10" required><p class="hint">At least 10 characters.</p></div>'
+        + '<div class="field-row">'
+        +   '<div class="field"><label for="su-loc">Location</label><input id="su-loc" maxlength="100" placeholder="Neighborhood &amp; city" required></div>'
+        +   '<div class="field"><label for="su-region">Region</label><select id="su-region">' + opts(REGIONS, 'Greater Boston', regionLabel) + '</select></div>'
+        + '</div>'
+        + '<p class="hint" style="margin:-.4rem 0 1rem;">Never enter a street address. You can share exact details privately once you’ve accepted a helper.</p>'
+        + '<button class="btn btn-primary" type="submit" style="width:100%;"' + (state.busy?' disabled':'') + '>' + (state.busy ? 'Creating account…' : 'Create account') + '</button>'
+        + '</form>';
+    } else {
+      body = '<form data-action="login" novalidate>'
+        + '<div class="field"><label for="li-email">Email</label><input id="li-email" type="email" autocomplete="email" required></div>'
+        + '<div class="field"><label for="li-pass">Password</label><input id="li-pass" type="password" autocomplete="current-password" required></div>'
+        + '<button class="btn btn-primary" type="submit" style="width:100%;"' + (state.busy?' disabled':'') + '>' + (state.busy ? 'Logging in…' : 'Log in') + '</button>'
+        + '<p class="hint" style="margin-top:.9rem;">Forgot your password? Email reset isn’t available yet. Contact the Global Neighbors team for help.</p>'
+        + '</form>';
+    }
+    return '<div class="auth-wrap"><div class="auth-card">'
+      + '<button class="btn btn-ghost btn-sm" data-action="to-landing" style="margin-bottom:1rem;">← Back</button>'
+      + '<div class="wordmark" style="margin-bottom:1.2rem;"><span class="dot"></span><span>Global Neighbors</span></div>'
+      + seg + err + body
+      + '</div></div>';
+  }
+
+  /* ============ RENDER: APP SHELL ============ */
+  function renderApp(){
+    var u = state.user;
+    var tabs = [
+      {id:'help', label:'Help Board', icon:ICONS.help},
+      {id:'directory', label: isOrg() ? 'Directory' : 'Find support', icon:ICONS.directory},
+      {id:'profile', label:'My profile', icon:ICONS.profile}
+    ];
+    var rail = '<nav class="rail" aria-label="Main">'
+      + '<div class="rail-brand"><span style="width:10px;height:10px;border-radius:50%;background:var(--grad-accent);box-shadow:0 0 0 3px var(--accent-soft);display:inline-block;"></span><span>Global Neighbors</span></div>'
+      + tabs.map(function(t){
+          return '<button class="rail-link' + (state.tab===t.id?' active':'') + '" data-action="set-tab" data-tab="' + t.id + '"' + (state.tab===t.id?' aria-current="page"':'') + '>' + t.icon + '<span>' + t.label + '</span></button>';
+        }).join('')
+      + '</nav>';
+    var topbar = '<div class="topbar">'
+      + '<div class="viewing-as">Signed in as <b style="color:var(--text);">' + esc(u.displayName) + '</b><span class="kind-badge" style="margin-left:0;">' + (isOrg() ? 'Organization' : 'Individual') + '</span></div>'
+      + '<div style="display:flex;align-items:center;gap:.8rem;"><span class="hero-note">' + esc(u.location) + '</span><button class="btn btn-ghost btn-sm" data-action="logout">Log out</button></div>'
+      + '</div>';
+    var body = '';
+    if(state.tab==='help') body = state.selectedHelpId ? renderHelpDetail() : renderHelpBoard();
+    else if(state.tab==='directory') body = state.selectedOrgId ? renderOrgProfile(state.selectedOrgId) : renderDirectory();
+    else if(state.tab==='profile') body = renderMyProfile();
+    return '<div class="shell">' + rail + '<main class="main">' + topbar + '<div class="content">' + body + '</div></main></div>' + renderModal();
+  }
+
+  /* ============ RENDER: HELP BOARD ============ */
+  function payTag(pay){
+    var label = pay.kind==='volunteer' ? 'Volunteer'
+      : pay.kind==='paid' ? 'Paid' + (pay.label ? ' · ' + pay.label : '')
+      : pay.label || (pay.kind==='funding' ? 'Needs funding' : 'Stipend');
+    return '<span class="pay-tag ' + esc(pay.kind) + '">' + esc(label) + '</span>';
+  }
+  function statusPill(p){
+    if(p.status==='resolved') return '<span class="status-pill status-declined">Resolved</span>';
+    if(p.status==='in-progress') return '<span class="status-pill status-accepted">Help underway</span>';
+    return '';
+  }
+  function repliesLabel(n){ return n===0 ? 'No replies yet' : n + (n===1 ? ' reply' : ' replies'); }
+  function whoLine(name, accountType){ return esc(name) + (accountType==='org' ? '<span class="kind-badge">Org</span>' : ''); }
+  function typePill(p){ return '<span class="res-type ' + (p.type==='ask'?'ask':'offer') + '">' + (p.type==='ask' ? 'Asking for help' : 'Offering help') + '</span>'; }
+
+  function helpCard(p){
+    var cta;
+    if(p.isMine) cta = '<button class="btn btn-secondary btn-sm" data-action="view-help" data-id="' + esc(p.id) + '">Manage post</button>';
+    else if(p.myReplyStatus) cta = '<button class="btn btn-secondary btn-sm" data-action="view-help" data-id="' + esc(p.id) + '">View your reply</button>';
+    else if(p.status==='resolved') cta = '<button class="btn btn-ghost btn-sm" data-action="view-help" data-id="' + esc(p.id) + '">Details</button>';
+    else cta = '<button class="btn btn-primary btn-sm" data-action="view-help" data-id="' + esc(p.id) + '">' + (p.type==='ask' ? 'I can help' : 'Request this') + '</button>';
+    return '<div class="card help-card">'
+      + '<div class="help-top">' + typePill(p) + (p.urgency==='Urgent' ? '<span class="urgent-pill">Urgent</span>' : '') + statusPill(p)
+      +   '<span class="res-date">' + fmtDate(p.createdAt) + '</span></div>'
+      + '<h3 style="font-size:1rem; font-weight:600;">' + esc(p.title) + '</h3>'
+      + '<div class="res-org">' + whoLine(p.author.name, p.author.accountType) + ' · ' + esc(p.location) + '</div>'
+      + '<div class="help-snippet">' + esc(p.detail) + '</div>'
+      + '<div class="tag-row" style="margin-bottom:0;"><span class="tag">' + esc(p.category) + '</span>' + payTag(p.pay) + '<span class="tag muted">' + esc(scaleLabel(p.scale)) + '</span></div>'
+      + '<div class="help-foot"><span class="reply-count">' + (p.isMine ? repliesLabel(p.replyCount) : '') + '</span><div class="card-actions">' + cta + '</div></div>'
+      + '</div>';
+  }
+
+  function renderHelpBoard(){
+    var q = state.helpQuery.toLowerCase();
+    var list = state.posts.filter(function(p){
+      if(state.helpView!=='browse') return true;
+      var hay = (p.title + ' ' + p.detail + ' ' + p.category + ' ' + p.location + ' ' + p.author.name).toLowerCase();
+      var payKind = p.pay.kind==='stipend' ? 'paid' : p.pay.kind;
+      return (!q || hay.indexOf(q)>-1)
+        && (state.helpType==='all' || p.type===state.helpType)
+        && (state.helpRegion==='All' || p.region===state.helpRegion)
+        && (state.helpCat==='All' || p.category===state.helpCat)
+        && (state.helpPay==='all' || payKind===state.helpPay);
+    });
+
+    var seg = '<div class="seg" role="tablist">' + [
+      {id:'browse', label:'Browse all'}, {id:'mine', label:'My posts'}, {id:'helping', label:'I’m helping'}
+    ].map(function(s){
+      return '<button role="tab" aria-selected="' + (state.helpView===s.id) + '" class="' + (state.helpView===s.id?'active':'') + '" data-action="set-help-view" data-view="' + s.id + '">' + s.label + '</button>';
+    }).join('') + '</div>';
+
+    function chips(field, options){
+      return options.map(function(o){
+        return '<button class="chip' + (state[field]===o[0]?' active':'') + '" data-action="set-filter" data-field="' + field + '" data-value="' + esc(o[0]) + '">' + esc(o[1]) + '</button>';
+      }).join('');
+    }
+    var filters = state.helpView!=='browse' ? '' :
+        '<div class="toolbar"><input class="search-input" type="text" placeholder="Search posts: groceries, water, tutoring, Nairobi…" value="' + esc(state.helpQuery) + '" data-search="helpQuery" aria-label="Search help posts">'
+      +   '<select class="filter-select" data-role="help-cat" aria-label="Category"><option value="All">All categories</option>' + opts(Object.keys(HELP_CATS), state.helpCat) + '</select></div>'
+      + '<div class="toolbar">' + chips('helpType', [['all','Asks & offers'],['ask','Asking for help'],['offer','Offering help']])
+      +   '<span style="width:.6rem;"></span>' + chips('helpPay', [['all','Any'],['volunteer','Volunteer'],['paid','Paid & stipend'],['funding','Needs funding']]) + '</div>'
+      + '<div class="toolbar"><span class="toolbar-label">Where</span>' + chips('helpRegion', [['All','Everywhere']].concat(REGIONS.map(function(r){ return [r, regionLabel(r)]; }))) + '</div>';
+
+    var empty = state.postsLoading ? 'Loading posts…'
+      : state.helpView==='mine' ? 'You haven’t posted anything yet. Ask for a hand, or offer one.'
+      : state.helpView==='helping' ? 'You haven’t replied to any posts yet.'
+      : state.posts.length ? 'Nothing matches those filters.'
+      : 'No posts yet. Be the first to ask for help or offer it.';
+
+    var sub = isOrg()
+      ? 'See what people and communities need, reply as your organization, or post paid roles and volunteer asks.'
+      : 'Ask neighbors, volunteers, and organizations for a hand, or offer one. Posts range from grocery runs down the street to clean water across the world.';
+
+    return '<div class="page-head">'
+      +   '<div><h2>Help Board</h2><p>' + sub + '</p></div>'
+      +   '<button class="btn btn-primary" data-action="open-modal" data-modal="post-help">+ Post to the Help Board</button>'
+      + '</div>'
+      + seg + filters
+      + (list.length && !state.postsLoading ? '<div class="grid">' + list.map(helpCard).join('') + '</div>' : '<div class="empty">' + empty + '</div>');
+  }
+
+  function renderThread(p, r){
+    var msgs = [{ text:r.text, createdAt:r.createdAt, isMine:r.isMine, from:r.user.name }].concat(r.messages);
+    return '<div class="thread">' + msgs.map(function(m){
+        return '<div class="msg ' + (m.isMine?'msg-me':'msg-them') + '">' + esc(m.text) + '<div class="msg-meta">' + (m.isMine ? 'You' : esc(m.from)) + ' · ' + fmtDate(m.createdAt) + '</div></div>';
+      }).join('')
+      + (p.status==='resolved' ? '' :
+        '<form class="msg-form" data-action="send-message" data-reply="' + esc(r.id) + '">'
+        + '<input type="text" maxlength="2000" placeholder="Write a message…" aria-label="Message" required>'
+        + '<button class="btn btn-primary btn-sm" type="submit"' + (state.busy?' disabled':'') + '>Send</button></form>')
+      + '</div>';
+  }
+  function replyStatus(r){
+    if(r.status==='accepted') return '<span class="status-pill status-accepted">Accepted</span>';
+    if(r.status==='declined') return '<span class="status-pill status-declined">Declined</span>';
+    return '<span class="status-pill status-pending">Awaiting reply</span>';
+  }
+
+  function renderHelpDetail(){
+    var back = '<button class="btn btn-ghost btn-sm" style="margin-bottom:1rem;" data-action="close-help">← Back to Help Board</button>';
+    var p = state.helpDetail;
+    if(!p) return back + '<div class="empty">Loading…</div>';
+    var dis = state.busy ? ' disabled' : '';
+
+    var ownerActions = p.isMine
+      ? '<div class="card-actions">'
+        + (p.status!=='resolved'
+            ? '<button class="btn btn-secondary btn-sm" data-action="set-post-status" data-status="resolved"' + dis + '>Mark as resolved</button>'
+            : '<button class="btn btn-secondary btn-sm" data-action="set-post-status" data-status="open"' + dis + '>Reopen</button>')
+        + '<button class="btn btn-ghost btn-sm" data-action="delete-post"' + dis + '>Delete</button></div>'
+      : '';
+
+    var head = back
+      + '<div class="profile-head">'
+      +   '<div><div class="help-top" style="margin-bottom:.6rem;">' + typePill(p) + (p.urgency==='Urgent' ? '<span class="urgent-pill">Urgent</span>' : '') + statusPill(p) + '</div>'
+      +   '<h2>' + esc(p.title) + '</h2></div>' + ownerActions
+      + '</div>'
+      + '<div class="meta-row" style="margin-bottom:.8rem;"><span>' + ICONS.pin + esc(p.location) + '</span><span>' + ICONS.globe + esc(scaleLabel(p.scale)) + '</span><span>Posted ' + fmtDate(p.createdAt) + '</span></div>'
+      + '<div class="tag-row"><span class="tag">' + esc(p.category) + '</span>' + payTag(p.pay) + '<span class="tag muted">' + esc(p.urgency) + '</span></div>';
+
+    var replies;
+    var mine = p.replies.filter(function(r){ return r.isMine; })[0];
+    if(p.isMine){
+      replies = '<div class="section-label" style="margin-top:.4rem;">Replies (' + p.replies.length + ')</div>'
+        + (p.replies.length ? p.replies.map(function(r){
+            var open = state.openThread===r.id;
+            var btns = (r.status==='pending' && p.status!=='resolved')
+              ? '<button class="btn btn-primary btn-sm" data-action="respond-reply" data-reply="' + esc(r.id) + '" data-status="accepted"' + dis + '>Accept</button>'
+                + '<button class="btn btn-ghost btn-sm" data-action="respond-reply" data-reply="' + esc(r.id) + '" data-status="declined"' + dis + '>Decline</button>'
+              : '';
+            return '<div class="card response">'
+              + '<div class="response-head"><div><h3 style="font-size:.98rem;">' + whoLine(r.user.name, r.user.accountType) + '</h3><div class="res-org">' + esc(r.user.headline ? r.user.headline + ' · ' : '') + esc(r.user.location) + '</div></div>' + replyStatus(r) + '</div>'
+              + (open ? renderThread(p, r) : '<div class="req-note">' + esc(r.text) + '</div>')
+              + '<div class="card-actions" style="margin-top:.7rem;">' + btns
+              +   '<button class="btn btn-secondary btn-sm" data-action="toggle-thread" data-reply="' + esc(r.id) + '">' + (open ? 'Hide messages' : 'Messages (' + (r.messages.length + 1) + ')') + '</button></div>'
+              + '</div>';
+          }).join('') : '<div class="card empty" style="padding:1.4rem;">No replies yet. The organizations on the right work on this kind of need, so you can also contact them directly.</div>');
+    } else if(mine){
+      replies = '<div class="card response"><div class="response-head"><div class="section-label" style="margin:0;">Your reply</div>' + replyStatus(mine) + '</div>' + renderThread(p, mine) + '</div>';
+    } else if(p.status==='resolved'){
+      replies = '<div class="card empty" style="padding:1.4rem;">This post has been resolved.</div>';
+    } else {
+      replies = '<form class="card request-composer" data-action="send-reply">'
+        + '<label class="section-label" for="help-reply-text">' + (p.type==='ask' ? 'Offer to help' : 'Request this help') + '</label>'
+        + '<textarea id="help-reply-text" maxlength="2000" required placeholder="' + (p.type==='ask' ? 'Say how you can help and when you’re available…' : 'Say what you need and when…') + '"></textarea>'
+        + '<div class="card-actions" style="margin-top:.7rem;"><button class="btn btn-primary btn-sm" type="submit"' + dis + '>Send reply</button></div>'
+        + '<p class="posting-as" style="margin:.7rem 0 0;">Only ' + esc(p.author.name) + ' will see your reply. Don’t share your address or financial details until you trust the other person.</p>'
+        + '</form>';
+    }
+
+    var suggestions = suggestOrgs(p);
+    var side = '<div class="side-card"><div class="section-label">Posted by</div><p style="font-size:.92rem; font-weight:600;">' + whoLine(p.author.name, p.author.accountType) + '</p>'
+      +   (p.author.headline ? '<p class="res-org" style="margin-top:.2rem;">' + esc(p.author.headline) + '</p>' : '')
+      +   (p.author.accountType==='org' ? '<button class="btn btn-ghost btn-sm" style="margin-top:.7rem;" data-action="view-org" data-org="member:' + esc(p.author.id) + '">View organization</button>' : '')
+      + '</div>'
+      + '<div class="side-card"><div class="section-label">Organizations working on this</div>'
+      +   (suggestions.length ? '<div class="suggest">' + suggestions.map(function(o){
+            return '<button class="suggest-item" data-action="view-org" data-org="' + esc(o.id) + '">' + esc(o.name)
+              + '<small>' + (o.kind==='member' ? 'Member org' : 'Reference directory') + ' · ' + esc(regionLabel(regionOf(o))) + '</small></button>';
+          }).join('') + '</div>' : '<p class="res-org">No close matches in the directory yet.</p>')
+      +   '<p class="res-org" style="margin-top:.7rem; font-size:.74rem;">Matched by cause area and region. Organizations in the reference directory aren’t notified about posts.</p>'
+      + '</div>';
+
+    return head
+      + '<div class="profile-grid">'
+      +   '<div><div class="card" style="margin-bottom:1rem;"><div class="section-label">Details</div><p style="font-size:.94rem; line-height:1.6; white-space:pre-wrap;">' + esc(p.detail) + '</p></div>' + replies + '</div>'
+      +   '<div>' + side + '</div>'
+      + '</div>';
+  }
+
+  /* ============ RENDER: DIRECTORY ============ */
+  function renderDirectory(){
+    var q = state.dirQuery.toLowerCase();
+    var list = allOrgs().filter(function(o){
+      if(o.userId && state.user && o.userId===state.user.id) return false;
+      var hay = (o.name + ' ' + o.tagline + ' ' + o.location + ' ' + (o.mission||'') + ' ' + o.causes.join(' ')).toLowerCase();
+      return (!q || hay.indexOf(q)>-1)
+        && (state.dirCause==='All' || o.causes.indexOf(state.dirCause) > -1)
+        && (state.dirSource==='all' || (state.dirSource==='member' ? o.kind==='member' : o.kind==='real'))
+        && (state.dirRegion==='All' || regionOf(o)===state.dirRegion);
+    });
+    function chips(field, action, attr, options){
+      return options.map(function(o){
+        return '<button class="chip' + (state[field]===o[0]?' active':'') + '" data-action="' + action + '" data-' + attr + '="' + esc(o[0]) + '">' + esc(o[1]) + '</button>';
+      }).join('');
+    }
+    var cards = list.map(function(o){
+      var badge = o.kind==='member' ? '<span class="org-badge demo">Member · self-described</span>' : '<span class="org-badge real">Reference directory</span>';
+      return '<div class="card org-card">'
+        + '<div class="org-card-top">' + badge + '</div>'
+        + '<h3>' + esc(o.name) + '</h3>'
+        + '<div class="org-tagline">' + esc(o.tagline) + '</div>'
+        + '<div class="meta-row"><span>' + ICONS.pin + esc(o.location) + '</span>' + (regionOf(o)==='Global' ? '<span>' + ICONS.globe + 'Works globally</span>' : '') + '</div>'
+        + '<div class="tag-row">' + o.causes.map(function(c){ return '<span class="tag">' + esc(c) + '</span>'; }).join('') + '</div>'
+        + '<div class="card-actions"><button class="btn btn-secondary btn-sm" data-action="view-org" data-org="' + esc(o.id) + '">View profile</button></div>'
+        + '</div>';
+    }).join('');
+    var head = isOrg()
+      ? '<h2>Nonprofit &amp; NGO directory</h2><p>Member organizations on Global Neighbors, plus a reference directory of nonprofits and NGOs in Greater Boston, the U.S., and around the world.</p>'
+      : '<h2>Find support</h2><p>Nonprofits, NGOs, and community groups in Greater Boston and around the world. Filter by where you are and what you need.</p>';
+    return '<div class="page-head"><div>' + head + '</div><div class="hero-note">' + list.length + ' shown</div></div>'
+      + '<div class="toolbar"><input class="search-input" type="text" placeholder="Search by name, cause, city, or country…" value="' + esc(state.dirQuery) + '" data-search="dirQuery" aria-label="Search organizations"></div>'
+      + '<div class="toolbar"><span class="toolbar-label">Where</span>' + chips('dirRegion', 'set-dir', 'region', [['All','Everywhere']].concat(REGIONS.map(function(r){ return [r, regionLabel(r)]; }))) + '</div>'
+      + '<div class="toolbar"><span class="toolbar-label">Source</span>' + chips('dirSource', 'set-dir', 'source', [['all','All'],['member','Member organizations'],['real','Reference directory']]) + '</div>'
+      + '<div class="toolbar"><span class="toolbar-label">Cause</span>' + chips('dirCause', 'set-dir', 'cause', [['All','All']].concat(allCauses().map(function(c){ return [c,c]; }))) + '</div>'
+      + (list.length ? '<div class="grid">' + cards + '</div>' : '<div class="empty">No organizations match that search yet.</div>')
+      + '<div class="dir-footnote">Reference-directory entries show each organization’s public mission and a link to its official site; those organizations are not affiliated with Global Neighbors. Member organizations wrote their own profiles, which have not yet been verified.</div>';
+  }
+
+  function renderOrgProfile(id){
+    var o = orgById(id);
+    var back = '<button class="btn btn-ghost btn-sm" style="margin-bottom:1rem;" data-action="close-org">← Back to ' + (isOrg() ? 'directory' : 'Find support') + '</button>';
+    if(!o) return back + '<div class="empty">That organization isn’t available.</div>';
+    var member = o.kind==='member';
+    var site = o.website ? '<a class="btn btn-secondary btn-sm" href="' + esc(o.website) + '" target="_blank" rel="noopener noreferrer nofollow">Visit website</a>' : '';
+    var posts = '';
+    if(member){
+      var mp = state.memberProfile && state.memberProfile.user.id===o.userId ? state.memberProfile.posts : null;
+      posts = '<div class="card" style="margin-bottom:1rem;"><div class="section-label">On the Help Board</div>'
+        + (mp === null ? '<p class="res-org">Loading…</p>'
+          : mp.length ? '<div class="suggest">' + mp.map(function(p){
+              return '<button class="suggest-item" data-action="view-help" data-id="' + esc(p.id) + '">' + esc(p.title)
+                + '<small>' + (p.type==='ask' ? 'Asking' : 'Offering') + ' · ' + esc(p.category) + ' · ' + fmtDate(p.createdAt) + '</small></button>';
+            }).join('') + '</div>'
+          : '<p class="res-org">No posts yet.</p>')
+        + '</div>';
+    }
+    var side = member
+      ? '<div class="side-card"><div class="section-label">Member organization</div><p style="font-size:.88rem; line-height:1.55; color:var(--text-muted);">This organization created its own profile on Global Neighbors. Profiles are self-described and not yet verified.</p>' + (site ? '<div style="margin-top:.7rem;">' + site + '</div>' : '') + '</div>'
+      : '<div class="side-card"><div class="section-label">Reference directory</div><p style="font-size:.88rem; line-height:1.55; color:var(--text-muted);">Listed from public information. This organization is not affiliated with Global Neighbors and doesn’t receive posts or messages here. Contact them through their website.</p>'
+        + '<a class="btn btn-secondary btn-sm" style="margin-top:.7rem;" href="' + esc(o.website) + '" target="_blank" rel="noopener noreferrer">' + esc(o.website.replace(/^https?:\/\//,'')) + '</a></div>';
+    return back
+      + '<div class="profile-head"><div><h2>' + esc(o.name) + '</h2><div class="org-tagline">' + esc(o.tagline) + '</div></div><div>' + site + '</div></div>'
+      + '<div class="meta-row" style="margin-bottom:1.2rem;"><span>' + ICONS.pin + esc(o.location) + '</span><span>' + ICONS.globe + esc(regionLabel(regionOf(o))) + '</span></div>'
+      + '<div class="tag-row">' + o.causes.map(function(c){ return '<span class="tag">' + esc(c) + '</span>'; }).join('') + '</div>'
+      + '<div class="profile-grid"><div>'
+      +   '<div class="card" style="margin-bottom:1rem;"><div class="section-label">Mission</div><p style="font-size:.94rem; line-height:1.6; white-space:pre-wrap;">' + (o.mission ? esc(o.mission) : '<span class="res-org">No description yet.</span>') + '</p></div>'
+      +   posts
+      + '</div><div>' + side + '</div></div>';
+  }
+
+  /* ============ RENDER: MY PROFILE ============ */
+  function renderMyProfile(){
+    var u = state.user, org = isOrg(), dis = state.busy ? ' disabled' : '';
+    var causes = org
+      ? '<div class="field"><span class="field-label">Cause areas (up to 6)</span><div class="cause-pick">'
+        + CAUSES.map(function(c, i){
+            return '<label><input type="checkbox" name="cause" value="' + esc(c) + '"' + (u.causes.indexOf(c)>-1?' checked':'') + '>' + esc(c) + '</label>';
+          }).join('')
+        + '</div></div>'
+      : '';
+    return '<div class="page-head"><div><h2>My profile</h2><p>' + (org ? 'This is how your organization appears in the directory and on your posts.' : 'Other members see your name, headline, and location on your posts and replies.') + '</p></div></div>'
+      + '<div class="profile-grid"><div>'
+      + '<form class="card" data-action="save-profile" style="margin-bottom:1rem;">'
+      +   '<div class="section-label">Profile</div>'
+      +   '<div class="field"><label for="pf-name">' + (org ? 'Organization name' : 'Name') + '</label><input id="pf-name" maxlength="80" required value="' + esc(u.displayName) + '"></div>'
+      +   '<div class="field"><label for="pf-headline">' + (org ? 'Tagline' : 'Headline') + '</label><input id="pf-headline" maxlength="120" value="' + esc(u.headline) + '" placeholder="' + (org ? 'e.g. Mobile food pantry & community kitchen' : 'e.g. Retired teacher, weekend volunteer') + '"></div>'
+      +   '<div class="field-row">'
+      +     '<div class="field"><label for="pf-loc">Location</label><input id="pf-loc" maxlength="100" required value="' + esc(u.location) + '"></div>'
+      +     '<div class="field"><label for="pf-region">Region</label><select id="pf-region">' + opts(REGIONS, u.region, regionLabel) + '</select></div>'
+      +   '</div>'
+      +   '<div class="field"><label for="pf-bio">' + (org ? 'Mission' : 'About you (optional)') + '</label><textarea id="pf-bio" maxlength="2000">' + esc(u.bio) + '</textarea></div>'
+      +   (org ? '<div class="field"><label for="pf-web">Website</label><input id="pf-web" maxlength="200" value="' + esc(u.website) + '" placeholder="https://"></div>' : '')
+      +   causes
+      +   '<div class="card-actions"><button class="btn btn-primary btn-sm" type="submit"' + dis + '>Save profile</button></div>'
+      + '</form>'
+      + '</div><div>'
+      + '<div class="side-card"><div class="section-label">Account</div><p style="font-size:.88rem;">' + esc(u.email) + '</p><p class="hint">Your email is never shown to other members.</p></div>'
+      + '<form class="side-card" data-action="change-password"><div class="section-label">Change password</div>'
+      +   '<div class="field"><label for="pw-cur">Current password</label><input id="pw-cur" type="password" autocomplete="current-password" required></div>'
+      +   '<div class="field"><label for="pw-new">New password</label><input id="pw-new" type="password" autocomplete="new-password" minlength="10" required></div>'
+      +   '<button class="btn btn-secondary btn-sm" type="submit"' + dis + '>Update password</button>'
+      +   '<p class="hint">Updating your password signs you out everywhere else.</p></form>'
+      + '<form class="side-card" data-action="delete-account"><div class="section-label" style="color:var(--danger);">Delete account</div>'
+      +   '<p class="hint" style="margin-bottom:.7rem;">This permanently removes your profile, posts, replies, and messages.</p>'
+      +   '<div class="field"><label for="del-pass">Confirm with your password</label><input id="del-pass" type="password" autocomplete="current-password" required></div>'
+      +   '<button class="btn btn-danger btn-sm" type="submit"' + dis + '>Delete my account</button></form>'
+      + '</div></div>';
+  }
+
+  /* ============ RENDER: MODAL ============ */
+  function renderModal(){
+    if(state.modal!=='post-help') return '';
+    var u = state.user, dis = state.busy ? ' disabled' : '';
+    return '<div class="modal-backdrop" data-action="close-modal">'
+      + '<div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">'
+      +   '<h3 id="help-modal-title">Post to the Help Board</h3>'
+      +   '<p class="posting-as">Posting as ' + esc(u.displayName) + '. Signed-in members can see your post.</p>'
+      +   (state.formError ? '<div class="form-error" role="alert">' + esc(state.formError) + '</div>' : '')
+      +   '<form data-action="submit-help">'
+      +     '<div class="field-row">'
+      +       '<div class="field"><label for="hp-type">I’m…</label><select id="hp-type"><option value="ask">Asking for help</option><option value="offer">Offering help</option></select></div>'
+      +       '<div class="field"><label for="hp-cat">Category</label><select id="hp-cat">' + opts(Object.keys(HELP_CATS)) + '</select></div>'
+      +     '</div>'
+      +     '<div class="field"><label for="hp-title">Title</label><input id="hp-title" type="text" maxlength="120" required placeholder="e.g. Grocery run for my neighbor on Thursdays"></div>'
+      +     '<div class="field"><label for="hp-detail">Details</label><textarea id="hp-detail" maxlength="3000" required placeholder="What’s needed, when, and anything a helper should know. Don’t include your street address."></textarea></div>'
+      +     '<div class="field-row">'
+      +       '<div class="field"><label for="hp-loc">Location</label><input id="hp-loc" type="text" maxlength="100" required value="' + esc(u.location) + '"></div>'
+      +       '<div class="field"><label for="hp-region">Region</label><select id="hp-region">' + opts(REGIONS, u.region, regionLabel) + '</select></div>'
+      +     '</div>'
+      +     '<div class="field-row">'
+      +       '<div class="field"><label for="hp-scale">Reach</label><select id="hp-scale">' + opts(SCALES, 'Neighborhood', scaleLabel) + '</select></div>'
+      +       '<div class="field"><label for="hp-urgency">Timing</label><select id="hp-urgency">' + opts(URGENCIES) + '</select></div>'
+      +     '</div>'
+      +     '<div class="field-row">'
+      +       '<div class="field"><label for="hp-pay">Compensation</label><select id="hp-pay"><option value="volunteer">Volunteer</option><option value="paid">Paid job</option><option value="stipend">Stipend / expenses</option><option value="funding">Needs funding or donations</option></select></div>'
+      +       '<div class="field"><label for="hp-paylabel">Amount (optional)</label><input id="hp-paylabel" type="text" maxlength="60" placeholder="e.g. $20/hr, gas reimbursed"></div>'
+      +     '</div>'
+      +     '<div class="modal-actions">'
+      +       '<button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button>'
+      +       '<button type="submit" class="btn btn-primary"' + dis + '>' + (state.busy ? 'Posting…' : 'Post') + '</button>'
+      +     '</div>'
+      +   '</form>'
+      + '</div></div>';
+  }
+
+  /* ============ RENDER DISPATCH ============ */
+  function render(){
+    var root = document.getElementById('root');
+    if(state.booting){ root.innerHTML = '<div class="empty" style="padding-top:30vh;">Loading…</div>'; return; }
+    // Keep typed-but-unsent text across re-renders.
+    var keep = {};
+    document.querySelectorAll('#root input[id], #root textarea[id], #root select[id]').forEach(function(el){
+      if(el.type!=='password' && el.type!=='radio' && el.type!=='checkbox') keep[el.id] = el.value;
+    });
+    root.innerHTML = state.view==='landing' ? renderLanding() : state.view==='auth' ? renderAuth() : renderApp();
+    Object.keys(keep).forEach(function(id){
+      var el = document.getElementById(id);
+      if(el && el.getAttribute('data-search')===null) el.value = keep[id];
+    });
+  }
+
+  /* ============ EVENTS ============ */
+  document.addEventListener('click', function(e){
+    var el = e.target.closest('[data-action]');
+    if(!el || el.tagName==='FORM') return;
+    var action = el.getAttribute('data-action');
+
+    if(action==='show-auth'){
+      state.view='auth'; state.authMode = el.getAttribute('data-mode') || 'signup';
+      if(el.getAttribute('data-type')) state.signupType = el.getAttribute('data-type');
+      state.formError=''; render(); window.scrollTo(0,0); return;
+    }
+    if(action==='auth-mode'){ state.authMode = el.getAttribute('data-mode'); state.formError=''; render(); return; }
+    if(action==='to-landing'){ state.view='landing'; state.formError=''; render(); return; }
+    if(action==='logout'){
+      run(api('POST', 'auth/logout').then(function(){
+        state.user=null; state.view='landing'; state.posts=[]; state.helpDetail=null; state.selectedHelpId=null;
+        toast('You’re logged out.');
+      }));
+      return;
+    }
+    if(action==='set-tab'){
+      state.tab = el.getAttribute('data-tab'); state.selectedOrgId=null; state.selectedHelpId=null; state.helpDetail=null;
+      render(); if(state.tab==='help') loadPosts(); if(state.tab==='directory') loadMemberOrgs(); return;
+    }
+    if(action==='set-help-view'){ state.helpView = el.getAttribute('data-view'); state.posts=[]; render(); loadPosts(); return; }
+    if(action==='set-filter'){ state[el.getAttribute('data-field')] = el.getAttribute('data-value'); render(); return; }
+    if(action==='set-dir'){
+      if(el.hasAttribute('data-region')) state.dirRegion = el.getAttribute('data-region');
+      if(el.hasAttribute('data-source')) state.dirSource = el.getAttribute('data-source');
+      if(el.hasAttribute('data-cause')) state.dirCause = el.getAttribute('data-cause');
+      render(); return;
+    }
+    if(action==='view-help'){ openHelp(el.getAttribute('data-id')); return; }
+    if(action==='close-help'){ state.selectedHelpId=null; state.helpDetail=null; render(); loadPosts(); return; }
+    if(action==='toggle-thread'){ var rid = el.getAttribute('data-reply'); state.openThread = state.openThread===rid ? null : rid; render(); return; }
+    if(action==='respond-reply'){
+      var st = el.getAttribute('data-status'), replyId = el.getAttribute('data-reply');
+      run(api('PATCH', 'replies/' + replyId, { status:st }).then(function(d){
+        state.helpDetail = d.post; if(st==='accepted') state.openThread = replyId;
+        toast(st==='accepted' ? 'Accepted. Say hello and sort out the details.' : 'Reply declined.');
+      }));
+      return;
+    }
+    if(action==='set-post-status'){
+      var ns = el.getAttribute('data-status');
+      run(api('PATCH', 'help/' + state.helpDetail.id, { status:ns }).then(function(){
+        toast(ns==='resolved' ? 'Marked as resolved. Thanks for closing the loop!' : 'Post reopened.');
+        return openHelp(state.helpDetail.id);
+      }));
+      return;
+    }
+    if(action==='delete-post'){
+      if(!window.confirm('Delete this post and all its replies? This can’t be undone.')) return;
+      run(api('DELETE', 'help/' + state.helpDetail.id).then(function(){
+        state.selectedHelpId=null; state.helpDetail=null; toast('Post deleted.'); loadPosts();
+      }));
+      return;
+    }
+    if(action==='view-org'){
+      var oid = el.getAttribute('data-org');
+      state.tab='directory'; state.selectedOrgId = oid; state.selectedHelpId=null; state.memberProfile=null;
+      render(); window.scrollTo(0,0);
+      if(oid.indexOf('member:')===0){
+        api('GET', 'users/' + oid.slice(7)).then(function(d){ state.memberProfile = d; render(); }, function(err){ toast(err.message); });
+      }
+      return;
+    }
+    if(action==='close-org'){ state.selectedOrgId=null; render(); return; }
+    if(action==='open-modal'){ state.modal = el.getAttribute('data-modal'); state.formError=''; render(); var t = document.getElementById('hp-title'); if(t) t.focus(); return; }
+    if(action==='close-modal'){ if(el.classList.contains('modal-backdrop') && e.target!==el) return; state.modal=null; state.formError=''; render(); return; }
+  });
+
+  document.addEventListener('input', function(e){
+    var field = e.target.getAttribute('data-search');
+    if(field){
+      state[field] = e.target.value;
+      var caret = e.target.selectionStart;
+      render();
+      var again = document.querySelector('[data-search="' + field + '"]');
+      if(again){ again.focus(); try{ again.setSelectionRange(caret, caret); }catch(err){} }
+    }
+  });
+
+  document.addEventListener('change', function(e){
+    var role = e.target.getAttribute('data-role');
+    if(role==='signup-type'){ state.signupType = e.target.value; render(); }
+    if(role==='help-cat'){ state.helpCat = e.target.value; render(); }
+  });
+
+  document.addEventListener('submit', function(e){
+    var form = e.target;
+    var action = form.getAttribute('data-action');
+    if(!action) return;
+    e.preventDefault();
+    if(state.busy) return;
+    function formError(err){ state.formError = err.message; }
+
+    if(action==='signup'){
+      state.formError='';
+      run(api('POST', 'auth/signup', {
+        accountType:state.signupType, displayName:val('su-name'), email:val('su-email'),
+        password:document.getElementById('su-pass').value, location:val('su-loc'), region:val('su-region')
+      }).then(function(d){
+        enterApp(d.user);
+        toast(d.user.accountType==='org' ? 'Welcome! Add your mission and cause areas under My profile.' : 'Welcome to Global Neighbors!');
+      }), formError);
+      return;
+    }
+    if(action==='login'){
+      state.formError='';
+      run(api('POST', 'auth/login', { email:val('li-email'), password:document.getElementById('li-pass').value })
+        .then(function(d){ enterApp(d.user); }), formError);
+      return;
+    }
+    if(action==='submit-help'){
+      state.formError='';
+      run(api('POST', 'help', {
+        type:val('hp-type'), category:val('hp-cat'), title:val('hp-title'), detail:val('hp-detail'),
+        location:val('hp-loc'), region:val('hp-region'), scale:val('hp-scale'), urgency:val('hp-urgency'),
+        payKind:val('hp-pay'), payLabel:val('hp-paylabel')
+      }).then(function(){
+        state.modal=null; state.tab='help'; state.helpView='mine'; state.selectedHelpId=null;
+        toast('Posted to the Help Board.'); loadPosts();
+      }), formError);
+      return;
+    }
+    if(action==='send-reply'){
+      var id = state.helpDetail.id;
+      run(api('POST', 'help/' + id + '/replies', { text:val('help-reply-text') }).then(function(d){
+        state.helpDetail = d.post; toast('Reply sent to ' + d.post.author.name + '.');
+      }));
+      return;
+    }
+    if(action==='send-message'){
+      var input = form.querySelector('input');
+      var textVal = input.value.trim();
+      if(!textVal) return;
+      var replyId = form.getAttribute('data-reply');
+      run(api('POST', 'replies/' + replyId + '/messages', { text:textVal }).then(function(d){
+        state.helpDetail = d.post; state.openThread = replyId;
+      })).then(function(){
+        var next = document.querySelector('form[data-action="send-message"] input');
+        if(next){ next.value=''; next.focus(); }
+      });
+      return;
+    }
+    if(action==='save-profile'){
+      var body = { displayName:val('pf-name'), headline:val('pf-headline'), location:val('pf-loc'), region:val('pf-region'), bio:val('pf-bio') };
+      if(isOrg()){
+        body.website = val('pf-web');
+        body.causes = [].slice.call(form.querySelectorAll('input[name=cause]:checked')).map(function(c){ return c.value; });
+      }
+      run(api('PATCH', 'me', body).then(function(d){ state.user = d.user; toast('Profile saved.'); loadMemberOrgs(); }));
+      return;
+    }
+    if(action==='change-password'){
+      run(api('POST', 'me/password', { currentPassword:document.getElementById('pw-cur').value, newPassword:document.getElementById('pw-new').value })
+        .then(function(){ form.reset(); toast('Password updated.'); }));
+      return;
+    }
+    if(action==='delete-account'){
+      if(!window.confirm('Permanently delete your account and everything you’ve posted? This can’t be undone.')) return;
+      run(api('DELETE', 'me', { password:document.getElementById('del-pass').value }).then(function(){
+        state.user=null; state.view='landing'; state.posts=[]; toast('Your account has been deleted.');
+      }));
+      return;
+    }
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape' && state.modal){ state.modal=null; render(); }
+  });
+
+  /* ============ BOOT ============ */
+  api('GET', 'me').then(function(d){
+    state.booting = false;
+    if(d.user) enterApp(d.user); else render();
+  }, function(){ state.booting = false; render(); });
+})();
+</script>

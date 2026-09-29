@@ -1527,7 +1527,7 @@
       var m = me();
       var opts = function(list, sel){ return list.map(function(v){ return '<option' + (v===sel?' selected':'') + '>' + esc(v) + '</option>'; }).join(''); };
       return '<div class="modal-backdrop" data-action="close-modal">'
-        + '<div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="help-modal-title" onclick="event.stopPropagation()">'
+        + '<div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">'
         +   '<h3 id="help-modal-title">Post to the Help Board</h3>'
         +   '<p class="posting-as">Posting as ' + esc(m.name) + (m.kind==='org' ? ' (organization)' : '') + '</p>'
         +   '<form data-action="submit-help">'
@@ -1558,7 +1558,7 @@
     }
     if(state.modal==='post-resource'){
       return '<div class="modal-backdrop" data-action="close-modal">'
-        + '<div class="modal" onclick="event.stopPropagation()">'
+        + '<div class="modal">'
         +   '<h3>Post a resource</h3>'
         +   '<form data-action="submit-resource">'
         +     '<div class="field-row">'
@@ -1577,7 +1577,7 @@
         + '</div></div>';
     }
     return '<div class="modal-backdrop" data-action="close-modal">'
-      + '<div class="modal" onclick="event.stopPropagation()">'
+      + '<div class="modal">'
       +   '<h3>Share a blueprint</h3>'
       +   '<form data-action="submit-blueprint">'
       +     '<div class="field"><label for="bp-title">Title</label><input id="bp-title" type="text" required placeholder="e.g. Volunteer onboarding checklist"></div>'
@@ -1703,7 +1703,7 @@
       render(); return;
     }
     if(action==='open-modal'){ state.modal = el.getAttribute('data-modal'); render(); return; }
-    if(action==='close-modal'){ state.modal=null; render(); return; }
+    if(action==='close-modal'){ if(el.classList.contains('modal-backdrop') && e.target!==el) return; state.modal=null; render(); return; }
   });
 
   document.addEventListener('input', function(e){

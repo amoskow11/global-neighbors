@@ -1,0 +1,9 @@
+name = "global-neighbors"
+pages_build_output_dir = "./public"
+compatibility_date = "2026-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "global-neighbors-db"
+database_id = "f40534ec-b097-4370-a54e-40e5a42aff41"
+migrations_dir = "migrations"
