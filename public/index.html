@@ -403,6 +403,33 @@
   .btn-danger{ background:var(--danger-soft); color:var(--danger); }
   .btn-danger:hover{ border-color:var(--danger); }
   @media (max-width:520px){ .type-pick{ grid-template-columns:1fr; } }
+
+  /* ---------- Trust & safety ---------- */
+  .verified-badge{ display:inline-flex; align-items:center; gap:.2rem; font-family:'Public Sans',sans-serif; font-size:.68rem; font-weight:700; letter-spacing:.02em; padding:.14rem .5rem; border-radius:100px; background:var(--success-soft); color:var(--success); margin-left:.35rem; vertical-align:middle; white-space:nowrap; }
+  .link-btn{ background:none; border:none; padding:0; font:inherit; font-size:.8rem; font-weight:600; color:var(--primary); cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+  .link-btn:hover{ color:var(--primary-strong); }
+  .safety-row{ display:flex; flex-wrap:wrap; gap:1rem; margin-top:.8rem; }
+  .safety-row .link-btn{ color:var(--text-muted); font-weight:500; }
+  .safety-row .link-btn:hover{ color:var(--danger); }
+  .form-notice{ background:var(--success-soft); color:var(--text); font-size:.86rem; padding:.7rem .85rem; border-radius:8px; margin-bottom:1rem; line-height:1.5; }
+  .banner{ background:var(--warning-soft); color:var(--text); border:1px solid var(--border); font-size:.86rem; line-height:1.5; padding:.7rem .9rem; border-radius:10px; margin-bottom:1.2rem; }
+  .check{ display:flex; gap:.6rem; align-items:flex-start; font-size:.84rem; line-height:1.45; margin:0 0 1rem; cursor:pointer; }
+  .check input{ margin-top:.2rem; width:1rem; height:1rem; flex:none; accent-color:var(--primary); }
+  .auth-title{ font-size:1.3rem; margin-bottom:.8rem; }
+  .legal-links{ display:flex; flex-wrap:wrap; gap:.9rem; font-size:.78rem; }
+  .legal-links a{ color:var(--text-muted); }
+  .legal-links a:hover{ color:var(--primary); }
+  .rail-foot .legal-links{ flex-direction:column; gap:.4rem; }
+  .block-row{ display:flex; justify-content:space-between; align-items:center; gap:.6rem; }
+  .admin-card{ margin-bottom:1rem; display:flex; flex-direction:column; gap:.7rem; }
+  .admin-user{ flex-direction:row; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+  .kv{ display:grid; grid-template-columns:max-content 1fr; gap:.3rem .9rem; margin:0; font-size:.86rem; }
+  .kv dt{ color:var(--text-muted); font-weight:600; }
+  .kv dd{ margin:0; min-width:0; overflow-wrap:anywhere; }
+  .snapshot{ margin:0; white-space:pre-wrap; overflow-wrap:anywhere; font-family:inherit; font-size:.86rem; line-height:1.5; background:var(--surface-2); border-left:3px solid var(--danger); border-radius:6px; padding:.65rem .8rem; max-height:14rem; overflow:auto; }
+  .copy-row{ display:flex; gap:.5rem; margin-top:.6rem; }
+  .copy-row input{ flex:1; min-width:0; font-family:inherit; font-size:.8rem; padding:.45rem .6rem; border-radius:7px; border:1px solid var(--border); background:var(--surface); color:var(--text); }
+  @media (max-width:520px){ .kv{ grid-template-columns:1fr; } .kv dd{ margin-bottom:.35rem; } }
 </style>
 
 <div id="root"></div>
@@ -420,6 +447,7 @@
     pin: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.4"></circle></svg>',
     globe: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z"></path></svg>',
     lock: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>',
+    shield: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"></path></svg>',
     arrow: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg>'
   };
 
@@ -694,8 +722,16 @@
     dirQuery:'', dirCause:'All', dirSource:'all', dirRegion:'All',
     selectedOrgId:null,        // real org id, or 'member:<uuid>'
     memberProfile:null,
-    modal:null
+    modal:null,
+    config:{ emailEnabled:false, contactEmail:'' },
+    authNotice:'', resetToken:null, agreeTerms:false,
+    report:null,               // { type, id, label } while the report dialog is open
+    blocks:null, myVerification:undefined,
+    adminView:'reports',
+    admin:{ overview:null, reports:null, verifications:null, users:null, userQuery:'', reportFilter:'open', resetLink:null }
   };
+  var REPORT_REASONS = ['Scam or fraud','Harassment or hate','Unsafe or exploitative request','Spam',
+    'Impersonation or fake organization','Inappropriate content','Other'];
 
   /* ============ HELPERS ============ */
   function esc(s){
@@ -729,7 +765,7 @@
   // Member (registered) orgs look like directory entries so both lists render the same way.
   function memberAsOrg(m){
     return { id:'member:' + m.id, userId:m.id, kind:'member', name:m.displayName, tagline:m.headline || 'Member organization',
-      location:m.location, region:m.region, causes:m.causes || [], mission:m.bio, website:m.website };
+      location:m.location, region:m.region, causes:m.causes || [], mission:m.bio, website:m.website, verified:!!m.verified };
   }
   function allOrgs(){ return state.memberOrgs.map(memberAsOrg).concat(REAL_ORGS); }
   function orgById(id){ return allOrgs().filter(function(o){ return o.id===id; })[0]; }
@@ -800,6 +836,8 @@
   }
   function enterApp(user){
     state.user = user; state.view = 'app'; state.tab = 'help'; state.helpView = 'browse';
+    state.blocks = null; state.myVerification = undefined; state.adminView = 'reports';
+    state.admin = { overview:null, reports:null, verifications:null, users:null, userQuery:'', reportFilter:'open', resetLink:null };
     state.selectedHelpId = null; state.selectedOrgId = null; state.formError = '';
     render(); window.scrollTo(0,0);
     loadPosts(); loadMemberOrgs();
@@ -835,7 +873,7 @@
     +   featureCard('primary', ICONS.directory, 'Find the right organization', 'Search nonprofits and NGOs by cause and region, from Greater Boston to Nairobi, Dhaka, and Medellín.')
     +   featureCard('primary', ICONS.lock, 'Private by default', 'Replies and messages are visible only to you and the person who posted. You choose what to share, and you can delete your account at any time.')
     + '</div>'
-    + '<div class="landing-footer">Global Neighbors is in early access. Organizations in the reference directory are listed from public information and are not affiliated with Global Neighbors. Member organizations describe themselves and are not yet verified.</div>'
+    + '<div class="landing-footer">Global Neighbors is in early access. Organizations in the reference directory are listed from public information and are not affiliated with Global Neighbors. Member organizations describe themselves; a ✓ Verified badge means we’ve checked their registration.<div style="margin-top:.6rem;">' + legalLinks() + '</div></div>'
     + '</div>';
   }
   function featureCard(tone, icon, title, body){
@@ -848,16 +886,23 @@
   }
 
   /* ============ RENDER: AUTH ============ */
+  function contactEmail(){ return state.config.contactEmail || 'amoskow@brandeis.edu'; }
+  function legalLinks(){
+    return '<nav class="legal-links" aria-label="Policies"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/safety">Safety tips</a></nav>';
+  }
+
   function renderAuth(){
-    var signup = state.authMode==='signup';
-    var t = state.signupType;
-    var seg = '<div class="seg" role="tablist" style="width:100%;">'
-      + '<button role="tab" aria-selected="' + signup + '" style="flex:1;justify-content:center;" class="' + (signup?'active':'') + '" data-action="auth-mode" data-mode="signup">Create account</button>'
-      + '<button role="tab" aria-selected="' + !signup + '" style="flex:1;justify-content:center;" class="' + (!signup?'active':'') + '" data-action="auth-mode" data-mode="login">Log in</button>'
-      + '</div>';
+    var mode = state.authMode, t = state.signupType, dis = state.busy ? ' disabled' : '';
     var err = state.formError ? '<div class="form-error" role="alert">' + esc(state.formError) + '</div>' : '';
+    var note = state.authNotice ? '<div class="form-notice" role="status">' + esc(state.authNotice) + '</div>' : '';
+    var seg = (mode==='signup' || mode==='login')
+      ? '<div class="seg" role="tablist" style="width:100%;">'
+        + '<button role="tab" aria-selected="' + (mode==='signup') + '" style="flex:1;justify-content:center;" class="' + (mode==='signup'?'active':'') + '" data-action="auth-mode" data-mode="signup">Create account</button>'
+        + '<button role="tab" aria-selected="' + (mode==='login') + '" style="flex:1;justify-content:center;" class="' + (mode==='login'?'active':'') + '" data-action="auth-mode" data-mode="login">Log in</button>'
+        + '</div>'
+      : '';
     var body;
-    if(signup){
+    if(mode==='signup'){
       body = '<form data-action="signup" novalidate>'
         + '<div class="type-pick" role="radiogroup" aria-label="Account type">'
         +   '<label><input type="radio" name="acct" value="person"' + (t==='person'?' checked':'') + ' data-role="signup-type"><b>Individual</b><span>Person, family, or community member</span></label>'
@@ -872,20 +917,37 @@
         +   '<div class="field"><label for="su-region">Region</label><select id="su-region">' + opts(REGIONS, 'Greater Boston', regionLabel) + '</select></div>'
         + '</div>'
         + '<p class="hint" style="margin:-.4rem 0 1rem;">Never enter a street address. You can share exact details privately once you’ve accepted a helper.</p>'
-        + '<button class="btn btn-primary" type="submit" style="width:100%;"' + (state.busy?' disabled':'') + '>' + (state.busy ? 'Creating account…' : 'Create account') + '</button>'
+        + '<label class="check"><input type="checkbox" data-role="agree-terms"' + (state.agreeTerms?' checked':'') + '><span>I’m 18 or older and I agree to the <a href="/terms" target="_blank" rel="noopener">Terms of Use</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>'
+        + '<button class="btn btn-primary" type="submit" style="width:100%;"' + dis + '>' + (state.busy ? 'Creating account…' : 'Create account') + '</button>'
         + '</form>';
-    } else {
+    } else if(mode==='login'){
       body = '<form data-action="login" novalidate>'
         + '<div class="field"><label for="li-email">Email</label><input id="li-email" type="email" autocomplete="email" required></div>'
         + '<div class="field"><label for="li-pass">Password</label><input id="li-pass" type="password" autocomplete="current-password" required></div>'
-        + '<button class="btn btn-primary" type="submit" style="width:100%;"' + (state.busy?' disabled':'') + '>' + (state.busy ? 'Logging in…' : 'Log in') + '</button>'
-        + '<p class="hint" style="margin-top:.9rem;">Forgot your password? Email reset isn’t available yet. Contact the Global Neighbors team for help.</p>'
+        + '<button class="btn btn-primary" type="submit" style="width:100%;"' + dis + '>' + (state.busy ? 'Logging in…' : 'Log in') + '</button>'
+        + '<p style="margin-top:.9rem; text-align:center;"><button type="button" class="link-btn" data-action="auth-mode" data-mode="forgot">Forgot your password?</button></p>'
         + '</form>';
+    } else if(mode==='forgot'){
+      body = '<h2 class="auth-title">Reset your password</h2>'
+        + (state.config.emailEnabled
+          ? '<form data-action="forgot" novalidate>'
+            + '<p class="hint" style="margin-bottom:1rem;">Enter the email you signed up with. If it matches an account, we’ll send a link to choose a new password.</p>'
+            + '<div class="field"><label for="fp-email">Email</label><input id="fp-email" type="email" autocomplete="email" required></div>'
+            + '<button class="btn btn-primary" type="submit" style="width:100%;"' + dis + '>' + (state.busy ? 'Sending…' : 'Email me a reset link') + '</button></form>'
+          : '<p style="font-size:.92rem; line-height:1.6;">Password reset by email isn’t switched on yet. Email <a href="mailto:' + esc(contactEmail()) + '?subject=Global%20Neighbors%20password%20reset">' + esc(contactEmail()) + '</a> from the address on your account, and we’ll send you a secure, one-time reset link.</p>')
+        + '<p style="margin-top:1rem; text-align:center;"><button type="button" class="link-btn" data-action="auth-mode" data-mode="login">Back to log in</button></p>';
+    } else {
+      body = '<h2 class="auth-title">Choose a new password</h2>'
+        + '<form data-action="reset" novalidate>'
+        + '<div class="field"><label for="rp-pass">New password</label><input id="rp-pass" type="password" autocomplete="new-password" minlength="10" required><p class="hint">At least 10 characters. You’ll be signed out on all other devices.</p></div>'
+        + '<div class="field"><label for="rp-pass2">Confirm new password</label><input id="rp-pass2" type="password" autocomplete="new-password" required></div>'
+        + '<button class="btn btn-primary" type="submit" style="width:100%;"' + dis + '>' + (state.busy ? 'Saving…' : 'Set new password') + '</button></form>';
     }
     return '<div class="auth-wrap"><div class="auth-card">'
       + '<button class="btn btn-ghost btn-sm" data-action="to-landing" style="margin-bottom:1rem;">← Back</button>'
       + '<div class="wordmark" style="margin-bottom:1.2rem;"><span class="dot"></span><span>Global Neighbors</span></div>'
-      + seg + err + body
+      + seg + err + note + body
+      + '<div style="margin-top:1.4rem;">' + legalLinks() + '</div>'
       + '</div></div>';
   }
 
@@ -897,12 +959,13 @@
       {id:'directory', label: isOrg() ? 'Directory' : 'Find support', icon:ICONS.directory},
       {id:'profile', label:'My profile', icon:ICONS.profile}
     ];
+    if(u.isAdmin) tabs.push({id:'admin', label:'Admin', icon:ICONS.shield});
     var rail = '<nav class="rail" aria-label="Main">'
       + '<div class="rail-brand"><span style="width:10px;height:10px;border-radius:50%;background:var(--grad-accent);box-shadow:0 0 0 3px var(--accent-soft);display:inline-block;"></span><span>Global Neighbors</span></div>'
       + tabs.map(function(t){
           return '<button class="rail-link' + (state.tab===t.id?' active':'') + '" data-action="set-tab" data-tab="' + t.id + '"' + (state.tab===t.id?' aria-current="page"':'') + '>' + t.icon + '<span>' + t.label + '</span></button>';
         }).join('')
-      + '</nav>';
+      + '<div class="rail-foot">' + legalLinks() + '</div></nav>';
     var topbar = '<div class="topbar">'
       + '<div class="viewing-as">Signed in as <b style="color:var(--text);">' + esc(u.displayName) + '</b><span class="kind-badge" style="margin-left:0;">' + (isOrg() ? 'Organization' : 'Individual') + '</span></div>'
       + '<div style="display:flex;align-items:center;gap:.8rem;"><span class="hero-note">' + esc(u.location) + '</span><button class="btn btn-ghost btn-sm" data-action="logout">Log out</button></div>'
@@ -911,7 +974,10 @@
     if(state.tab==='help') body = state.selectedHelpId ? renderHelpDetail() : renderHelpBoard();
     else if(state.tab==='directory') body = state.selectedOrgId ? renderOrgProfile(state.selectedOrgId) : renderDirectory();
     else if(state.tab==='profile') body = renderMyProfile();
-    return '<div class="shell">' + rail + '<main class="main">' + topbar + '<div class="content">' + body + '</div></main></div>' + renderModal();
+    else if(state.tab==='admin' && u.isAdmin) body = renderAdmin();
+    var banner = (state.config.emailEnabled && !u.emailVerified)
+      ? '<div class="banner">Please confirm your email to post, reply, and message. We sent a link to <b>' + esc(u.email) + '</b>. <button class="link-btn" data-action="resend-verify">Resend the email</button></div>' : '';
+    return '<div class="shell">' + rail + '<main class="main">' + topbar + '<div class="content">' + banner + body + '</div></main></div>' + renderModal();
   }
 
   /* ============ RENDER: HELP BOARD ============ */
@@ -927,7 +993,17 @@
     return '';
   }
   function repliesLabel(n){ return n===0 ? 'No replies yet' : n + (n===1 ? ' reply' : ' replies'); }
-  function whoLine(name, accountType){ return esc(name) + (accountType==='org' ? '<span class="kind-badge">Org</span>' : ''); }
+  function whoLine(name, accountType, verified){
+    return esc(name) + (accountType==='org' ? (verified ? verifiedMark() : '<span class="kind-badge">Org</span>') : '');
+  }
+  function verifiedMark(){ return '<span class="verified-badge" title="Organization verified by Global Neighbors">✓ Verified</span>'; }
+  // Report / block links shown next to content from other members.
+  function safetyRow(o){
+    return '<div class="safety-row">'
+      + (o.reportId ? '<button class="link-btn" data-action="open-report" data-type="' + o.reportType + '" data-id="' + esc(o.reportId) + '" data-label="' + esc(o.label) + '">Report</button>' : '')
+      + (o.blockId ? '<button class="link-btn" data-action="block-user" data-user="' + esc(o.blockId) + '" data-name="' + esc(o.blockName) + '">Block ' + esc(o.blockName) + '</button>' : '')
+      + '</div>';
+  }
   function typePill(p){ return '<span class="res-type ' + (p.type==='ask'?'ask':'offer') + '">' + (p.type==='ask' ? 'Asking for help' : 'Offering help') + '</span>'; }
 
   function helpCard(p){
@@ -940,7 +1016,7 @@
       + '<div class="help-top">' + typePill(p) + (p.urgency==='Urgent' ? '<span class="urgent-pill">Urgent</span>' : '') + statusPill(p)
       +   '<span class="res-date">' + fmtDate(p.createdAt) + '</span></div>'
       + '<h3 style="font-size:1rem; font-weight:600;">' + esc(p.title) + '</h3>'
-      + '<div class="res-org">' + whoLine(p.author.name, p.author.accountType) + ' · ' + esc(p.location) + '</div>'
+      + '<div class="res-org">' + whoLine(p.author.name, p.author.accountType, p.author.verified) + ' · ' + esc(p.location) + '</div>'
       + '<div class="help-snippet">' + esc(p.detail) + '</div>'
       + '<div class="tag-row" style="margin-bottom:0;"><span class="tag">' + esc(p.category) + '</span>' + payTag(p.pay) + '<span class="tag muted">' + esc(scaleLabel(p.scale)) + '</span></div>'
       + '<div class="help-foot"><span class="reply-count">' + (p.isMine ? repliesLabel(p.replyCount) : '') + '</span><div class="card-actions">' + cta + '</div></div>'
@@ -1033,7 +1109,8 @@
       +   '<h2>' + esc(p.title) + '</h2></div>' + ownerActions
       + '</div>'
       + '<div class="meta-row" style="margin-bottom:.8rem;"><span>' + ICONS.pin + esc(p.location) + '</span><span>' + ICONS.globe + esc(scaleLabel(p.scale)) + '</span><span>Posted ' + fmtDate(p.createdAt) + '</span></div>'
-      + '<div class="tag-row"><span class="tag">' + esc(p.category) + '</span>' + payTag(p.pay) + '<span class="tag muted">' + esc(p.urgency) + '</span></div>';
+      + '<div class="tag-row"><span class="tag">' + esc(p.category) + '</span>' + payTag(p.pay) + '<span class="tag muted">' + esc(p.urgency) + '</span></div>'
+      + (p.hidden ? '<div class="form-error">Moderators hid this post after a report, so other members can’t see it. If you think this is a mistake, email ' + esc(contactEmail()) + '.</div>' : '');
 
     var replies;
     var mine = p.replies.filter(function(r){ return r.isMine; })[0];
@@ -1046,14 +1123,16 @@
                 + '<button class="btn btn-ghost btn-sm" data-action="respond-reply" data-reply="' + esc(r.id) + '" data-status="declined"' + dis + '>Decline</button>'
               : '';
             return '<div class="card response">'
-              + '<div class="response-head"><div><h3 style="font-size:.98rem;">' + whoLine(r.user.name, r.user.accountType) + '</h3><div class="res-org">' + esc(r.user.headline ? r.user.headline + ' · ' : '') + esc(r.user.location) + '</div></div>' + replyStatus(r) + '</div>'
+              + '<div class="response-head"><div><h3 style="font-size:.98rem;">' + whoLine(r.user.name, r.user.accountType, r.user.verified) + '</h3><div class="res-org">' + esc(r.user.headline ? r.user.headline + ' · ' : '') + esc(r.user.location) + '</div></div>' + replyStatus(r) + '</div>'
               + (open ? renderThread(p, r) : '<div class="req-note">' + esc(r.text) + '</div>')
               + '<div class="card-actions" style="margin-top:.7rem;">' + btns
               +   '<button class="btn btn-secondary btn-sm" data-action="toggle-thread" data-reply="' + esc(r.id) + '">' + (open ? 'Hide messages' : 'Messages (' + (r.messages.length + 1) + ')') + '</button></div>'
+              + safetyRow({ reportType:'reply', reportId:r.id, label:'reply from ' + r.user.name, blockId:r.user.id, blockName:r.user.name })
               + '</div>';
           }).join('') : '<div class="card empty" style="padding:1.4rem;">No replies yet. The organizations on the right work on this kind of need, so you can also contact them directly.</div>');
     } else if(mine){
-      replies = '<div class="card response"><div class="response-head"><div class="section-label" style="margin:0;">Your reply</div>' + replyStatus(mine) + '</div>' + renderThread(p, mine) + '</div>';
+      replies = '<div class="card response"><div class="response-head"><div class="section-label" style="margin:0;">Your reply</div>' + replyStatus(mine) + '</div>' + renderThread(p, mine)
+        + safetyRow({ reportType:'reply', reportId:mine.id, label:'conversation with ' + p.author.name }) + '</div>';
     } else if(p.status==='resolved'){
       replies = '<div class="card empty" style="padding:1.4rem;">This post has been resolved.</div>';
     } else {
@@ -1066,9 +1145,10 @@
     }
 
     var suggestions = suggestOrgs(p);
-    var side = '<div class="side-card"><div class="section-label">Posted by</div><p style="font-size:.92rem; font-weight:600;">' + whoLine(p.author.name, p.author.accountType) + '</p>'
+    var side = '<div class="side-card"><div class="section-label">Posted by</div><p style="font-size:.92rem; font-weight:600;">' + whoLine(p.author.name, p.author.accountType, p.author.verified) + '</p>'
       +   (p.author.headline ? '<p class="res-org" style="margin-top:.2rem;">' + esc(p.author.headline) + '</p>' : '')
       +   (p.author.accountType==='org' ? '<button class="btn btn-ghost btn-sm" style="margin-top:.7rem;" data-action="view-org" data-org="member:' + esc(p.author.id) + '">View organization</button>' : '')
+      +   (p.isMine ? '' : safetyRow({ reportType:'post', reportId:p.id, label:'post “' + p.title + '”', blockId:p.author.id, blockName:p.author.name }))
       + '</div>'
       + '<div class="side-card"><div class="section-label">Organizations working on this</div>'
       +   (suggestions.length ? '<div class="suggest">' + suggestions.map(function(o){
@@ -1102,7 +1182,8 @@
       }).join('');
     }
     var cards = list.map(function(o){
-      var badge = o.kind==='member' ? '<span class="org-badge demo">Member · self-described</span>' : '<span class="org-badge real">Reference directory</span>';
+      var badge = o.kind!=='member' ? '<span class="org-badge real">Reference directory</span>'
+        : o.verified ? verifiedMark() : '<span class="org-badge demo">Member · self-described</span>';
       return '<div class="card org-card">'
         + '<div class="org-card-top">' + badge + '</div>'
         + '<h3>' + esc(o.name) + '</h3>'
@@ -1121,7 +1202,7 @@
       + '<div class="toolbar"><span class="toolbar-label">Source</span>' + chips('dirSource', 'set-dir', 'source', [['all','All'],['member','Member organizations'],['real','Reference directory']]) + '</div>'
       + '<div class="toolbar"><span class="toolbar-label">Cause</span>' + chips('dirCause', 'set-dir', 'cause', [['All','All']].concat(allCauses().map(function(c){ return [c,c]; }))) + '</div>'
       + (list.length ? '<div class="grid">' + cards + '</div>' : '<div class="empty">No organizations match that search yet.</div>')
-      + '<div class="dir-footnote">Reference-directory entries show each organization’s public mission and a link to its official site; those organizations are not affiliated with Global Neighbors. Member organizations wrote their own profiles, which have not yet been verified.</div>';
+      + '<div class="dir-footnote">Reference-directory entries show each organization’s public mission and a link to its official site; those organizations are not affiliated with Global Neighbors. Member organizations wrote their own profiles. A ✓ Verified badge means Global Neighbors has checked the organization’s registration details.</div>';
   }
 
   function renderOrgProfile(id){
@@ -1143,11 +1224,15 @@
         + '</div>';
     }
     var side = member
-      ? '<div class="side-card"><div class="section-label">Member organization</div><p style="font-size:.88rem; line-height:1.55; color:var(--text-muted);">This organization created its own profile on Global Neighbors. Profiles are self-described and not yet verified.</p>' + (site ? '<div style="margin-top:.7rem;">' + site + '</div>' : '') + '</div>'
+      ? '<div class="side-card"><div class="section-label">Member organization</div><p style="font-size:.88rem; line-height:1.55; color:var(--text-muted);">'
+          + (o.verified ? 'Global Neighbors has checked this organization’s registration details.' : 'This organization created its own profile on Global Neighbors. It hasn’t been verified yet.')
+          + '</p>' + (site ? '<div style="margin-top:.7rem;">' + site + '</div>' : '')
+          + (state.user && o.userId!==state.user.id ? safetyRow({ reportType:'user', reportId:o.userId, label:'organization ' + o.name, blockId:o.userId, blockName:o.name }) : '')
+          + '</div>'
       : '<div class="side-card"><div class="section-label">Reference directory</div><p style="font-size:.88rem; line-height:1.55; color:var(--text-muted);">Listed from public information. This organization is not affiliated with Global Neighbors and doesn’t receive posts or messages here. Contact them through their website.</p>'
         + '<a class="btn btn-secondary btn-sm" style="margin-top:.7rem;" href="' + esc(o.website) + '" target="_blank" rel="noopener noreferrer">' + esc(o.website.replace(/^https?:\/\//,'')) + '</a></div>';
     return back
-      + '<div class="profile-head"><div><h2>' + esc(o.name) + '</h2><div class="org-tagline">' + esc(o.tagline) + '</div></div><div>' + site + '</div></div>'
+      + '<div class="profile-head"><div><h2>' + esc(o.name) + (o.verified ? ' ' + verifiedMark() : '') + '</h2><div class="org-tagline">' + esc(o.tagline) + '</div></div><div>' + site + '</div></div>'
       + '<div class="meta-row" style="margin-bottom:1.2rem;"><span>' + ICONS.pin + esc(o.location) + '</span><span>' + ICONS.globe + esc(regionLabel(regionOf(o))) + '</span></div>'
       + '<div class="tag-row">' + o.causes.map(function(c){ return '<span class="tag">' + esc(c) + '</span>'; }).join('') + '</div>'
       + '<div class="profile-grid"><div>'
@@ -1181,13 +1266,17 @@
       +   causes
       +   '<div class="card-actions"><button class="btn btn-primary btn-sm" type="submit"' + dis + '>Save profile</button></div>'
       + '</form>'
+      + (org ? renderVerificationCard() : '')
       + '</div><div>'
-      + '<div class="side-card"><div class="section-label">Account</div><p style="font-size:.88rem;">' + esc(u.email) + '</p><p class="hint">Your email is never shown to other members.</p></div>'
+      + '<div class="side-card"><div class="section-label">Account</div><p style="font-size:.88rem;">' + esc(u.email) + '</p><p class="hint">Your email is never shown to other members.'
+      +   (state.config.emailEnabled ? (u.emailVerified ? ' Email confirmed.' : ' Email not confirmed yet.') : '') + '</p>'
+      +   '<div style="margin-top:.8rem;">' + legalLinks() + '</div></div>'
       + '<form class="side-card" data-action="change-password"><div class="section-label">Change password</div>'
       +   '<div class="field"><label for="pw-cur">Current password</label><input id="pw-cur" type="password" autocomplete="current-password" required></div>'
       +   '<div class="field"><label for="pw-new">New password</label><input id="pw-new" type="password" autocomplete="new-password" minlength="10" required></div>'
       +   '<button class="btn btn-secondary btn-sm" type="submit"' + dis + '>Update password</button>'
       +   '<p class="hint">Updating your password signs you out everywhere else.</p></form>'
+      + renderBlocksCard()
       + '<form class="side-card" data-action="delete-account"><div class="section-label" style="color:var(--danger);">Delete account</div>'
       +   '<p class="hint" style="margin-bottom:.7rem;">This permanently removes your profile, posts, replies, and messages.</p>'
       +   '<div class="field"><label for="del-pass">Confirm with your password</label><input id="del-pass" type="password" autocomplete="current-password" required></div>'
@@ -1195,8 +1284,206 @@
       + '</div></div>';
   }
 
+  function renderVerificationCard(){
+    var u = state.user, v = state.myVerification, dis = state.busy ? ' disabled' : '';
+    var head = '<div class="section-label">Verification</div>';
+    if(v===undefined) return '<div class="card" style="margin-bottom:1rem;">' + head + '<p class="res-org">Loading…</p></div>';
+    if(u.verificationStatus==='verified'){
+      return '<div class="card" style="margin-bottom:1rem;">' + head + '<p>' + verifiedMark() + '</p>'
+        + '<p class="hint">Your organization shows a Verified badge on its profile, posts, and replies. Changing your organization’s name removes the badge until it’s reviewed again.</p></div>';
+    }
+    if(u.verificationStatus==='pending'){
+      return '<div class="card" style="margin-bottom:1rem;">' + head
+        + '<p style="font-size:.9rem;">Thanks! Your request' + (v ? ', sent ' + fmtDate(v.createdAt) + ',' : '') + ' is being reviewed. This usually takes a few days.</p></div>';
+    }
+    var rejected = (u.verificationStatus==='rejected' && v && v.status==='rejected')
+      ? '<div class="form-error">We couldn’t verify your organization' + (v.reviewNote ? ': ' + esc(v.reviewNote) : '.') + ' You can update the details and try again.</div>' : '';
+    return '<form class="card" data-action="request-verification" style="margin-bottom:1rem;">' + head
+      + '<p class="hint" style="margin:0 0 .9rem;">Get a ✓ Verified badge so people know your organization is real. We check your registration against public records, such as the IRS database for U.S. nonprofits or your country’s charity or NGO register.</p>'
+      + rejected
+      + '<div class="field"><label for="vf-legal">Legal name</label><input id="vf-legal" maxlength="150" required value="' + esc(v ? v.legalName : u.displayName) + '"></div>'
+      + '<div class="field"><label for="vf-reg">Registration number</label><input id="vf-reg" maxlength="60" required placeholder="e.g. EIN 12-3456789, or charity / NGO registration number" value="' + esc(v ? v.registrationNumber : '') + '"></div>'
+      + '<div class="field-row">'
+      +   '<div class="field"><label for="vf-country">Country of registration</label><input id="vf-country" maxlength="60" required value="' + esc(v ? v.country : '') + '"></div>'
+      +   '<div class="field"><label for="vf-web">Official website</label><input id="vf-web" maxlength="200" value="' + esc(v ? v.website : u.website) + '" placeholder="https://"></div>'
+      + '</div>'
+      + '<div class="field"><label for="vf-role">Your role at the organization</label><input id="vf-role" maxlength="100" required placeholder="e.g. Executive Director" value="' + esc(v ? v.contactRole : '') + '"></div>'
+      + '<div class="field"><label for="vf-notes">Anything else that helps us confirm (optional)</label><textarea id="vf-notes" maxlength="1500" placeholder="e.g. a staff page listing you, or a link to your public registry entry">' + esc(v ? v.notes : '') + '</textarea></div>'
+      + '<button class="btn btn-primary btn-sm" type="submit"' + dis + '>Request verification</button>'
+      + '</form>';
+  }
+
+  function renderBlocksCard(){
+    var b = state.blocks;
+    return '<div class="side-card"><div class="section-label">Blocked members</div>'
+      + (b===null ? '<p class="res-org">Loading…</p>'
+        : b.length ? '<ul class="list-plain">' + b.map(function(x){
+            return '<li class="block-row"><span>' + esc(x.displayName) + '</span><button class="link-btn" data-action="unblock" data-user="' + esc(x.id) + '">Unblock</button></li>';
+          }).join('') + '</ul>'
+        : '<p class="hint">You haven’t blocked anyone. Blocking hides each other’s posts, replies, and messages.</p>')
+      + '</div>';
+  }
+
+  function renderReportModal(){
+    var r = state.report, dis = state.busy ? ' disabled' : '';
+    return '<div class="modal-backdrop" data-action="close-modal">'
+      + '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="report-title">'
+      +   '<h3 id="report-title">Report ' + esc(r.label) + '</h3>'
+      +   '<p class="posting-as">Reports are private. The member won’t know who reported them. A moderator will review it and may hide content or suspend the account.</p>'
+      +   (state.formError ? '<div class="form-error" role="alert">' + esc(state.formError) + '</div>' : '')
+      +   '<form data-action="submit-report">'
+      +     '<div class="field"><label for="rpt-reason">What’s wrong?</label><select id="rpt-reason">' + opts(REPORT_REASONS) + '</select></div>'
+      +     '<div class="field"><label for="rpt-details">Details (optional)</label><textarea id="rpt-details" maxlength="1000" placeholder="Anything that helps a moderator understand what happened"></textarea></div>'
+      +     '<p class="hint">If someone is in immediate danger, contact local emergency services first. You can also block this member so they can’t contact you.</p>'
+      +     '<div class="modal-actions">'
+      +       '<button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button>'
+      +       '<button type="submit" class="btn btn-primary"' + dis + '>Send report</button>'
+      +     '</div>'
+      +   '</form>'
+      + '</div></div>';
+  }
+
+  /* ============ RENDER: ADMIN ============ */
+  function renderAdmin(){
+    var o = state.admin.overview;
+    var seg = '<div class="seg" role="tablist">' + [
+      ['reports','Reports', o && o.openReports], ['verifications','Verifications', o && o.pendingVerifications], ['users','Members', o && o.users]
+    ].map(function(t){
+      return '<button role="tab" aria-selected="' + (state.adminView===t[0]) + '" class="' + (state.adminView===t[0]?'active':'') + '" data-action="admin-view" data-view="' + t[0] + '">'
+        + t[1] + (t[2]!=null ? ' <span class="count-pill">' + t[2] + '</span>' : '') + '</button>';
+    }).join('') + '</div>';
+    var emailNote = (o && !o.emailEnabled)
+      ? '<div class="banner">Email isn’t connected yet, so members can’t reset their own passwords. If someone emails you for help, check that the request comes from the address on their account, then use <b>Members → Reset link</b>.</div>' : '';
+    var body = state.adminView==='reports' ? adminReports() : state.adminView==='verifications' ? adminVerifications() : adminUsers();
+    return '<div class="page-head"><div><h2>Admin</h2><p>Review reports, verify organizations, and manage members. Every action is logged.</p></div></div>'
+      + emailNote + seg + body;
+  }
+
+  function adminReports(){
+    var a = state.admin, list = a.reports, dis = state.busy ? ' disabled' : '';
+    var filter = '<div class="toolbar">' + [['open','Open'],['all','All reports']].map(function(f){
+      return '<button class="chip' + (a.reportFilter===f[0]?' active':'') + '" data-action="admin-report-filter" data-value="' + f[0] + '">' + f[1] + '</button>';
+    }).join('') + '</div>';
+    if(list===null) return filter + '<div class="empty">Loading…</div>';
+    if(!list.length) return filter + '<div class="empty">' + (a.reportFilter==='open' ? 'No open reports.' : 'No reports yet.') + '</div>';
+    return filter + list.map(function(r){
+      var tu = r.targetUser;
+      var btn = function(act, label, cls){ return '<button class="btn ' + cls + ' btn-sm" data-action="admin-report" data-id="' + esc(r.id) + '" data-act="' + act + '"' + dis + '>' + label + '</button>'; };
+      return '<div class="card admin-card">'
+        + '<div class="help-top"><span class="urgent-pill">' + esc(r.reason) + '</span><span class="tag muted">' + esc(r.targetType) + '</span>'
+        +   (r.status!=='open' ? '<span class="status-pill status-declined">' + esc(r.status) + '</span>' : '')
+        +   '<span class="res-date">' + fmtDate(r.createdAt) + '</span></div>'
+        + '<dl class="kv">'
+        +   '<dt>Reported member</dt><dd>' + (tu ? esc(tu.name) + (tu.email ? ' · ' + esc(tu.email) : '') + ' · ' + tu.reportCount + ' report' + (tu.reportCount===1?'':'s') + (tu.suspended ? ' · <b>suspended</b>' : '') : '—') + '</dd>'
+        +   '<dt>Reported by</dt><dd>' + esc(r.reporter) + '</dd>'
+        +   (r.details ? '<dt>Reporter’s note</dt><dd>' + esc(r.details) + '</dd>' : '')
+        +   (r.resolution ? '<dt>Resolution</dt><dd>' + esc(r.resolution) + '</dd>' : '')
+        + '</dl>'
+        + '<pre class="snapshot">' + esc(r.snapshot || '(no content)') + '</pre>'
+        + (r.status==='open'
+          ? '<div class="field"><label for="an-' + esc(r.id) + '">Note for the log (optional)</label><input id="an-' + esc(r.id) + '" maxlength="500"></div>'
+            + '<div class="card-actions" style="flex-wrap:wrap;">'
+            + btn('dismiss', 'Dismiss', 'btn-ghost')
+            + (r.targetType==='post' ? btn('hide-post', 'Hide post', 'btn-secondary') : '')
+            + (tu && !tu.suspended && !tu.deleted ? btn('suspend-user', 'Suspend member', 'btn-danger') : '')
+            + (r.targetType==='post' && tu && !tu.suspended && !tu.deleted ? btn('hide-and-suspend', 'Hide post & suspend', 'btn-danger') : '')
+            + '</div>'
+          : '')
+        + (r.targetType==='post' && r.postHidden ? '<p style="margin-top:.6rem;"><button class="link-btn" data-action="admin-unhide" data-id="' + esc(r.targetId) + '">Unhide this post</button></p>' : '')
+        + '</div>';
+    }).join('');
+  }
+
+  function adminVerifications(){
+    var list = state.admin.verifications, dis = state.busy ? ' disabled' : '';
+    var help = '<p class="hint" style="margin-bottom:1rem;">Check each registration number against public records, e.g. the <a href="https://apps.irs.gov/app/eos/" target="_blank" rel="noopener noreferrer">IRS Tax Exempt Organization Search</a> for U.S. nonprofits, and make sure the website and the requester’s role match.</p>';
+    if(list===null) return help + '<div class="empty">Loading…</div>';
+    if(!list.length) return help + '<div class="empty">No pending verification requests.</div>';
+    return help + list.map(function(v){
+      var link = v.website ? '<a href="' + esc(v.website) + '" target="_blank" rel="noopener noreferrer nofollow">' + esc(v.website) + '</a>' : '—';
+      return '<div class="card admin-card">'
+        + '<div class="help-top"><b>' + esc(v.org.name) + '</b><span class="res-date">' + fmtDate(v.createdAt) + '</span></div>'
+        + '<dl class="kv">'
+        +   '<dt>Account email</dt><dd>' + esc(v.org.email) + '</dd>'
+        +   '<dt>Legal name</dt><dd>' + esc(v.legalName) + '</dd>'
+        +   '<dt>Registration #</dt><dd>' + esc(v.registrationNumber) + ' (' + esc(v.country) + ')</dd>'
+        +   '<dt>Website</dt><dd>' + link + '</dd>'
+        +   '<dt>Requester’s role</dt><dd>' + esc(v.contactRole) + '</dd>'
+        +   (v.notes ? '<dt>Notes</dt><dd style="white-space:pre-wrap;">' + esc(v.notes) + '</dd>' : '')
+        + '</dl>'
+        + '<div class="field"><label for="av-' + esc(v.id) + '">Note (required to reject; shown to the organization)</label><input id="av-' + esc(v.id) + '" maxlength="500"></div>'
+        + '<div class="card-actions">'
+        +   '<button class="btn btn-primary btn-sm" data-action="admin-verify" data-id="' + esc(v.id) + '" data-decision="approve"' + dis + '>Approve</button>'
+        +   '<button class="btn btn-danger btn-sm" data-action="admin-verify" data-id="' + esc(v.id) + '" data-decision="reject"' + dis + '>Reject</button>'
+        + '</div></div>';
+    }).join('');
+  }
+
+  function adminUsers(){
+    var a = state.admin, list = a.users, dis = state.busy ? ' disabled' : '';
+    var search = '<form class="toolbar" data-action="admin-search"><input id="au-q" class="search-input" type="search" placeholder="Search by email or name" value="' + esc(a.userQuery) + '" aria-label="Search members"><button class="btn btn-secondary btn-sm" type="submit">Search</button></form>';
+    var reset = a.resetLink
+      ? '<div class="form-notice"><b>One-time reset link for ' + esc(a.resetLink.name) + '</b> (valid 24 hours). Send it only to the address on their account.'
+        + '<div class="copy-row"><input id="reset-link-out" readonly value="' + esc(a.resetLink.link) + '" aria-label="Reset link"><button class="btn btn-secondary btn-sm" data-action="copy-reset">Copy</button></div></div>'
+      : '';
+    if(list===null) return search + reset + '<div class="empty">Loading…</div>';
+    if(!list.length) return search + reset + '<div class="empty">No members found.</div>';
+    return search + reset + list.map(function(u){
+      var badges = '<span class="kind-badge">' + (u.accountType==='org' ? 'Organization' : 'Individual') + '</span>'
+        + (u.isAdmin ? '<span class="kind-badge">Admin</span>' : '')
+        + (u.verified ? verifiedMark() : '')
+        + (u.suspended ? '<span class="urgent-pill" style="margin-left:.35rem;">Suspended</span>' : '');
+      return '<div class="card admin-card admin-user">'
+        + '<div><b>' + esc(u.displayName) + '</b>' + badges
+        +   '<div class="res-org">' + esc(u.email) + ' · ' + (u.emailVerified ? 'email confirmed' : 'email not confirmed') + ' · joined ' + fmtDate(u.createdAt) + '</div></div>'
+        + '<div class="card-actions">'
+        +   '<button class="btn btn-ghost btn-sm" data-action="admin-user" data-id="' + esc(u.id) + '" data-name="' + esc(u.displayName) + '" data-act="reset-link"' + dis + '>Reset link</button>'
+        +   (u.isAdmin ? '' : u.suspended
+              ? '<button class="btn btn-secondary btn-sm" data-action="admin-user" data-id="' + esc(u.id) + '" data-act="unsuspend"' + dis + '>Unsuspend</button>'
+              : '<button class="btn btn-danger btn-sm" data-action="admin-user" data-id="' + esc(u.id) + '" data-act="suspend"' + dis + '>Suspend</button>')
+        + '</div></div>';
+    }).join('');
+  }
+
+  function loadAdmin(){
+    var a = state.admin;
+    api('GET', 'admin/overview').then(function(d){ a.overview = d; render(); }, function(err){ toast(err.message); });
+    var done = function(key){ return function(d){ a[key] = d[key]; render(); }; };
+    var fail = function(key){ return function(err){ a[key] = []; toast(err.message); render(); }; };
+    if(state.adminView==='reports'){ a.reports = null; api('GET', 'admin/reports?status=' + a.reportFilter).then(done('reports'), fail('reports')); }
+    else if(state.adminView==='verifications'){ a.verifications = null; api('GET', 'admin/verifications').then(done('verifications'), fail('verifications')); }
+    else { a.users = null; api('GET', 'admin/users?q=' + encodeURIComponent(a.userQuery)).then(done('users'), fail('users')); }
+    render();
+  }
+
+  function loadProfileExtras(){
+    state.blocks = null;
+    api('GET', 'blocks').then(function(d){ state.blocks = d.blocks; render(); }, function(){ state.blocks = []; render(); });
+    if(isOrg()){
+      state.myVerification = undefined;
+      api('GET', 'me/verification').then(function(d){ state.myVerification = d.verification; render(); }, function(){ state.myVerification = null; render(); });
+    }
+  }
+
+  // Links from emails arrive as #/verify/<token> or #/reset/<token>; the fragment never reaches server logs.
+  function handleHashLink(){
+    var m = location.hash.match(/^#\/(verify|reset)\/([A-Za-z0-9_-]{20,100})$/);
+    if(!m) return false;
+    history.replaceState(null, '', location.pathname + location.search);
+    if(m[1]==='reset'){
+      state.view='auth'; state.authMode='reset'; state.resetToken=m[2]; state.formError=''; state.authNotice='';
+      render(); return true;
+    }
+    api('POST', 'auth/verify', { token:m[2] }).then(function(d){
+      if(d.user) state.user = d.user;
+      toast('Email confirmed. Thank you!'); render();
+    }, function(err){ toast(err.message); });
+    return false;
+  }
+
   /* ============ RENDER: MODAL ============ */
   function renderModal(){
+    if(state.modal==='report' && state.report) return renderReportModal();
     if(state.modal!=='post-help') return '';
     var u = state.user, dis = state.busy ? ' disabled' : '';
     return '<div class="modal-backdrop" data-action="close-modal">'
@@ -1258,7 +1545,7 @@
       if(el.getAttribute('data-type')) state.signupType = el.getAttribute('data-type');
       state.formError=''; render(); window.scrollTo(0,0); return;
     }
-    if(action==='auth-mode'){ state.authMode = el.getAttribute('data-mode'); state.formError=''; render(); return; }
+    if(action==='auth-mode'){ state.authMode = el.getAttribute('data-mode'); state.formError=''; state.authNotice=''; render(); return; }
     if(action==='to-landing'){ state.view='landing'; state.formError=''; render(); return; }
     if(action==='logout'){
       run(api('POST', 'auth/logout').then(function(){
@@ -1269,7 +1556,8 @@
     }
     if(action==='set-tab'){
       state.tab = el.getAttribute('data-tab'); state.selectedOrgId=null; state.selectedHelpId=null; state.helpDetail=null;
-      render(); if(state.tab==='help') loadPosts(); if(state.tab==='directory') loadMemberOrgs(); return;
+      render(); if(state.tab==='help') loadPosts(); if(state.tab==='directory') loadMemberOrgs();
+      if(state.tab==='profile') loadProfileExtras(); if(state.tab==='admin') loadAdmin(); return;
     }
     if(action==='set-help-view'){ state.helpView = el.getAttribute('data-view'); state.posts=[]; render(); loadPosts(); return; }
     if(action==='set-filter'){ state[el.getAttribute('data-field')] = el.getAttribute('data-value'); render(); return; }
@@ -1315,6 +1603,66 @@
       return;
     }
     if(action==='close-org'){ state.selectedOrgId=null; render(); return; }
+    if(action==='open-report'){
+      state.report = { type:el.getAttribute('data-type'), id:el.getAttribute('data-id'), label:el.getAttribute('data-label') };
+      state.modal='report'; state.formError=''; render(); return;
+    }
+    if(action==='block-user'){
+      var bid = el.getAttribute('data-user'), bname = el.getAttribute('data-name');
+      if(!window.confirm('Block ' + bname + '? You won’t see each other’s posts, replies, or messages. You can unblock them later from My profile.')) return;
+      run(api('POST', 'blocks', { userId:bid }).then(function(){
+        toast('Blocked ' + bname + '.');
+        if(state.selectedOrgId){ state.selectedOrgId=null; }
+        if(state.selectedHelpId){
+          if(state.helpDetail && state.helpDetail.author.id===bid){ state.selectedHelpId=null; state.helpDetail=null; loadPosts(); }
+          else openHelp(state.selectedHelpId);
+        }
+      }));
+      return;
+    }
+    if(action==='unblock'){
+      run(api('DELETE', 'blocks/' + encodeURIComponent(el.getAttribute('data-user'))).then(function(){ toast('Unblocked.'); loadProfileExtras(); }));
+      return;
+    }
+    if(action==='resend-verify'){
+      run(api('POST', 'auth/verify/send').then(function(d){
+        toast(d.alreadyVerified ? 'Your email is already confirmed.' : 'Sent! Check your inbox (and spam folder).');
+      }));
+      return;
+    }
+    if(action==='admin-view'){ state.adminView = el.getAttribute('data-view'); state.admin.resetLink=null; loadAdmin(); return; }
+    if(action==='admin-report-filter'){ state.admin.reportFilter = el.getAttribute('data-value'); loadAdmin(); return; }
+    if(action==='admin-report'){
+      var rid2 = el.getAttribute('data-id'), act = el.getAttribute('data-act');
+      if(act.indexOf('suspend')>-1 && !window.confirm('Suspend this member? They’ll be signed out immediately and won’t be able to log in.')) return;
+      run(api('POST', 'admin/reports/' + rid2, { action:act, note:val('an-' + rid2) }).then(function(){ toast('Report resolved.'); loadAdmin(); }));
+      return;
+    }
+    if(action==='admin-unhide'){
+      run(api('POST', 'admin/posts/' + el.getAttribute('data-id'), { action:'unhide' }).then(function(){ toast('Post is visible again.'); loadAdmin(); }));
+      return;
+    }
+    if(action==='admin-verify'){
+      var vid = el.getAttribute('data-id'), dec = el.getAttribute('data-decision');
+      run(api('POST', 'admin/verifications/' + vid, { decision:dec, note:val('av-' + vid) }).then(function(){
+        toast(dec==='approve' ? 'Organization verified.' : 'Request rejected.'); loadAdmin(); loadMemberOrgs();
+      }));
+      return;
+    }
+    if(action==='admin-user'){
+      var uid = el.getAttribute('data-id'), uact = el.getAttribute('data-act'), uname = el.getAttribute('data-name');
+      if(uact==='suspend' && !window.confirm('Suspend this member? They’ll be signed out immediately and won’t be able to log in.')) return;
+      run(api('POST', 'admin/users/' + uid, { action:uact }).then(function(d){
+        if(uact==='reset-link'){ state.admin.resetLink = { name:uname, link:d.link }; toast('Reset link created.'); render(); }
+        else { toast(uact==='suspend' ? 'Member suspended.' : 'Member unsuspended.'); loadAdmin(); }
+      }));
+      return;
+    }
+    if(action==='copy-reset'){
+      var out = document.getElementById('reset-link-out');
+      (navigator.clipboard ? navigator.clipboard.writeText(out.value) : Promise.reject()).then(function(){ toast('Copied.'); }, function(){ out.select(); toast('Press Ctrl/⌘+C to copy.'); });
+      return;
+    }
     if(action==='open-modal'){ state.modal = el.getAttribute('data-modal'); state.formError=''; render(); var t = document.getElementById('hp-title'); if(t) t.focus(); return; }
     if(action==='close-modal'){ if(el.classList.contains('modal-backdrop') && e.target!==el) return; state.modal=null; state.formError=''; render(); return; }
   });
@@ -1334,6 +1682,7 @@
     var role = e.target.getAttribute('data-role');
     if(role==='signup-type'){ state.signupType = e.target.value; render(); }
     if(role==='help-cat'){ state.helpCat = e.target.value; render(); }
+    if(role==='agree-terms'){ state.agreeTerms = e.target.checked; }
   });
 
   document.addEventListener('submit', function(e){
@@ -1348,10 +1697,11 @@
       state.formError='';
       run(api('POST', 'auth/signup', {
         accountType:state.signupType, displayName:val('su-name'), email:val('su-email'),
-        password:document.getElementById('su-pass').value, location:val('su-loc'), region:val('su-region')
+        password:document.getElementById('su-pass').value, location:val('su-loc'), region:val('su-region'), acceptTerms:state.agreeTerms
       }).then(function(d){
         enterApp(d.user);
-        toast(d.user.accountType==='org' ? 'Welcome! Add your mission and cause areas under My profile.' : 'Welcome to Global Neighbors!');
+        toast(d.verificationSent ? 'Welcome! Check your email to confirm your address.'
+          : d.user.accountType==='org' ? 'Welcome! Add your mission and cause areas under My profile.' : 'Welcome to Global Neighbors!');
       }), formError);
       return;
     }
@@ -1361,6 +1711,37 @@
         .then(function(d){ enterApp(d.user); }), formError);
       return;
     }
+    if(action==='forgot'){
+      state.formError=''; state.authNotice='';
+      run(api('POST', 'auth/forgot', { email:val('fp-email') }).then(function(){
+        state.authNotice = 'If that email matches an account, a reset link is on its way. It expires in 1 hour, so check your spam folder too.';
+      }), formError);
+      return;
+    }
+    if(action==='reset'){
+      state.formError='';
+      var np = document.getElementById('rp-pass').value;
+      if(np !== document.getElementById('rp-pass2').value){ state.formError = 'Those passwords don’t match.'; render(); return; }
+      run(api('POST', 'auth/reset', { token:state.resetToken, password:np }).then(function(d){
+        state.resetToken=null; enterApp(d.user); toast('Password updated. You’re logged in.');
+      }), formError);
+      return;
+    }
+    if(action==='submit-report'){
+      state.formError='';
+      run(api('POST', 'reports', { targetType:state.report.type, targetId:state.report.id, reason:val('rpt-reason'), details:val('rpt-details') }).then(function(){
+        state.modal=null; state.report=null; toast('Thank you. A moderator will review this report.');
+      }), formError);
+      return;
+    }
+    if(action==='request-verification'){
+      run(api('POST', 'me/verification', {
+        legalName:val('vf-legal'), registrationNumber:val('vf-reg'), country:val('vf-country'),
+        website:val('vf-web'), contactRole:val('vf-role'), notes:val('vf-notes')
+      }).then(function(d){ state.myVerification = d.verification; state.user.verificationStatus = 'pending'; toast('Verification request sent.'); }));
+      return;
+    }
+    if(action==='admin-search'){ state.admin.userQuery = val('au-q'); state.admin.resetLink=null; loadAdmin(); return; }
     if(action==='submit-help'){
       state.formError='';
       run(api('POST', 'help', {
@@ -1399,7 +1780,11 @@
         body.website = val('pf-web');
         body.causes = [].slice.call(form.querySelectorAll('input[name=cause]:checked')).map(function(c){ return c.value; });
       }
-      run(api('PATCH', 'me', body).then(function(d){ state.user = d.user; toast('Profile saved.'); loadMemberOrgs(); }));
+      run(api('PATCH', 'me', body).then(function(d){
+        state.user = d.user; loadMemberOrgs();
+        toast(d.verificationReset ? 'Saved. Because you changed your organization’s name, it will need to be verified again.' : 'Profile saved.');
+        if(d.verificationReset) loadProfileExtras();
+      }));
       return;
     }
     if(action==='change-password'){
@@ -1421,9 +1806,15 @@
   });
 
   /* ============ BOOT ============ */
-  api('GET', 'me').then(function(d){
+  window.addEventListener('hashchange', handleHashLink);
+  Promise.all([
+    api('GET', 'config').catch(function(){ return {}; }),
+    api('GET', 'me')
+  ]).then(function(r){
+    state.config = Object.assign(state.config, r[0]);
     state.booting = false;
-    if(d.user) enterApp(d.user); else render();
-  }, function(){ state.booting = false; render(); });
+    if(r[1].user) enterApp(r[1].user); else render();
+    handleHashLink();
+  }, function(){ state.booting = false; render(); handleHashLink(); });
 })();
 </script>

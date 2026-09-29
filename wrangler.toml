@@ -2,6 +2,15 @@ name = "global-neighbors"
 pages_build_output_dir = "./public"
 compatibility_date = "2026-09-01"
 
+[vars]
+CONTACT_EMAIL = "amoskow@brandeis.edu"
+# To switch on verification and password-reset emails:
+#   1. Verify a domain you own in Resend (https://resend.com), then create an API key.
+#   2. Uncomment and set MAIL_FROM to an address on that domain.
+#   3. npx wrangler pages secret put RESEND_API_KEY --project-name global-neighbors
+#   4. npx wrangler pages deploy
+# MAIL_FROM = "Global Neighbors <no-reply@your-domain.org>"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "global-neighbors-db"
