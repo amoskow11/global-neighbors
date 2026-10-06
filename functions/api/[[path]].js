@@ -18,6 +18,10 @@ const VERIFY_TOKEN_TTL_MS = 24 * HOUR;
 const RESET_TOKEN_TTL_MS = HOUR;
 const ADMIN_RESET_TOKEN_TTL_MS = 24 * HOUR;
 const MAX_REPORTS_PER_DAY = 20;
+const MAX_UPLOAD_BODY_BYTES = 1600 * 1024;
+const MEDIA_LIMITS = { avatar: 300 * 1024, banner: 900 * 1024 };   // after browser-side resizing
+const MAX_UPLOADS_PER_HOUR = 20;
+const BANNER_PRESETS = ['harbor', 'sunrise', 'meadow', 'dusk', 'sand', 'night'];
 
 const REGIONS = ['Greater Boston', 'North America', 'Latin America', 'Africa', 'South Asia', 'Global'];
 const CATEGORIES = [
@@ -57,6 +61,7 @@ export async function onRequest(context) {
     const ctx = { request, env, url, method, seg };
     const route = seg.join('/');
 
+    if (seg[0] === 'media' && seg.length === 2 && method === 'GET') return await serveMedia(ctx, seg[1]);
     if (route === 'config' && method === 'GET') return json({ emailEnabled: emailEnabled(env), contactEmail: contact(env) });
 
     // Auth
@@ -75,6 +80,10 @@ export async function onRequest(context) {
     if (route === 'me/password' && method === 'POST') return await changePassword(ctx);
     if (route === 'me/verification' && method === 'GET') return await getMyVerification(ctx);
     if (route === 'me/verification' && method === 'POST') return await requestVerification(ctx);
+    if (seg[0] === 'me' && seg[1] === 'media' && seg.length === 3 && ['avatar', 'banner'].includes(seg[2])) {
+      if (method === 'POST') return await uploadMedia(ctx, seg[2]);
+      if (method === 'DELETE') return await deleteMedia(ctx, seg[2]);
+    }
 
     // Directory & profiles
     if (route === 'orgs' && method === 'GET') return await listOrgs(ctx);
@@ -285,13 +294,19 @@ async function updateMe(ctx) {
     region: body.region !== undefined ? oneOf(body.region, REGIONS, 'Region') : user.region,
     bio: body.bio !== undefined ? text(body.bio, 2000, 'About') : user.bio,
     website: body.website !== undefined ? websiteUrl(body.website) : user.website,
-    causes: body.causes !== undefined ? JSON.stringify(causeList(body.causes)) : user.causes
+    causes: body.causes !== undefined ? JSON.stringify(causeList(body.causes)) : user.causes,
+    pronouns: body.pronouns !== undefined ? text(body.pronouns, 40, 'Pronouns') : user.pronouns,
+    languages: body.languages !== undefined ? JSON.stringify(tagList(body.languages, 6, 30, 'Languages')) : user.languages,
+    skills: body.skills !== undefined ? JSON.stringify(tagList(body.skills, 10, 40, 'Ways you can help')) : user.skills,
+    banner_preset: body.bannerPreset !== undefined ? oneOf(body.bannerPreset, BANNER_PRESETS, 'Banner') : user.banner_preset
   };
   // A verified badge belongs to a specific name; renaming sends the org back through review.
   const status = (user.verification_status === 'verified' && f.display_name !== user.display_name) ? 'none' : user.verification_status;
   const now = Date.now();
-  await ctx.env.DB.prepare(`UPDATE users SET display_name=?, headline=?, location=?, region=?, bio=?, website=?, causes=?, verification_status=?, updated_at=? WHERE id=?`)
-    .bind(f.display_name, f.headline, f.location, f.region, f.bio, f.website, f.causes, status, now, user.id).run();
+  await ctx.env.DB.prepare(`UPDATE users SET display_name=?, headline=?, location=?, region=?, bio=?, website=?, causes=?,
+                              pronouns=?, languages=?, skills=?, banner_preset=?, verification_status=?, updated_at=? WHERE id=?`)
+    .bind(f.display_name, f.headline, f.location, f.region, f.bio, f.website, f.causes,
+          f.pronouns, f.languages, f.skills, f.banner_preset, status, now, user.id).run();
   const fresh = await ctx.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(user.id).first();
   return json({ user: privateUser(fresh), verificationReset: status !== user.verification_status });
 }
@@ -331,6 +346,7 @@ async function deleteMe(ctx) {
     db.prepare('DELETE FROM help_posts WHERE author_id=?').bind(user.id),
     db.prepare('DELETE FROM sessions WHERE user_id=?').bind(user.id),
     db.prepare('DELETE FROM auth_tokens WHERE user_id=?').bind(user.id),
+    db.prepare('DELETE FROM media WHERE user_id=?').bind(user.id),
     db.prepare('DELETE FROM blocks WHERE blocker_id=?1 OR blocked_id=?1').bind(user.id),
     db.prepare('DELETE FROM org_verifications WHERE user_id=?').bind(user.id),
     db.prepare('UPDATE reports SET reporter_id=NULL WHERE reporter_id=?').bind(user.id),
@@ -420,7 +436,7 @@ function helpSelect(extra, opts = {}) {
   }
   if (extra) conds.push(extra);
   return `SELECT p.*, u.display_name AS author_name, u.account_type AS author_type, u.headline AS author_headline,
-            u.verification_status AS author_verification,
+            u.verification_status AS author_verification, u.avatar_id AS author_avatar,
             (SELECT COUNT(*) FROM help_replies r WHERE r.post_id = p.id) AS reply_count,
             (SELECT r.status FROM help_replies r WHERE r.post_id = p.id AND r.user_id = ?1) AS my_reply_status
           FROM help_posts p JOIN users u ON u.id = p.author_id
@@ -431,7 +447,7 @@ function helpSelect(extra, opts = {}) {
 function helpRow(r, viewerId) {
   return {
     id: r.id,
-    author: { id: r.author_id, name: r.author_name, accountType: r.author_type, headline: r.author_headline, verified: r.author_verification === 'verified' },
+    author: { id: r.author_id, name: r.author_name, accountType: r.author_type, headline: r.author_headline, verified: r.author_verification === 'verified', avatarUrl: mediaUrl(r.author_avatar) },
     type: r.type, category: r.category, scale: r.scale, title: r.title, detail: r.detail,
     location: r.location, region: r.region, pay: { kind: r.pay_kind, label: r.pay_label },
     urgency: r.urgency, status: r.status, createdAt: r.created_at, hidden: !!r.hidden_at,
@@ -466,7 +482,7 @@ async function getHelp(ctx, id) {
          WHERE (b.blocker_id = ?2 AND b.blocked_id = r.user_id) OR (b.blocker_id = r.user_id AND b.blocked_id = ?2))`
     : 'r.post_id = ?1 AND r.user_id = ?2';
   const { results: replies } = await db.prepare(
-    `SELECT r.*, u.display_name, u.account_type, u.headline, u.location, u.verification_status
+    `SELECT r.*, u.display_name, u.account_type, u.headline, u.location, u.verification_status, u.avatar_id
        FROM help_replies r JOIN users u ON u.id = r.user_id
       WHERE ${filter} ORDER BY r.created_at`
   ).bind(id, user.id).all();
@@ -482,7 +498,7 @@ async function getHelp(ctx, id) {
 
   post.replies = replies.map(r => ({
     id: r.id, status: r.status, text: r.text, createdAt: r.created_at, isMine: r.user_id === user.id,
-    user: { id: r.user_id, name: r.display_name, accountType: r.account_type, headline: r.headline, location: r.location, verified: r.verification_status === 'verified' },
+    user: { id: r.user_id, name: r.display_name, accountType: r.account_type, headline: r.headline, location: r.location, verified: r.verification_status === 'verified', avatarUrl: mediaUrl(r.avatar_id) },
     messages: messages.filter(m => m.reply_id === r.id).map(m => ({
       id: m.id, text: m.text, createdAt: m.created_at, isMine: m.user_id === user.id, from: m.display_name
     }))
@@ -800,7 +816,7 @@ async function adminListUsers(ctx) {
 async function adminUserAction(ctx, id) {
   const admin = await requireAdmin(ctx);
   const b = await readJson(ctx.request);
-  const action = oneOf(b.action, ['suspend', 'unsuspend', 'reset-link'], 'Action');
+  const action = oneOf(b.action, ['suspend', 'unsuspend', 'reset-link', 'remove-avatar', 'remove-banner'], 'Action');
   const note = text(b.note, 500, 'Note');
   const db = ctx.env.DB;
   const target = await db.prepare('SELECT * FROM users WHERE id = ?').bind(id).first();
@@ -810,6 +826,11 @@ async function adminUserAction(ctx, id) {
     const token = await issueToken(ctx.env, id, 'reset', ADMIN_RESET_TOKEN_TTL_MS);
     await audit(db, admin, 'user:reset-link', 'user:' + id, note).run();
     return json({ link: `${ctx.url.origin}/#/reset/${token}`, expiresInHours: ADMIN_RESET_TOKEN_TTL_MS / HOUR });
+  }
+  if (action === 'remove-avatar' || action === 'remove-banner') {
+    const kind = action.slice(7);
+    await db.batch([...removeMediaStatements(db, id, kind), audit(db, admin, 'user:' + action, 'user:' + id, note)]);
+    return json({ ok: true });
   }
   if (target.id === admin.id || target.is_admin) throw new HttpError(400, 'Admins can’t be suspended here.');
   const stmts = action === 'suspend' ? suspendStatements(db, id)
@@ -830,6 +851,84 @@ async function adminPostAction(ctx, id) {
     audit(db, admin, 'post:' + action, 'post:' + id, text(b.note, 500, 'Note'))
   ]);
   return json({ ok: true });
+}
+
+/* ---------- profile media ---------- */
+
+function mediaUrl(id) { return id ? '/api/media/' + id : null; }
+
+function removeMediaStatements(db, userId, kind) {
+  return [
+    db.prepare('DELETE FROM media WHERE user_id = ? AND kind = ?').bind(userId, kind),
+    db.prepare(`UPDATE users SET ${kind === 'avatar' ? 'avatar_id' : 'banner_id'} = NULL WHERE id = ?`).bind(userId)
+  ];
+}
+
+function imageMatchesType(type, b) {
+  if (type === 'image/jpeg') return b[0] === 0xFF && b[1] === 0xD8 && b[2] === 0xFF;
+  if (type === 'image/png') return b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47;
+  if (type === 'image/webp') return b.length > 12 && String.fromCharCode(...b.slice(0, 4)) === 'RIFF' && String.fromCharCode(...b.slice(8, 12)) === 'WEBP';
+  return false;
+}
+
+async function uploadMedia(ctx, kind) {
+  const user = await requireActive(ctx);
+  const { env } = ctx;
+  const now = Date.now();
+  const key = 'upload:' + user.id;
+  if (await countAttempts(env, key, now - HOUR) >= MAX_UPLOADS_PER_HOUR) throw new HttpError(429, 'Too many uploads. Please try again in an hour.');
+  const b = await readJson(ctx.request, MAX_UPLOAD_BODY_BYTES);
+  const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(String(b.dataUrl || ''));
+  if (!m) throw new HttpError(400, 'Please upload a JPEG, PNG, or WebP image.');
+  let bytes;
+  try { bytes = unb64(m[2]); } catch { throw new HttpError(400, 'That image couldn’t be read.'); }
+  if (bytes.length > MEDIA_LIMITS[kind]) throw new HttpError(413, 'That image is too large. Please choose a smaller one.');
+  if (!imageMatchesType(m[1], bytes)) throw new HttpError(400, 'That file isn’t a valid image.');
+  const id = crypto.randomUUID();
+  const column = kind === 'avatar' ? 'avatar_id' : 'banner_id';
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM media WHERE user_id = ? AND kind = ?').bind(user.id, kind),
+    env.DB.prepare('INSERT INTO media (id, user_id, kind, content_type, data_b64, bytes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .bind(id, user.id, kind, m[1], m[2], bytes.length, now),
+    env.DB.prepare(`UPDATE users SET ${column} = ?, updated_at = ? WHERE id = ?`).bind(id, now, user.id),
+    env.DB.prepare('INSERT INTO login_attempts (key, created_at) VALUES (?, ?)').bind(key, now)
+  ]);
+  const fresh = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(user.id).first();
+  return json({ user: privateUser(fresh) });
+}
+
+async function deleteMedia(ctx, kind) {
+  const user = await requireUser(ctx);
+  await ctx.env.DB.batch(removeMediaStatements(ctx.env.DB, user.id, kind));
+  const fresh = await ctx.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(user.id).first();
+  return json({ user: privateUser(fresh) });
+}
+
+// Organization images are public like their profiles; individuals' images are for signed-in members only.
+async function serveMedia(ctx, id) {
+  if (!/^[0-9a-f-]{36}$/.test(id)) throw new HttpError(404, 'Not found.');
+  const m = await ctx.env.DB.prepare(
+    'SELECT m.content_type, m.data_b64, m.user_id, u.account_type, u.suspended_at FROM media m JOIN users u ON u.id = m.user_id WHERE m.id = ?'
+  ).bind(id).first();
+  if (!m) throw new HttpError(404, 'Not found.');
+  const viewer = await currentUser(ctx);
+  const admin = viewer && viewer.is_admin;
+  if (m.suspended_at && !admin) throw new HttpError(404, 'Not found.');
+  const isPublic = m.account_type === 'org';
+  if (!isPublic) {
+    if (!viewer) throw new HttpError(404, 'Not found.');
+    if (!admin && viewer.id !== m.user_id && await isBlocked(ctx.env, viewer.id, m.user_id)) throw new HttpError(404, 'Not found.');
+  }
+  return new Response(unb64(m.data_b64), {
+    headers: {
+      'Content-Type': m.content_type,
+      // Each upload gets a new URL, so caching is safe; kept to a day so moderator removals take effect.
+      'Cache-Control': (isPublic ? 'public' : 'private') + ', max-age=86400',
+      'X-Content-Type-Options': 'nosniff',
+      'Content-Security-Policy': "default-src 'none'; sandbox",
+      'Content-Disposition': 'inline'
+    }
+  });
 }
 
 /* ---------- email ---------- */
@@ -979,9 +1078,9 @@ function checkCsrf(request, url) {
   if (!type.toLowerCase().startsWith('application/json')) throw new HttpError(415, 'Requests must be sent as JSON.');
 }
 
-async function readJson(request) {
+async function readJson(request, maxBytes = MAX_BODY_BYTES) {
   const raw = await request.text();
-  if (raw.length > MAX_BODY_BYTES) throw new HttpError(413, 'That request is too large.');
+  if (raw.length > maxBytes) throw new HttpError(413, 'That request is too large.');
   if (!raw) return {};
   try {
     const data = JSON.parse(raw);
@@ -1028,6 +1127,14 @@ function websiteUrl(value) {
   return u.toString();
 }
 
+function tagList(value, max, maxLen, label) {
+  if (!Array.isArray(value)) throw new HttpError(400, `${label} must be a list.`);
+  const list = [...new Set(value.map(v => String(v).trim()).filter(Boolean))];
+  if (list.length > max) throw new HttpError(400, `${label}: choose up to ${max}.`);
+  if (list.some(v => v.length > maxLen)) throw new HttpError(400, `${label}: each must be ${maxLen} characters or fewer.`);
+  return list;
+}
+
 function causeList(value) {
   if (!Array.isArray(value)) throw new HttpError(400, 'Causes must be a list.');
   const list = [...new Set(value)].filter(c => CAUSES.includes(c));
@@ -1038,12 +1145,13 @@ function causeList(value) {
 /* ---------- output shapes ---------- */
 
 function publicUser(u) {
-  let causes = [];
-  try { causes = JSON.parse(u.causes || '[]'); } catch {}
+  const list = v => { try { const a = JSON.parse(v || '[]'); return Array.isArray(a) ? a : []; } catch { return []; } };
   return {
     id: u.id, accountType: u.account_type, displayName: u.display_name, headline: u.headline,
-    location: u.location, region: u.region, bio: u.bio, website: u.website, causes, createdAt: u.created_at,
-    verified: u.verification_status === 'verified'
+    location: u.location, region: u.region, bio: u.bio, website: u.website, causes: list(u.causes), createdAt: u.created_at,
+    verified: u.verification_status === 'verified',
+    avatarUrl: mediaUrl(u.avatar_id), bannerUrl: mediaUrl(u.banner_id), bannerPreset: u.banner_preset || 'harbor',
+    pronouns: u.pronouns || '', languages: list(u.languages), skills: list(u.skills)
   };
 }
 function privateUser(u) {

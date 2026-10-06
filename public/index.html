@@ -404,6 +404,62 @@
   .btn-danger:hover{ border-color:var(--danger); }
   @media (max-width:520px){ .type-pick{ grid-template-columns:1fr; } }
 
+  /* ---------- Avatars & profiles ---------- */
+  .avatar{ display:inline-flex; align-items:center; justify-content:center; flex:none; border-radius:50%; overflow:hidden; color:#fff; font-weight:700; letter-spacing:.02em; background:var(--surface-2); }
+  .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .avatar-org{ border-radius:22%; }
+  .avatar-xs{ width:26px; height:26px; font-size:.62rem; }
+  .avatar-sm{ width:36px; height:36px; font-size:.8rem; }
+  .avatar-md{ width:48px; height:48px; font-size:1rem; }
+  .avatar-xl{ width:124px; height:124px; font-size:2.5rem; border:4px solid var(--surface); box-shadow:var(--shadow); }
+  .avatar-logo{ background:#fff !important; border:1px solid var(--border); }
+  .avatar-logo img{ object-fit:contain; padding:10%; }
+  .avatar-logo.logo-dark{ background:#132A46 !important; }
+  .avatar-xl.avatar-logo{ border:4px solid var(--surface); }
+  .suggest-org{ display:flex; align-items:center; gap:.6rem; }
+  .author-line{ display:flex; align-items:center; gap:.55rem; min-width:0; }
+  .name-link{ background:none; border:none; padding:0; font:inherit; color:inherit; font-weight:600; cursor:pointer; text-align:left; }
+  .name-link:hover{ color:var(--primary); text-decoration:underline; text-underline-offset:2px; }
+  .name-plain{ font-weight:600; }
+  .me-chip{ display:inline-flex; align-items:center; gap:.45rem; background:none; border:none; padding:0; font:inherit; color:var(--text); cursor:pointer; }
+  .me-chip:hover b{ color:var(--primary); }
+  .org-card-top{ justify-content:space-between !important; align-items:center; }
+  .sample-pill{ font-size:.68rem; font-weight:700; padding:.18rem .5rem; border-radius:100px; color:var(--text-muted); border:1px dashed var(--border); }
+  .guest-alt{ text-align:center; font-size:.84rem; color:var(--text-muted); margin-top:1.1rem; }
+
+  .profile-hero{ padding:0; overflow:hidden; margin-bottom:1.2rem; }
+  .profile-banner{ position:relative; height:clamp(110px, 21vw, 196px); background-size:cover; background-position:center; }
+  .banner-harbor{ background-image:radial-gradient(rgba(255,255,255,.13) 1px, transparent 1.2px), linear-gradient(135deg,#0F4C5C,#1C7293 55%,#59B6D6); background-size:18px 18px, cover; }
+  .banner-sunrise{ background-image:radial-gradient(rgba(255,255,255,.15) 1px, transparent 1.2px), linear-gradient(135deg,#C2410C,#E2711D 45%,#F6C177); background-size:18px 18px, cover; }
+  .banner-meadow{ background-image:radial-gradient(rgba(255,255,255,.14) 1px, transparent 1.2px), linear-gradient(135deg,#1F6F4A,#2F8F5B 50%,#9BD3AE); background-size:18px 18px, cover; }
+  .banner-dusk{ background-image:radial-gradient(rgba(255,255,255,.13) 1px, transparent 1.2px), linear-gradient(135deg,#3B2A6B,#7B5EA7 55%,#E2711D); background-size:18px 18px, cover; }
+  .banner-sand{ background-image:radial-gradient(rgba(255,255,255,.22) 1px, transparent 1.2px), linear-gradient(135deg,#9A6408,#D9A85A 55%,#F3E3C3); background-size:18px 18px, cover; }
+  .banner-night{ background-image:radial-gradient(rgba(255,255,255,.10) 1px, transparent 1.2px), linear-gradient(135deg,#0B1826,#16304A 60%,#2B5B87); background-size:18px 18px, cover; }
+  .banner-edit{ position:absolute; right:.8rem; top:.8rem; background:rgba(255,255,255,.94); color:#132A46; box-shadow:0 2px 8px rgba(0,0,0,.15); }
+  .banner-edit:hover{ background:#fff; }
+  .profile-hero-body{ position:relative; display:flow-root; padding:0 clamp(1rem,3vw,1.6rem) 1.3rem; }  /* flow-root stops the avatar's negative margin collapsing */
+  .avatar-wrap{ position:relative; width:max-content; margin-top:-64px; }
+  .avatar-edit{ position:absolute; right:2px; bottom:6px; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:var(--surface); color:var(--text); border:1px solid var(--border); box-shadow:var(--shadow); cursor:pointer; }
+  .avatar-edit:hover{ color:var(--primary); border-color:var(--primary); }
+  .profile-hero-actions{ position:absolute; right:clamp(1rem,3vw,1.6rem); top:.85rem; display:flex; gap:.5rem; flex-wrap:wrap; justify-content:flex-end; }
+  .profile-name{ font-size:clamp(1.4rem,3.4vw,1.75rem); margin-top:.6rem; }
+  .pronouns{ font-family:'Public Sans',sans-serif; font-size:.9rem; font-weight:500; color:var(--text-muted); }
+  .profile-headline{ font-size:1rem; margin-top:.2rem; color:var(--text); }
+  .swatches{ display:flex; gap:.5rem; flex-wrap:wrap; }
+  .swatch{ width:58px; height:32px; border-radius:8px; border:2px solid transparent; cursor:pointer; padding:0; }
+  .swatch.selected{ border-color:var(--text); box-shadow:0 0 0 2px var(--surface) inset; }
+  .crop-frame{ display:flex; justify-content:center; background:var(--surface-2); border-radius:12px; padding:.8rem; margin-bottom:1rem; }
+  .crop-frame canvas{ display:block; max-width:100%; height:auto; }
+  .crop-avatar canvas{ width:240px; border-radius:50%; }
+  .crop-banner canvas{ width:100%; border-radius:8px; }
+  .field input[type=range]{ padding:0; accent-color:var(--primary); }
+  .admin-banner-thumb img{ display:block; margin-top:.5rem; width:180px; height:45px; object-fit:cover; border-radius:6px; border:1px solid var(--border); }
+  @media (max-width:640px){
+    .profile-hero-actions{ position:static; justify-content:flex-start; margin-top:.8rem; }
+    .avatar-xl{ width:96px; height:96px; font-size:2rem; }
+    .avatar-wrap{ margin-top:-48px; }
+  }
+
   /* ---------- Trust & safety ---------- */
   .verified-badge{ display:inline-flex; align-items:center; gap:.2rem; font-family:'Public Sans',sans-serif; font-size:.68rem; font-weight:700; letter-spacing:.02em; padding:.14rem .5rem; border-radius:100px; background:var(--success-soft); color:var(--success); margin-left:.35rem; vertical-align:middle; white-space:nowrap; }
   .link-btn{ background:none; border:none; padding:0; font:inherit; font-size:.8rem; font-weight:600; color:var(--primary); cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
@@ -434,6 +490,7 @@
 
 <div id="root"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<input type="file" id="file-pick" accept="image/jpeg,image/png,image/webp,image/heic" class="visually-hidden" tabindex="-1" aria-hidden="true">
 
 <script>
 (function(){
@@ -448,6 +505,7 @@
     globe: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z"></path></svg>',
     lock: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>',
     shield: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"></path></svg>',
+    camera: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>',
     arrow: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg>'
   };
 
@@ -683,6 +741,18 @@
         website:"https://promujer.org" }
   ];
 
+  // Official logos (from each organization's website, or Wikimedia Commons) used only to identify them,
+  // and openly licensed banner photos matched to each organization's main cause. Sources: /credits
+  var REAL_ORG_LOGOS = {"real-abcd":{"logo":"/orgs/logos/real-abcd.png"},"real-americares":{"logo":"/orgs/logos/real-americares.png"},"real-amref":{"logo":"/orgs/logos/real-amref.png"},"real-barefoot":{"logo":"/orgs/logos/real-barefoot.png"},"real-bcil":{"logo":"/orgs/logos/real-bcil.png"},"real-bcnc":{"logo":"/orgs/logos/real-bcnc.png"},"real-bgca":{"logo":"/orgs/logos/real-bgca.png"},"real-bhchp":{"logo":"/orgs/logos/real-bhchp.png"},"real-bigsister":{"logo":"/orgs/logos/real-bigsister.png"},"real-bostoncares":{"logo":"/orgs/logos/real-bostoncares.png"},"real-brac":{"logo":"/orgs/logos/real-brac.png"},"real-bridge":{"logo":"/orgs/logos/real-bridge.png"},"real-care":{"logo":"/orgs/logos/real-care.png"},"real-catholiccharities":{"logo":"/orgs/logos/real-catholiccharities.png"},"real-charitywater":{"logo":"/orgs/logos/real-charitywater.png"},"real-cityyear":{"logo":"/orgs/logos/real-cityyear.png"},"real-communityservings":{"logo":"/orgs/logos/real-communityservings.png"},"real-cradles":{"logo":"/orgs/logos/real-cradles.png"},"real-directrelief":{"logo":"/orgs/logos/real-directrelief.png"},"real-ethos":{"logo":"/orgs/logos/real-ethos.png"},"real-feedingamerica":{"logo":"/orgs/logos/real-feedingamerica.png"},"real-foodforfree":{"logo":"/orgs/logos/real-foodforfree.png"},"real-friendshipworks":{"logo":"/orgs/logos/real-friendshipworks.png"},"real-gbfb":{"logo":"/orgs/logos/real-gbfb.png"},"real-givedirectly":{"logo":"/orgs/logos/real-givedirectly.png"},"real-gleaners":{"logo":"/orgs/logos/real-gleaners.png"},"real-goodwill":{"logo":"/orgs/logos/real-goodwill.png"},"real-gramvikas":{"logo":"/orgs/logos/real-gramvikas.png"},"real-habitat":{"logo":"/orgs/logos/real-habitat.png"},"real-haleyhouse":{"logo":"/orgs/logos/real-haleyhouse.png"},"real-heifer":{"logo":"/orgs/logos/real-heifer.png"},"real-helpage":{"logo":"/orgs/logos/real-helpage.png"},"real-housingfamilies":{"logo":"/orgs/logos/real-housingfamilies.png"},"real-imc":{"logo":"/orgs/logos/real-imc.png"},"real-irc":{"logo":"/orgs/logos/real-irc.png"},"real-jumpstart":{"logo":"/orgs/logos/real-jumpstart.png"},"real-kiva":{"logo":"/orgs/logos/real-kiva.png"},"real-littlebrothers":{"logo":"/orgs/logos/real-littlebrothers.png"},"real-livinggoods":{"logo":"/orgs/logos/real-livinggoods.png"},"real-lovinspoonfuls":{"logo":"/orgs/logos/real-lovinspoonfuls.png"},"real-massadvocates":{"logo":"/orgs/logos/real-massadvocates.png"},"real-massaudubon":{"logo":"/orgs/logos/real-massaudubon.png"},"real-mercycorps":{"logo":"/orgs/logos/real-mercycorps.png"},"real-mira":{"logo":"/orgs/logos/real-mira.png"},"real-morethanwords":{"logo":"/orgs/logos/real-morethanwords.png"},"real-msf":{"logo":"/orgs/logos/real-msf.png"},"real-oneacrefund":{"logo":"/orgs/logos/real-oneacrefund.png"},"real-oxfamamerica":{"logo":"/orgs/logos/real-oxfamamerica.png"},"real-pih":{"logo":"/orgs/logos/real-pih.png"},"real-pinestreet":{"logo":"/orgs/logos/real-pinestreet.png","dark":true},"real-pratham":{"logo":"/orgs/logos/real-pratham.png"},"real-promujer":{"logo":"/orgs/logos/real-promujer.png"},"real-redcross":{"logo":"/orgs/logos/real-redcross.png"},"real-roomtoread":{"logo":"/orgs/logos/real-roomtoread.png"},"real-rosiesplace":{"logo":"/orgs/logos/real-rosiesplace.png"},"real-savethechildren":{"logo":"/orgs/logos/real-savethechildren.png"},"real-scienceclub":{"logo":"/orgs/logos/real-scienceclub.png"},"real-shofco":{"logo":"/orgs/logos/real-shofco.png"},"real-solarsister":{"logo":"/orgs/logos/real-solarsister.png"},"real-stfrancishouse":{"logo":"/orgs/logos/real-stfrancishouse.png"},"real-techo":{"logo":"/orgs/logos/real-techo.png"},"real-unitedway":{"logo":"/orgs/logos/real-unitedway.png"},"real-victoryprograms":{"logo":"/orgs/logos/real-victoryprograms.png"},"real-wateraid":{"logo":"/orgs/logos/real-wateraid.png"},"real-waterorg":{"logo":"/orgs/logos/real-waterorg.png"},"real-waterproject":{"logo":"/orgs/logos/real-waterproject.png"},"real-wck":{"logo":"/orgs/logos/real-wck.png"},"real-womenslunchplace":{"logo":"/orgs/logos/real-womenslunchplace.png"},"real-yearup":{"logo":"/orgs/logos/real-yearup.png"},"real-ymcaboston":{"logo":"/orgs/logos/real-ymcaboston.png","dark":true}};
+  var CAUSE_BANNERS = {"Food Security":["/orgs/banners/food-security-1.jpg","/orgs/banners/food-security-2.jpg","/orgs/banners/food-security-3.jpg"],"Housing":["/orgs/banners/housing-1.jpg","/orgs/banners/housing-2.jpg","/orgs/banners/housing-3.jpg"],"Community Health":["/orgs/banners/community-health-1.jpg","/orgs/banners/community-health-2.jpg"],"Youth Development":["/orgs/banners/youth-development-1.jpg","/orgs/banners/youth-development-2.jpg"],"Education":["/orgs/banners/education-1.jpg","/orgs/banners/education-2.jpg"],"Disaster Response":["/orgs/banners/disaster-response-1.jpg","/orgs/banners/disaster-response-2.jpg"],"Legal Aid":["/orgs/banners/legal-aid-1.jpg","/orgs/banners/legal-aid-2.jpg"],"Workforce Development":["/orgs/banners/workforce-development-1.jpg"],"Logistics":["/orgs/banners/logistics-1.jpg","/orgs/banners/logistics-2.jpg"],"Water & Sanitation":["/orgs/banners/water-sanitation-1.jpg","/orgs/banners/water-sanitation-2.jpg"],"Elder Care":["/orgs/banners/elder-care-1.jpg","/orgs/banners/elder-care-2.jpg"],"Global Health":["/orgs/banners/global-health-1.jpg","/orgs/banners/global-health-2.jpg"],"Economic Development":["/orgs/banners/economic-development-1.jpg","/orgs/banners/economic-development-2.jpg"],"Environment":["/orgs/banners/environment-1.jpg","/orgs/banners/environment-2.jpg"],"Immigrant & Refugee Services":["/orgs/banners/immigrant-refugee-services-1.jpg","/orgs/banners/immigrant-refugee-services-2.jpg"],"Disability & Access":["/orgs/banners/disability-access-1.jpg","/orgs/banners/disability-access-2.jpg"],"Volunteer Mobilization":["/orgs/banners/volunteer-mobilization-1.jpg","/orgs/banners/volunteer-mobilization-2.jpg"]};
+  REAL_ORGS.forEach(function(o){
+    var m = REAL_ORG_LOGOS[o.id];
+    if(m){ o.avatarUrl = m.logo; o.logoDark = !!m.dark; }
+    var list = CAUSE_BANNERS[o.causes[0]] || CAUSE_BANNERS['Volunteer Mobilization'];
+    var h = 0; for(var i = 0; i < o.id.length; i++){ h = (h * 31 + o.id.charCodeAt(i)) | 0; }
+    o.bannerUrl = list[Math.abs(h) % list.length];
+  });
+
   var REGIONS = ['Greater Boston','North America','Latin America','Africa','South Asia','Global'];
   var HELP_CATS = {
     'Groceries & errands':['Elder Care','Food Security'],
@@ -704,6 +774,301 @@
     'Legal Aid','Logistics','Volunteer Mobilization','Water & Sanitation','Workforce Development','Youth Development'];
   var SCALES = ['Neighborhood','Village','City','Region','Remote'];
   var URGENCIES = ['Ongoing','Urgent','This week','This month','Hiring now','Flexible'];
+
+  // Fictional sample posts shown to guests; real members' posts are visible to members only.
+  var SAMPLE_POSTS = [
+   {
+    "id": "sample-h2",
+    "sample": true,
+    "author": {
+     "name": "Joseph K.",
+     "accountType": "person",
+     "headline": "Chair, village water committee"
+    },
+    "type": "ask",
+    "category": "Clean water & sanitation",
+    "scale": "Village",
+    "title": "Broken hand pump — 300 households walking 6 km for water",
+    "detail": "Our village borehole pump failed three weeks ago. Families — mostly women and girls — now walk about 6 km to a seasonal river. We need replacement parts (about KES 85,000 / US$650), a trained technician, and help setting up a small maintenance fund so this doesn’t happen again.",
+    "location": "Mwingi, Kitui County, Kenya",
+    "region": "Africa",
+    "pay": {
+     "kind": "funding",
+     "label": "Needs ~US$650 + technician"
+    },
+    "urgency": "Urgent",
+    "status": "in-progress",
+    "daysAgo": 6,
+    "replyCount": 1
+   },
+   {
+    "id": "sample-h1",
+    "sample": true,
+    "author": {
+     "name": "Margaret O.",
+     "accountType": "person",
+     "headline": "Retired teacher, lives on her own"
+    },
+    "type": "ask",
+    "category": "Groceries & errands",
+    "scale": "Neighborhood",
+    "title": "Weekly grocery run for an 81-year-old neighbor",
+    "detail": "I don’t drive anymore and the bus is hard on my knees. I’d love someone to pick up a short grocery list on Thursday afternoons — about an hour. I pay for the groceries, of course, and there’s always tea.",
+    "location": "Dorchester, Boston, MA",
+    "region": "Greater Boston",
+    "pay": {
+     "kind": "volunteer",
+     "label": ""
+    },
+    "urgency": "Ongoing",
+    "status": "open",
+    "daysAgo": 4,
+    "replyCount": 2
+   },
+   {
+    "id": "sample-h9",
+    "sample": true,
+    "author": {
+     "name": "Fatima R.",
+     "accountType": "person",
+     "headline": "Youth volunteer lead"
+    },
+    "type": "ask",
+    "category": "Disaster & emergency",
+    "scale": "Region",
+    "title": "Volunteers to hand out water-purification tablets after flooding",
+    "detail": "Flash floods have contaminated tube wells in several villages near us. Our youth group has donated tablets but needs volunteers with boats, people to explain safe use, and funds for more tablets.",
+    "location": "Sylhet, Bangladesh",
+    "region": "South Asia",
+    "pay": {
+     "kind": "funding",
+     "label": "Volunteers + funds"
+    },
+    "urgency": "Urgent",
+    "status": "open",
+    "daysAgo": 1,
+    "replyCount": 0
+   },
+   {
+    "id": "sample-h12",
+    "sample": true,
+    "author": {
+     "name": "Yusuf H.",
+     "accountType": "person",
+     "headline": "Dialysis patient"
+    },
+    "type": "ask",
+    "category": "Transportation & rides",
+    "scale": "City",
+    "title": "Early rides to dialysis — Mon/Wed/Fri, 6:30am",
+    "detail": "My dialysis center is in Revere, about 15 minutes away. The ride service keeps cancelling on me. Looking for a few people to share the mornings.",
+    "location": "Chelsea, MA",
+    "region": "Greater Boston",
+    "pay": {
+     "kind": "stipend",
+     "label": "Gas reimbursed"
+    },
+    "urgency": "Urgent",
+    "status": "open",
+    "daysAgo": 5,
+    "replyCount": 0
+   },
+   {
+    "id": "sample-h3",
+    "sample": true,
+    "author": {
+     "name": "Grace A.",
+     "accountType": "person",
+     "headline": "Head teacher, rural primary school"
+    },
+    "type": "ask",
+    "category": "Clean water & sanitation",
+    "scale": "Village",
+    "title": "Rainwater tanks for a 400-student primary school",
+    "detail": "Our pupils carry water from home in jerricans every morning, and the latrines have no handwashing station. Two 10,000-litre tanks with gutters would cover most of the dry season. The parents can provide labour and a local mason.",
+    "location": "Kisumu County, Kenya",
+    "region": "Africa",
+    "pay": {
+     "kind": "funding",
+     "label": "Needs ~US$1,800"
+    },
+    "urgency": "This term",
+    "status": "open",
+    "daysAgo": 8,
+    "replyCount": 0
+   },
+   {
+    "id": "sample-h4",
+    "sample": true,
+    "author": {
+     "name": "David L.",
+     "accountType": "person",
+     "headline": "Caregiver for his wife"
+    },
+    "type": "ask",
+    "category": "Housing & repairs",
+    "scale": "Neighborhood",
+    "title": "Two people to help move furniture so a wheelchair fits",
+    "detail": "My wife just came home from rehab in a wheelchair and we need to shift a couch, a dresser, and a bed frame to clear a path. About two hours this Saturday morning. Pizza provided!",
+    "location": "Quincy, MA",
+    "region": "Greater Boston",
+    "pay": {
+     "kind": "volunteer",
+     "label": ""
+    },
+    "urgency": "This week",
+    "status": "open",
+    "daysAgo": 2,
+    "replyCount": 0
+   },
+   {
+    "id": "sample-h7",
+    "sample": true,
+    "author": {
+     "name": "Neighbors’ Table",
+     "accountType": "org",
+     "headline": "Sample organization"
+    },
+    "type": "ask",
+    "category": "Jobs & livelihoods",
+    "scale": "City",
+    "title": "Part-time pantry van driver (paid)",
+    "detail": "Tuesday and Saturday routes, 6am–12pm. Clean driving record required; we’ll train you on food safety and safe lifting.",
+    "location": "Providence, RI",
+    "region": "North America",
+    "pay": {
+     "kind": "paid",
+     "label": "$21/hr"
+    },
+    "urgency": "Hiring now",
+    "status": "open",
+    "daysAgo": 7,
+    "replyCount": 0
+   },
+   {
+    "id": "sample-h10",
+    "sample": true,
+    "author": {
+     "name": "Anjali S.",
+     "accountType": "person",
+     "headline": "Caregiver for her grandfather"
+    },
+    "type": "ask",
+    "category": "Elder care & companionship",
+    "scale": "Remote",
+    "title": "Evening phone calls for my grandfather (Marathi or Hindi)",
+    "detail": "My grandfather is 88 and lonely since my grandmother passed. A 20-minute chat a few evenings a week (India time) would mean the world to him. Retired folks very welcome!",
+    "location": "Pune, India",
+    "region": "South Asia",
+    "pay": {
+     "kind": "volunteer",
+     "label": ""
+    },
+    "urgency": "Ongoing",
+    "status": "open",
+    "daysAgo": 11,
+    "replyCount": 1
+   },
+   {
+    "id": "sample-h6",
+    "sample": true,
+    "author": {
+     "name": "Kim N.",
+     "accountType": "person",
+     "headline": "Parent"
+    },
+    "type": "ask",
+    "category": "Education & tutoring",
+    "scale": "Neighborhood",
+    "title": "Math tutor for a 7th grader, twice a week",
+    "detail": "Looking for a patient tutor for pre-algebra, Tuesdays and Thursdays after school — at the library or online.",
+    "location": "Somerville, MA",
+    "region": "Greater Boston",
+    "pay": {
+     "kind": "paid",
+     "label": "$25/hr"
+    },
+    "urgency": "Starting soon",
+    "status": "open",
+    "daysAgo": 3,
+    "replyCount": 0
+   },
+   {
+    "id": "sample-h8",
+    "sample": true,
+    "author": {
+     "name": "Ana R.",
+     "accountType": "person",
+     "headline": "Neighborhood organizer"
+    },
+    "type": "ask",
+    "category": "Food & meals",
+    "scale": "Neighborhood",
+    "title": "Saturday cooks for a 120-plate community kitchen",
+    "detail": "We cook lunch every Saturday for families in our barrio. We need 3–4 more people to chop, cook, and serve, 8am–1pm. No experience needed — Spanish helps but isn’t required.",
+    "location": "Medellín, Colombia",
+    "region": "Latin America",
+    "pay": {
+     "kind": "volunteer",
+     "label": ""
+    },
+    "urgency": "Ongoing",
+    "status": "open",
+    "daysAgo": 10,
+    "replyCount": 0
+   },
+   {
+    "id": "sample-h17",
+    "sample": true,
+    "author": {
+     "name": "Chidi E.",
+     "accountType": "person",
+     "headline": "Community school volunteer"
+    },
+    "type": "ask",
+    "category": "Energy & solar",
+    "scale": "Village",
+    "title": "Solar lamps so pupils can study after dark",
+    "detail": "Our community school has no grid power. Sixty solar study lamps (about US$9 each) would let children do homework after sunset instead of using kerosene.",
+    "location": "Ogun State, Nigeria",
+    "region": "Africa",
+    "pay": {
+     "kind": "funding",
+     "label": "Needs ~US$540"
+    },
+    "urgency": "This term",
+    "status": "open",
+    "daysAgo": 7,
+    "replyCount": 0
+   },
+   {
+    "id": "sample-h5",
+    "sample": true,
+    "author": {
+     "name": "Tom B.",
+     "accountType": "person",
+     "headline": "Retired electrician"
+    },
+    "type": "offer",
+    "category": "Housing & repairs",
+    "scale": "City",
+    "title": "Retired electrician — free small repairs for seniors",
+    "detail": "Light fixtures, outlets, smoke-detector batteries, grab-bar installs. Brookline, Brighton, and Allston. Seniors and people with disabilities first.",
+    "location": "Brookline, MA",
+    "region": "Greater Boston",
+    "pay": {
+     "kind": "volunteer",
+     "label": ""
+    },
+    "urgency": "Ongoing",
+    "status": "open",
+    "daysAgo": 13,
+    "replyCount": 0
+   }
+  ];
+  SAMPLE_POSTS.forEach(function(p){
+    p.createdAt = Date.now() - p.daysAgo * 86400000; p.author.id = null; p.isMine = false; p.myReplyStatus = null; p.replies = [];
+  });
 
   /* ============ STATE ============ */
   var state = {
@@ -728,6 +1093,8 @@
     report:null,               // { type, id, label } while the report dialog is open
     blocks:null, myVerification:undefined,
     adminView:'reports',
+    guest:false, memberId:null, memberReturnTab:'help', memberProfile:null,
+    imageEdit:null, pickKind:'avatar', pendingDraft:null, gateReason:'',
     admin:{ overview:null, reports:null, verifications:null, users:null, userQuery:'', reportFilter:'open', resetLink:null }
   };
   var REPORT_REASONS = ['Scam or fraud','Harassment or hate','Unsafe or exploitative request','Spam',
@@ -756,7 +1123,7 @@
   function regionOf(o){ return o.region || (/, MA$/.test(o.location) ? 'Greater Boston' : 'North America'); }
   function regionLabel(r){ return r==='Global' ? 'Global / multi-country' : r; }
   function scaleLabel(s){ return s==='Remote' ? 'Remote — anywhere' : s; }
-  function isOrg(){ return state.user && state.user.accountType==='org'; }
+  function isOrg(){ return !!(state.user && state.user.accountType==='org'); }
   function opts(list, sel, labelFn){
     return list.map(function(v){ return '<option value="' + esc(v) + '"' + (v===sel?' selected':'') + '>' + esc(labelFn ? labelFn(v) : v) + '</option>'; }).join('');
   }
@@ -765,7 +1132,7 @@
   // Member (registered) orgs look like directory entries so both lists render the same way.
   function memberAsOrg(m){
     return { id:'member:' + m.id, userId:m.id, kind:'member', name:m.displayName, tagline:m.headline || 'Member organization',
-      location:m.location, region:m.region, causes:m.causes || [], mission:m.bio, website:m.website, verified:!!m.verified };
+      location:m.location, region:m.region, causes:m.causes || [], mission:m.bio, website:m.website, verified:!!m.verified, avatarUrl:m.avatarUrl };
   }
   function allOrgs(){ return state.memberOrgs.map(memberAsOrg).concat(REAL_ORGS); }
   function orgById(id){ return allOrgs().filter(function(o){ return o.id===id; })[0]; }
@@ -818,6 +1185,7 @@
   }
 
   function loadPosts(){
+    if(!state.user){ state.posts = SAMPLE_POSTS; state.postsLoading = false; render(); return Promise.resolve(); }
     state.postsLoading = true;
     return api('GET', 'help?view=' + state.helpView).then(function(d){
       state.posts = d.posts; state.postsLoading = false; render();
@@ -828,6 +1196,8 @@
   }
   function openHelp(id){
     state.tab='help'; state.selectedHelpId=id; state.helpDetail=null; state.openThread=null;
+    var sample = SAMPLE_POSTS.filter(function(p){ return p.id===id; })[0];
+    if(sample){ state.helpDetail = sample; render(); window.scrollTo(0,0); return Promise.resolve(); }
     render(); window.scrollTo(0,0);
     loadMemberOrgs();
     return api('GET', 'help/' + id).then(function(d){ state.helpDetail = d.post; render(); }, function(err){
@@ -838,9 +1208,191 @@
     state.user = user; state.view = 'app'; state.tab = 'help'; state.helpView = 'browse';
     state.blocks = null; state.myVerification = undefined; state.adminView = 'reports';
     state.admin = { overview:null, reports:null, verifications:null, users:null, userQuery:'', reportFilter:'open', resetLink:null };
-    state.selectedHelpId = null; state.selectedOrgId = null; state.formError = '';
+    state.selectedHelpId = null; state.selectedOrgId = null; state.formError = ''; state.guest = false;
+    try{ sessionStorage.removeItem('gn_guest'); }catch(err){}
     render(); window.scrollTo(0,0);
     loadPosts(); loadMemberOrgs();
+    // A guest who wrote a post before signing up gets it back, ready to publish.
+    if(state.pendingDraft){
+      var d = state.pendingDraft; state.pendingDraft = null;
+      state.modal = 'post-help'; render(); fillDraft(d);
+      setTimeout(function(){ toast('Welcome! Your draft is ready. Review it and press Post.'); }, 50);
+    }
+  }
+
+  /* ============ AVATARS & PROFILE HEADERS ============ */
+  var AVATAR_COLORS = ['#1C7293','#E2711D','#2F8F5B','#7B5EA7','#B8790E','#C2410C','#0F766E','#9D174D'];
+  var BANNER_PRESETS = [['harbor','Harbor'],['sunrise','Sunrise'],['meadow','Meadow'],['dusk','Dusk'],['sand','Sand'],['night','Night']];
+  function initials(name){
+    var w = String(name || '?').replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/);
+    return ((w[0] || '?').charAt(0) + (w.length > 1 ? w[w.length-1].charAt(0) : '')).toUpperCase();
+  }
+  function hashColor(key){
+    var h = 0; key = String(key || '');
+    for(var i = 0; i < key.length; i++){ h = (h * 31 + key.charCodeAt(i)) | 0; }
+    return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+  }
+  // a = { id, name, avatarUrl, accountType }. Falls back to colored initials.
+  function avatarHtml(a, size){
+    var cls = 'avatar avatar-' + (size || 'sm') + (a.accountType==='org' ? ' avatar-org' : '') + (a.isLogo ? ' avatar-logo' + (a.logoDark ? ' logo-dark' : '') : '');
+    if(a.avatarUrl) return '<span class="' + cls + '"><img src="' + esc(a.avatarUrl) + '" alt="" loading="lazy"></span>';
+    return '<span class="' + cls + '" style="background:' + hashColor(a.id || a.name) + ';" aria-hidden="true">' + esc(initials(a.name)) + '</span>';
+  }
+  function userAvatar(u, size){ return avatarHtml({ id:u.id, name:u.displayName, avatarUrl:u.avatarUrl, accountType:u.accountType }, size); }
+  // Clickable member name (sample posts and reference orgs have no profile to open).
+  function nameLink(a){
+    var who = whoLine(a.name, a.accountType, a.verified);
+    return a.id ? '<button class="name-link" data-action="view-member" data-user="' + esc(a.id) + '">' + who + '</button>' : '<span class="name-plain">' + who + '</span>';
+  }
+  function monthYear(ms){ return new Date(ms).toLocaleDateString(undefined, { month:'long', year:'numeric' }); }
+
+  function profileHero(u, o){
+    o = o || {};
+    var banner = u.bannerUrl
+      ? '<div class="profile-banner has-image" style="background-image:url(' + esc(u.bannerUrl) + ')">'
+      : '<div class="profile-banner banner-' + esc(u.bannerPreset || 'harbor') + '">';
+    return '<section class="card profile-hero">'
+      + banner + (o.editable ? '<button class="btn btn-sm banner-edit" data-action="pick-image" data-kind="banner">' + ICONS.camera + ' Edit banner</button>' : '') + '</div>'
+      + '<div class="profile-hero-body">'
+      +   '<div class="avatar-wrap">' + userAvatar(u, 'xl')
+      +     (o.editable ? '<button class="avatar-edit" data-action="pick-image" data-kind="avatar" aria-label="Change profile photo" title="Change profile photo">' + ICONS.camera + '</button>' : '')
+      +   '</div>'
+      +   (o.actions ? '<div class="profile-hero-actions">' + o.actions + '</div>' : '')
+      +   '<h2 class="profile-name">' + esc(u.displayName) + (u.verified ? ' ' + verifiedMark() : '')
+      +     (u.pronouns ? ' <span class="pronouns">(' + esc(u.pronouns) + ')</span>' : '') + '</h2>'
+      +   (u.headline ? '<p class="profile-headline">' + esc(u.headline) + '</p>' : '')
+      +   '<div class="meta-row" style="margin:.55rem 0 0;"><span>' + ICONS.pin + esc(u.location) + '</span><span>' + ICONS.globe + esc(regionLabel(u.region)) + '</span>'
+      +     '<span>' + (u.accountType==='org' ? 'Organization' : 'Individual') + ' · joined ' + esc(monthYear(u.createdAt)) + '</span></div>'
+      + '</div></section>';
+  }
+
+  function chipList(list){ return '<div class="tag-row" style="margin:0;">' + list.map(function(x){ return '<span class="tag">' + esc(x) + '</span>'; }).join('') + '</div>'; }
+
+  function renderMemberProfile(){
+    var back = '<button class="btn btn-ghost btn-sm" style="margin-bottom:1rem;" data-action="member-back">← Back</button>';
+    var mp = state.memberProfile;
+    if(!mp) return back + '<div class="empty">Loading…</div>';
+    var u = mp.user, org = u.accountType==='org', self = state.user && state.user.id===u.id;
+    var actions = self ? '<button class="btn btn-secondary btn-sm" data-action="set-tab" data-tab="profile">Edit profile</button>'
+      : (u.website ? '<a class="btn btn-secondary btn-sm" href="' + esc(u.website) + '" target="_blank" rel="noopener noreferrer nofollow">Visit website</a>' : '');
+    var about = '<div class="card" style="margin-bottom:1rem;"><div class="section-label">' + (org ? 'Mission' : 'About') + '</div>'
+      + '<p style="font-size:.94rem; line-height:1.6; white-space:pre-wrap;">' + (u.bio ? esc(u.bio) : '<span class="res-org">Nothing here yet.</span>') + '</p></div>';
+    var skills = u.skills.length ? '<div class="card" style="margin-bottom:1rem;"><div class="section-label">' + (org ? 'What we offer' : 'Ways I can help') + '</div>' + chipList(u.skills) + '</div>' : '';
+    var posts = '<div class="card" style="margin-bottom:1rem;"><div class="section-label">On the Help Board</div>'
+      + (!state.user ? '<p class="res-org">Members can see this organization’s Help Board posts. <button class="link-btn" data-action="show-auth" data-mode="signup">Create a free account</button></p>'
+        : mp.posts.length ? '<div class="suggest">' + mp.posts.map(function(p){
+            return '<button class="suggest-item" data-action="view-help" data-id="' + esc(p.id) + '">' + esc(p.title)
+              + '<small>' + (p.type==='ask' ? 'Asking' : 'Offering') + ' · ' + esc(p.category) + ' · ' + fmtDate(p.createdAt) + '</small></button>';
+          }).join('') + '</div>'
+        : '<p class="res-org">No posts yet.</p>')
+      + '</div>';
+    var side = (u.languages.length ? '<div class="side-card"><div class="section-label">Languages</div>' + chipList(u.languages) + '</div>' : '')
+      + (org && u.causes.length ? '<div class="side-card"><div class="section-label">Cause areas</div>' + chipList(u.causes) + '</div>' : '')
+      + (org ? '<div class="side-card"><div class="section-label">Member organization</div><p style="font-size:.88rem; line-height:1.55; color:var(--text-muted);">'
+          + (u.verified ? 'Global Neighbors has checked this organization’s registration details.' : 'This organization created its own profile. It hasn’t been verified yet.') + '</p></div>' : '')
+      + (state.user && !self ? '<div class="side-card"><div class="section-label">Safety</div>'
+          + safetyRow({ reportType:'user', reportId:u.id, label:(org ? 'organization ' : '') + u.displayName, blockId:u.id, blockName:u.displayName }) + '</div>' : '');
+    return back + profileHero(u, { actions:actions })
+      + '<div class="profile-grid"><div>' + about + skills + posts + '</div><div>' + side + '</div></div>';
+  }
+
+  function openMember(id){
+    if(state.tab!=='member') state.memberReturnTab = state.tab;
+    state.tab='member'; state.memberId=id; state.memberProfile=null;
+    render(); window.scrollTo(0,0);
+    api('GET', 'users/' + encodeURIComponent(id)).then(function(d){
+      if(state.memberId===id){ state.memberProfile = d; render(); }
+    }, function(err){
+      state.tab = state.memberReturnTab; render();
+      if(!state.user){ state.gateReason='profile'; state.modal='gate'; render(); } else toast(err.message);
+    });
+  }
+
+  /* ============ IMAGE EDITOR ============ */
+  function cropSize(kind){ return kind==='avatar' ? [400, 400] : [1584, 396]; }
+  function drawCrop(){
+    var e = state.imageEdit, c = document.getElementById('crop-canvas');
+    if(!e || !c) return;
+    var ctx = c.getContext('2d'), W = c.width, H = c.height, iw = e.img.naturalWidth, ih = e.img.naturalHeight;
+    var s = Math.max(W / iw, H / ih) * e.zoom, dw = iw * s, dh = ih * s;
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+    ctx.drawImage(e.img, (W - dw) * e.x, (H - dh) * e.y, dw, dh);
+  }
+  function renderImageModal(){
+    var e = state.imageEdit, avatar = e.kind==='avatar', size = cropSize(e.kind), dis = state.busy ? ' disabled' : '';
+    function slider(field, label, min, max, step){
+      return '<div class="field"><label for="crop-' + field + '">' + label + '</label><input id="crop-' + field + '" type="range" min="' + min + '" max="' + max + '" step="' + step + '" value="' + e[field] + '" data-role="crop" data-field="' + field + '"></div>';
+    }
+    return '<div class="modal-backdrop" data-action="close-modal">'
+      + '<div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="img-title">'
+      +   '<h3 id="img-title">' + (avatar ? (isOrg() ? 'Logo / profile photo' : 'Profile photo') : 'Banner image') + '</h3>'
+      +   '<p class="posting-as">' + (avatar ? 'Drag the sliders to frame your photo. ' : 'Wide images work best (at least 1584 × 396). ')
+      +     (isOrg() ? 'Organization images are public.' : 'Visible to signed-in members.') + ' Hidden location data in photos is removed.</p>'
+      +   (state.formError ? '<div class="form-error" role="alert">' + esc(state.formError) + '</div>' : '')
+      +   '<div class="crop-frame ' + (avatar ? 'crop-avatar' : 'crop-banner') + '"><canvas id="crop-canvas" width="' + size[0] + '" height="' + size[1] + '" aria-label="Preview"></canvas></div>'
+      +   slider('zoom', 'Zoom', 1, 3, 0.01)
+      +   '<div class="field-row">' + slider('x', 'Left ↔ right', 0, 1, 0.01) + slider('y', 'Up ↕ down', 0, 1, 0.01) + '</div>'
+      +   '<div class="modal-actions">'
+      +     '<button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button>'
+      +     '<button type="button" class="btn btn-primary" data-action="save-image"' + dis + '>' + (state.busy ? 'Saving…' : 'Save') + '</button>'
+      +   '</div>'
+      + '</div></div>';
+  }
+  function loadPickedFile(file){
+    if(!file) return;
+    if(!/^image\//.test(file.type)){ toast('Please choose an image file.'); return; }
+    if(file.size > 25 * 1024 * 1024){ toast('That image is over 25 MB. Please choose a smaller one.'); return; }
+    var reader = new FileReader();
+    reader.onload = function(){
+      var img = new Image();
+      img.onload = function(){
+        state.imageEdit = { kind:state.pickKind, img:img, zoom:1, x:0.5, y:0.5 };
+        state.modal = 'image-edit'; state.formError = ''; render();
+      };
+      img.onerror = function(){ toast('That image format isn’t supported. Try a JPEG or PNG.'); };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  function saveImage(){
+    var e = state.imageEdit, c = document.getElementById('crop-canvas');
+    if(!e || !c) return;
+    // Re-encode as JPEG under the server's size limit (this also drops EXIF/GPS metadata).
+    var limit = e.kind==='avatar' ? 280 * 1024 : 850 * 1024, q = 0.9, url;
+    do { url = c.toDataURL('image/jpeg', q); q -= 0.1; } while(url.length * 0.75 > limit && q > 0.35);
+    if(url.length * 0.75 > limit){ state.formError = 'That image is too detailed to save. Try zooming in or choosing another.'; render(); return; }
+    state.formError = '';
+    run(api('POST', 'me/media/' + e.kind, { dataUrl:url }).then(function(d){
+      state.user = d.user; state.modal = null; state.imageEdit = null;
+      toast(e.kind==='avatar' ? 'Profile photo updated.' : 'Banner updated.'); loadMemberOrgs();
+    }), function(err){ state.formError = err.message; });
+  }
+
+  /* ============ GUESTS ============ */
+  function enterGuest(){
+    state.guest = true; state.user = null; state.view = 'app'; state.tab = 'help'; state.helpView = 'browse';
+    state.selectedHelpId = null; state.helpDetail = null; state.selectedOrgId = null; state.modal = null;
+    state.posts = SAMPLE_POSTS;
+    try{ sessionStorage.setItem('gn_guest', '1'); }catch(err){}
+    render(); window.scrollTo(0,0);
+    loadMemberOrgs();
+  }
+  function renderGateModal(){
+    var what = state.gateReason==='post' ? 'publish your post' : state.gateReason==='profile' ? 'view member profiles' : 'reply';
+    return '<div class="modal-backdrop" data-action="close-modal">'
+      + '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="gate-title">'
+      +   '<h3 id="gate-title">Create a free account to ' + what + '</h3>'
+      +   '<p class="posting-as" style="margin:0 0 1rem;">Guests can look around, but only members can post, reply, or see other members’ profiles. That keeps people who ask for help safe.'
+      +     (state.pendingDraft ? ' <b>Your draft is saved.</b> It’ll be ready to publish as soon as you sign up.' : '') + '</p>'
+      +   '<div class="modal-actions" style="flex-wrap:wrap;">'
+      +     '<button type="button" class="btn btn-ghost" data-action="close-modal">Keep browsing</button>'
+      +     '<button type="button" class="btn btn-secondary" data-action="show-auth" data-mode="login">Log in</button>'
+      +     '<button type="button" class="btn btn-primary" data-action="show-auth" data-mode="signup">Create account</button>'
+      +   '</div>'
+      + '</div></div>';
+  }
+  function fillDraft(d){
+    Object.keys(d).forEach(function(id){ var el = document.getElementById(id); if(el) el.value = d[id]; });
   }
 
   /* ============ RENDER: LANDING ============ */
@@ -859,8 +1411,9 @@
     +     '<div class="hero-actions">'
     +       '<button class="btn btn-primary" data-action="show-auth" data-mode="signup" data-type="person">Join as an individual ' + ICONS.arrow + '</button>'
     +       '<button class="btn btn-secondary" data-action="show-auth" data-mode="signup" data-type="org">Join as an organization</button>'
+    +       '<button class="btn btn-ghost" data-action="enter-guest">Look around as a guest</button>'
     +     '</div>'
-    +     '<p class="hero-note" style="margin-top:.8rem;">Free. Want to look around first? <a href="/demo.html">Try the interactive demo</a>, which uses sample data only.</p>'
+    +     '<p class="hero-note" style="margin-top:.8rem;">Free to join. Guests can explore with sample posts, no account needed.</p>'
     +     '<div class="hero-stats">'
     +       '<div class="hero-stat"><b>' + REAL_ORGS.length + '</b><span>Nonprofits &amp; NGOs in the directory</span></div>'
     +       '<div class="hero-stat"><b>' + bostonCount + '</b><span>In Greater Boston</span></div>'
@@ -888,7 +1441,7 @@
   /* ============ RENDER: AUTH ============ */
   function contactEmail(){ return state.config.contactEmail || 'amoskow@brandeis.edu'; }
   function legalLinks(){
-    return '<nav class="legal-links" aria-label="Policies"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/safety">Safety tips</a></nav>';
+    return '<nav class="legal-links" aria-label="Policies"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/safety">Safety tips</a><a href="/credits">Photo credits</a></nav>';
   }
 
   function renderAuth(){
@@ -947,35 +1500,45 @@
       + '<button class="btn btn-ghost btn-sm" data-action="to-landing" style="margin-bottom:1rem;">← Back</button>'
       + '<div class="wordmark" style="margin-bottom:1.2rem;"><span class="dot"></span><span>Global Neighbors</span></div>'
       + seg + err + note + body
+      + ((mode==='signup' || mode==='login') ? '<p class="guest-alt">Just looking? <button type="button" class="link-btn" data-action="enter-guest">Continue as a guest</button></p>' : '')
       + '<div style="margin-top:1.4rem;">' + legalLinks() + '</div>'
       + '</div></div>';
   }
 
   /* ============ RENDER: APP SHELL ============ */
   function renderApp(){
-    var u = state.user;
+    var u = state.user, guest = !u;
     var tabs = [
       {id:'help', label:'Help Board', icon:ICONS.help},
-      {id:'directory', label: isOrg() ? 'Directory' : 'Find support', icon:ICONS.directory},
-      {id:'profile', label:'My profile', icon:ICONS.profile}
+      {id:'directory', label: isOrg() ? 'Directory' : 'Find support', icon:ICONS.directory}
     ];
-    if(u.isAdmin) tabs.push({id:'admin', label:'Admin', icon:ICONS.shield});
+    if(!guest) tabs.push({id:'profile', label:'My profile', icon:ICONS.profile});
+    if(u && u.isAdmin) tabs.push({id:'admin', label:'Admin', icon:ICONS.shield});
     var rail = '<nav class="rail" aria-label="Main">'
       + '<div class="rail-brand"><span style="width:10px;height:10px;border-radius:50%;background:var(--grad-accent);box-shadow:0 0 0 3px var(--accent-soft);display:inline-block;"></span><span>Global Neighbors</span></div>'
       + tabs.map(function(t){
           return '<button class="rail-link' + (state.tab===t.id?' active':'') + '" data-action="set-tab" data-tab="' + t.id + '"' + (state.tab===t.id?' aria-current="page"':'') + '>' + t.icon + '<span>' + t.label + '</span></button>';
         }).join('')
       + '<div class="rail-foot">' + legalLinks() + '</div></nav>';
-    var topbar = '<div class="topbar">'
-      + '<div class="viewing-as">Signed in as <b style="color:var(--text);">' + esc(u.displayName) + '</b><span class="kind-badge" style="margin-left:0;">' + (isOrg() ? 'Organization' : 'Individual') + '</span></div>'
-      + '<div style="display:flex;align-items:center;gap:.8rem;"><span class="hero-note">' + esc(u.location) + '</span><button class="btn btn-ghost btn-sm" data-action="logout">Log out</button></div>'
-      + '</div>';
+    var topbar = guest
+      ? '<div class="topbar">'
+        + '<div class="viewing-as"><span class="kind-badge" style="margin-left:0;">Guest</span>Browsing as a guest</div>'
+        + '<div style="display:flex;align-items:center;gap:.5rem;"><button class="btn btn-ghost btn-sm" data-action="show-auth" data-mode="login">Log in</button>'
+        +   '<button class="btn btn-primary btn-sm" data-action="show-auth" data-mode="signup">Create free account</button></div>'
+        + '</div>'
+      : '<div class="topbar">'
+        + '<div class="viewing-as"><button class="me-chip" data-action="view-member" data-user="' + esc(u.id) + '" title="View your public profile">' + userAvatar(u, 'xs') + '<b>' + esc(u.displayName) + '</b></button><span class="kind-badge" style="margin-left:0;">' + (isOrg() ? 'Organization' : 'Individual') + '</span></div>'
+        + '<div style="display:flex;align-items:center;gap:.8rem;"><span class="hero-note">' + esc(u.location) + '</span><button class="btn btn-ghost btn-sm" data-action="logout">Log out</button></div>'
+        + '</div>';
     var body = '';
     if(state.tab==='help') body = state.selectedHelpId ? renderHelpDetail() : renderHelpBoard();
     else if(state.tab==='directory') body = state.selectedOrgId ? renderOrgProfile(state.selectedOrgId) : renderDirectory();
     else if(state.tab==='profile') body = renderMyProfile();
-    else if(state.tab==='admin' && u.isAdmin) body = renderAdmin();
-    var banner = (state.config.emailEnabled && !u.emailVerified)
+    else if(state.tab==='admin' && u && u.isAdmin) body = renderAdmin();
+    else if(state.tab==='member') body = renderMemberProfile();
+    var banner = guest
+      ? (state.tab==='help' ? '<div class="banner">You’re browsing as a guest, so the Help Board shows <b>sample posts</b>. Real members’ posts stay private. <button class="link-btn" data-action="show-auth" data-mode="signup">Create a free account</button> to see real posts, ask for help, or offer it.</div>' : '')
+      : (state.config.emailEnabled && !u.emailVerified)
       ? '<div class="banner">Please confirm your email to post, reply, and message. We sent a link to <b>' + esc(u.email) + '</b>. <button class="link-btn" data-action="resend-verify">Resend the email</button></div>' : '';
     return '<div class="shell">' + rail + '<main class="main">' + topbar + '<div class="content">' + banner + body + '</div></main></div>' + renderModal();
   }
@@ -1013,10 +1576,10 @@
     else if(p.status==='resolved') cta = '<button class="btn btn-ghost btn-sm" data-action="view-help" data-id="' + esc(p.id) + '">Details</button>';
     else cta = '<button class="btn btn-primary btn-sm" data-action="view-help" data-id="' + esc(p.id) + '">' + (p.type==='ask' ? 'I can help' : 'Request this') + '</button>';
     return '<div class="card help-card">'
-      + '<div class="help-top">' + typePill(p) + (p.urgency==='Urgent' ? '<span class="urgent-pill">Urgent</span>' : '') + statusPill(p)
+      + '<div class="help-top">' + typePill(p) + (p.sample ? '<span class="sample-pill">Sample</span>' : '') + (p.urgency==='Urgent' ? '<span class="urgent-pill">Urgent</span>' : '') + statusPill(p)
       +   '<span class="res-date">' + fmtDate(p.createdAt) + '</span></div>'
       + '<h3 style="font-size:1rem; font-weight:600;">' + esc(p.title) + '</h3>'
-      + '<div class="res-org">' + whoLine(p.author.name, p.author.accountType, p.author.verified) + ' · ' + esc(p.location) + '</div>'
+      + '<div class="author-line">' + avatarHtml(p.author, 'xs') + '<div class="res-org">' + nameLink(p.author) + ' · ' + esc(p.location) + '</div></div>'
       + '<div class="help-snippet">' + esc(p.detail) + '</div>'
       + '<div class="tag-row" style="margin-bottom:0;"><span class="tag">' + esc(p.category) + '</span>' + payTag(p.pay) + '<span class="tag muted">' + esc(scaleLabel(p.scale)) + '</span></div>'
       + '<div class="help-foot"><span class="reply-count">' + (p.isMine ? repliesLabel(p.replyCount) : '') + '</span><div class="card-actions">' + cta + '</div></div>'
@@ -1036,7 +1599,7 @@
         && (state.helpPay==='all' || payKind===state.helpPay);
     });
 
-    var seg = '<div class="seg" role="tablist">' + [
+    var seg = !state.user ? '' : '<div class="seg" role="tablist">' + [
       {id:'browse', label:'Browse all'}, {id:'mine', label:'My posts'}, {id:'helping', label:'I’m helping'}
     ].map(function(s){
       return '<button role="tab" aria-selected="' + (state.helpView===s.id) + '" class="' + (state.helpView===s.id?'active':'') + '" data-action="set-help-view" data-view="' + s.id + '">' + s.label + '</button>';
@@ -1060,7 +1623,9 @@
       : state.posts.length ? 'Nothing matches those filters.'
       : 'No posts yet. Be the first to ask for help or offer it.';
 
-    var sub = isOrg()
+    var sub = !state.user
+      ? 'Here’s how people ask for help and offer it, from grocery runs down the street to clean water across the world. Try opening a post or writing one.'
+      : isOrg()
       ? 'See what people and communities need, reply as your organization, or post paid roles and volunteer asks.'
       : 'Ask neighbors, volunteers, and organizations for a hand, or offer one. Posts range from grocery runs down the street to clean water across the world.';
 
@@ -1123,7 +1688,7 @@
                 + '<button class="btn btn-ghost btn-sm" data-action="respond-reply" data-reply="' + esc(r.id) + '" data-status="declined"' + dis + '>Decline</button>'
               : '';
             return '<div class="card response">'
-              + '<div class="response-head"><div><h3 style="font-size:.98rem;">' + whoLine(r.user.name, r.user.accountType, r.user.verified) + '</h3><div class="res-org">' + esc(r.user.headline ? r.user.headline + ' · ' : '') + esc(r.user.location) + '</div></div>' + replyStatus(r) + '</div>'
+              + '<div class="response-head"><div class="author-line">' + avatarHtml(r.user, 'sm') + '<div><h3 style="font-size:.98rem;">' + nameLink(r.user) + '</h3><div class="res-org">' + esc(r.user.headline ? r.user.headline + ' · ' : '') + esc(r.user.location) + '</div></div></div>' + replyStatus(r) + '</div>'
               + (open ? renderThread(p, r) : '<div class="req-note">' + esc(r.text) + '</div>')
               + '<div class="card-actions" style="margin-top:.7rem;">' + btns
               +   '<button class="btn btn-secondary btn-sm" data-action="toggle-thread" data-reply="' + esc(r.id) + '">' + (open ? 'Hide messages' : 'Messages (' + (r.messages.length + 1) + ')') + '</button></div>'
@@ -1140,20 +1705,23 @@
         + '<label class="section-label" for="help-reply-text">' + (p.type==='ask' ? 'Offer to help' : 'Request this help') + '</label>'
         + '<textarea id="help-reply-text" maxlength="2000" required placeholder="' + (p.type==='ask' ? 'Say how you can help and when you’re available…' : 'Say what you need and when…') + '"></textarea>'
         + '<div class="card-actions" style="margin-top:.7rem;"><button class="btn btn-primary btn-sm" type="submit"' + dis + '>Send reply</button></div>'
-        + '<p class="posting-as" style="margin:.7rem 0 0;">Only ' + esc(p.author.name) + ' will see your reply. Don’t share your address or financial details until you trust the other person.</p>'
+        + '<p class="posting-as" style="margin:.7rem 0 0;">' + (state.user ? 'Only ' + esc(p.author.name) + ' will see your reply. Don’t share your address or financial details until you trust the other person.' : 'You’re a guest, so you’ll be asked to create a free account before a reply is sent.') + '</p>'
         + '</form>';
     }
 
     var suggestions = suggestOrgs(p);
-    var side = '<div class="side-card"><div class="section-label">Posted by</div><p style="font-size:.92rem; font-weight:600;">' + whoLine(p.author.name, p.author.accountType, p.author.verified) + '</p>'
-      +   (p.author.headline ? '<p class="res-org" style="margin-top:.2rem;">' + esc(p.author.headline) + '</p>' : '')
-      +   (p.author.accountType==='org' ? '<button class="btn btn-ghost btn-sm" style="margin-top:.7rem;" data-action="view-org" data-org="member:' + esc(p.author.id) + '">View organization</button>' : '')
-      +   (p.isMine ? '' : safetyRow({ reportType:'post', reportId:p.id, label:'post “' + p.title + '”', blockId:p.author.id, blockName:p.author.name }))
+    var side = '<div class="side-card"><div class="section-label">Posted by</div>'
+      +   '<div class="author-line">' + avatarHtml(p.author, 'md') + '<div><p style="font-size:.92rem; font-weight:600;">' + nameLink(p.author) + '</p>'
+      +   (p.author.headline ? '<p class="res-org" style="margin-top:.1rem;">' + esc(p.author.headline) + '</p>' : '') + '</div></div>'
+      +   (p.sample ? '<p class="hint" style="margin-top:.7rem;">This is a sample post for guests to explore. The people in it are fictional.</p>' : '')
+      +   (p.author.id && !p.isMine ? '<button class="btn btn-ghost btn-sm" style="margin-top:.7rem;" data-action="view-member" data-user="' + esc(p.author.id) + '">View profile</button>' : '')
+      +   (p.isMine || !state.user ? '' : safetyRow({ reportType:'post', reportId:p.id, label:'post “' + p.title + '”', blockId:p.author.id, blockName:p.author.name }))
       + '</div>'
       + '<div class="side-card"><div class="section-label">Organizations working on this</div>'
       +   (suggestions.length ? '<div class="suggest">' + suggestions.map(function(o){
-            return '<button class="suggest-item" data-action="view-org" data-org="' + esc(o.id) + '">' + esc(o.name)
-              + '<small>' + (o.kind==='member' ? 'Member org' : 'Reference directory') + ' · ' + esc(regionLabel(regionOf(o))) + '</small></button>';
+            return '<button class="suggest-item suggest-org" data-action="view-org" data-org="' + esc(o.id) + '">'
+              + avatarHtml({ id:o.userId || o.id, name:o.name, avatarUrl:o.avatarUrl, accountType:'org', isLogo:o.kind==='real', logoDark:o.logoDark }, 'sm')
+              + '<span>' + esc(o.name) + '<small>' + (o.kind==='member' ? 'Member org' : 'Reference directory') + ' · ' + esc(regionLabel(regionOf(o))) + '</small></span></button>';
           }).join('') + '</div>' : '<p class="res-org">No close matches in the directory yet.</p>')
       +   '<p class="res-org" style="margin-top:.7rem; font-size:.74rem;">Matched by cause area and region. Organizations in the reference directory aren’t notified about posts.</p>'
       + '</div>';
@@ -1185,7 +1753,7 @@
       var badge = o.kind!=='member' ? '<span class="org-badge real">Reference directory</span>'
         : o.verified ? verifiedMark() : '<span class="org-badge demo">Member · self-described</span>';
       return '<div class="card org-card">'
-        + '<div class="org-card-top">' + badge + '</div>'
+        + '<div class="org-card-top">' + avatarHtml({ id:o.userId || o.id, name:o.name, avatarUrl:o.avatarUrl, accountType:'org', isLogo:o.kind==='real', logoDark:o.logoDark }, 'md') + badge + '</div>'
         + '<h3>' + esc(o.name) + '</h3>'
         + '<div class="org-tagline">' + esc(o.tagline) + '</div>'
         + '<div class="meta-row"><span>' + ICONS.pin + esc(o.location) + '</span>' + (regionOf(o)==='Global' ? '<span>' + ICONS.globe + 'Works globally</span>' : '') + '</div>'
@@ -1205,40 +1773,26 @@
       + '<div class="dir-footnote">Reference-directory entries show each organization’s public mission and a link to its official site; those organizations are not affiliated with Global Neighbors. Member organizations wrote their own profiles. A ✓ Verified badge means Global Neighbors has checked the organization’s registration details.</div>';
   }
 
+  // Reference-directory organizations (member organizations use renderMemberProfile).
   function renderOrgProfile(id){
     var o = orgById(id);
     var back = '<button class="btn btn-ghost btn-sm" style="margin-bottom:1rem;" data-action="close-org">← Back to ' + (isOrg() ? 'directory' : 'Find support') + '</button>';
     if(!o) return back + '<div class="empty">That organization isn’t available.</div>';
-    var member = o.kind==='member';
-    var site = o.website ? '<a class="btn btn-secondary btn-sm" href="' + esc(o.website) + '" target="_blank" rel="noopener noreferrer nofollow">Visit website</a>' : '';
-    var posts = '';
-    if(member){
-      var mp = state.memberProfile && state.memberProfile.user.id===o.userId ? state.memberProfile.posts : null;
-      posts = '<div class="card" style="margin-bottom:1rem;"><div class="section-label">On the Help Board</div>'
-        + (mp === null ? '<p class="res-org">Loading…</p>'
-          : mp.length ? '<div class="suggest">' + mp.map(function(p){
-              return '<button class="suggest-item" data-action="view-help" data-id="' + esc(p.id) + '">' + esc(p.title)
-                + '<small>' + (p.type==='ask' ? 'Asking' : 'Offering') + ' · ' + esc(p.category) + ' · ' + fmtDate(p.createdAt) + '</small></button>';
-            }).join('') + '</div>'
-          : '<p class="res-org">No posts yet.</p>')
-        + '</div>';
-    }
-    var side = member
-      ? '<div class="side-card"><div class="section-label">Member organization</div><p style="font-size:.88rem; line-height:1.55; color:var(--text-muted);">'
-          + (o.verified ? 'Global Neighbors has checked this organization’s registration details.' : 'This organization created its own profile on Global Neighbors. It hasn’t been verified yet.')
-          + '</p>' + (site ? '<div style="margin-top:.7rem;">' + site + '</div>' : '')
-          + (state.user && o.userId!==state.user.id ? safetyRow({ reportType:'user', reportId:o.userId, label:'organization ' + o.name, blockId:o.userId, blockName:o.name }) : '')
-          + '</div>'
-      : '<div class="side-card"><div class="section-label">Reference directory</div><p style="font-size:.88rem; line-height:1.55; color:var(--text-muted);">Listed from public information. This organization is not affiliated with Global Neighbors and doesn’t receive posts or messages here. Contact them through their website.</p>'
-        + '<a class="btn btn-secondary btn-sm" style="margin-top:.7rem;" href="' + esc(o.website) + '" target="_blank" rel="noopener noreferrer">' + esc(o.website.replace(/^https?:\/\//,'')) + '</a></div>';
-    return back
-      + '<div class="profile-head"><div><h2>' + esc(o.name) + (o.verified ? ' ' + verifiedMark() : '') + '</h2><div class="org-tagline">' + esc(o.tagline) + '</div></div><div>' + site + '</div></div>'
-      + '<div class="meta-row" style="margin-bottom:1.2rem;"><span>' + ICONS.pin + esc(o.location) + '</span><span>' + ICONS.globe + esc(regionLabel(regionOf(o))) + '</span></div>'
-      + '<div class="tag-row">' + o.causes.map(function(c){ return '<span class="tag">' + esc(c) + '</span>'; }).join('') + '</div>'
+    var hero = '<section class="card profile-hero">'
+      + '<div class="profile-banner has-image" style="background-image:url(' + esc(o.bannerUrl) + ')"></div>'
+      + '<div class="profile-hero-body"><div class="avatar-wrap">' + avatarHtml({ id:o.id, name:o.name, accountType:'org', avatarUrl:o.avatarUrl, isLogo:true, logoDark:o.logoDark }, 'xl') + '</div>'
+      +   '<div class="profile-hero-actions"><a class="btn btn-secondary btn-sm" href="' + esc(o.website) + '" target="_blank" rel="noopener noreferrer">Visit website</a></div>'
+      +   '<h2 class="profile-name">' + esc(o.name) + '</h2><p class="profile-headline">' + esc(o.tagline) + '</p>'
+      +   '<div class="meta-row" style="margin:.55rem 0 0;"><span>' + ICONS.pin + esc(o.location) + '</span><span>' + ICONS.globe + esc(regionLabel(regionOf(o))) + '</span><span>Reference directory</span></div>'
+      + '</div></section>';
+    return back + hero
       + '<div class="profile-grid"><div>'
-      +   '<div class="card" style="margin-bottom:1rem;"><div class="section-label">Mission</div><p style="font-size:.94rem; line-height:1.6; white-space:pre-wrap;">' + (o.mission ? esc(o.mission) : '<span class="res-org">No description yet.</span>') + '</p></div>'
-      +   posts
-      + '</div><div>' + side + '</div></div>';
+      +   '<div class="card" style="margin-bottom:1rem;"><div class="section-label">Mission</div><p style="font-size:.94rem; line-height:1.6;">' + esc(o.mission) + '</p></div>'
+      + '</div><div>'
+      +   '<div class="side-card"><div class="section-label">Cause areas</div>' + chipList(o.causes) + '</div>'
+      +   '<div class="side-card"><div class="section-label">Reference directory</div><p style="font-size:.88rem; line-height:1.55; color:var(--text-muted);">Listed from public information. This organization is not affiliated with Global Neighbors and doesn’t receive posts or messages here. Contact them through their website.</p>'
+      +     '<p class="hint" style="margin-top:.6rem;">' + (o.avatarUrl ? 'Logo is the organization’s own, shown to identify it. ' : '') + 'Banner is an illustrative photo of this kind of work, not of the organization. <a href="/credits">Photo credits</a></p></div>'
+      + '</div></div>';
   }
 
   /* ============ RENDER: MY PROFILE ============ */
@@ -1251,17 +1805,37 @@
           }).join('')
         + '</div></div>'
       : '';
-    return '<div class="page-head"><div><h2>My profile</h2><p>' + (org ? 'This is how your organization appears in the directory and on your posts.' : 'Other members see your name, headline, and location on your posts and replies.') + '</p></div></div>'
+    var heroActions = '<button class="btn btn-secondary btn-sm" data-action="view-member" data-user="' + esc(u.id) + '">View as others see it</button>';
+    var looks = '<div class="card" style="margin-bottom:1rem;"><div class="section-label">Photo &amp; banner</div>'
+      + '<div class="card-actions" style="flex-wrap:wrap; margin-bottom:.9rem;">'
+      +   '<button class="btn btn-secondary btn-sm" data-action="pick-image" data-kind="avatar">' + ICONS.camera + (u.avatarUrl ? ' Change photo' : ' Add photo') + '</button>'
+      +   (u.avatarUrl ? '<button class="btn btn-ghost btn-sm" data-action="remove-media" data-kind="avatar"' + dis + '>Remove photo</button>' : '')
+      +   '<button class="btn btn-secondary btn-sm" data-action="pick-image" data-kind="banner">' + ICONS.camera + (u.bannerUrl ? ' Change banner' : ' Upload banner') + '</button>'
+      +   (u.bannerUrl ? '<button class="btn btn-ghost btn-sm" data-action="remove-media" data-kind="banner"' + dis + '>Remove banner image</button>' : '')
+      + '</div>'
+      + '<span class="field-label">' + (u.bannerUrl ? 'Banner style (used if you remove your banner image)' : 'Banner style') + '</span>'
+      + '<div class="swatches" role="group" aria-label="Banner style">' + BANNER_PRESETS.map(function(bp){
+          var on = (u.bannerPreset || 'harbor')===bp[0];
+          return '<button class="swatch banner-' + bp[0] + (on ? ' selected' : '') + '" data-action="set-preset" data-preset="' + bp[0] + '" aria-pressed="' + on + '" title="' + bp[1] + '"><span class="visually-hidden">' + bp[1] + '</span></button>';
+        }).join('') + '</div>'
+      + '<p class="hint" style="margin-top:.7rem;">' + (org ? 'Your logo and banner are public, like your organization’s profile.' : 'Your photo and banner are visible to signed-in members only.') + ' Photos are resized in your browser, and hidden location data is removed.</p>'
+      + '</div>';
+    return '<div class="page-head"><div><h2>My profile</h2><p>' + (org ? 'This is how your organization appears in the directory and on your posts.' : 'Other members see your photo, name, and headline on your posts and replies.') + '</p></div></div>'
+      + profileHero(u, { editable:true, actions:heroActions })
       + '<div class="profile-grid"><div>'
+      + looks
       + '<form class="card" data-action="save-profile" style="margin-bottom:1rem;">'
       +   '<div class="section-label">Profile</div>'
       +   '<div class="field"><label for="pf-name">' + (org ? 'Organization name' : 'Name') + '</label><input id="pf-name" maxlength="80" required value="' + esc(u.displayName) + '"></div>'
+      +   (org ? '' : '<div class="field"><label for="pf-pronouns">Pronouns (optional)</label><input id="pf-pronouns" maxlength="40" value="' + esc(u.pronouns) + '" placeholder="e.g. she/her, they/them"></div>')
       +   '<div class="field"><label for="pf-headline">' + (org ? 'Tagline' : 'Headline') + '</label><input id="pf-headline" maxlength="120" value="' + esc(u.headline) + '" placeholder="' + (org ? 'e.g. Mobile food pantry & community kitchen' : 'e.g. Retired teacher, weekend volunteer') + '"></div>'
       +   '<div class="field-row">'
       +     '<div class="field"><label for="pf-loc">Location</label><input id="pf-loc" maxlength="100" required value="' + esc(u.location) + '"></div>'
       +     '<div class="field"><label for="pf-region">Region</label><select id="pf-region">' + opts(REGIONS, u.region, regionLabel) + '</select></div>'
       +   '</div>'
       +   '<div class="field"><label for="pf-bio">' + (org ? 'Mission' : 'About you (optional)') + '</label><textarea id="pf-bio" maxlength="2000">' + esc(u.bio) + '</textarea></div>'
+      +   '<div class="field"><label for="pf-skills">' + (org ? 'What we offer' : 'Ways I can help') + ' <span class="hint">(comma-separated, up to 10)</span></label><input id="pf-skills" maxlength="450" value="' + esc(u.skills.join(', ')) + '" placeholder="' + (org ? 'e.g. Food pantry, Tax prep clinics, Volunteer drivers' : 'e.g. Driving, Tutoring math, Spanish translation') + '"></div>'
+      +   '<div class="field"><label for="pf-langs">Languages <span class="hint">(comma-separated, up to 6)</span></label><input id="pf-langs" maxlength="200" value="' + esc(u.languages.join(', ')) + '" placeholder="e.g. English, Spanish, Swahili"></div>'
       +   (org ? '<div class="field"><label for="pf-web">Website</label><input id="pf-web" maxlength="200" value="' + esc(u.website) + '" placeholder="https://"></div>' : '')
       +   causes
       +   '<div class="card-actions"><button class="btn btn-primary btn-sm" type="submit"' + dis + '>Save profile</button></div>'
@@ -1374,7 +1948,7 @@
         +   (r.status!=='open' ? '<span class="status-pill status-declined">' + esc(r.status) + '</span>' : '')
         +   '<span class="res-date">' + fmtDate(r.createdAt) + '</span></div>'
         + '<dl class="kv">'
-        +   '<dt>Reported member</dt><dd>' + (tu ? esc(tu.name) + (tu.email ? ' · ' + esc(tu.email) : '') + ' · ' + tu.reportCount + ' report' + (tu.reportCount===1?'':'s') + (tu.suspended ? ' · <b>suspended</b>' : '') : '—') + '</dd>'
+        +   '<dt>Reported member</dt><dd>' + (tu && !tu.deleted ? '<button class="link-btn" data-action="view-member" data-user="' + esc(tu.id) + '">' + esc(tu.name) + '</button>' + (tu.email ? ' · ' + esc(tu.email) : '') + ' · ' + tu.reportCount + ' report' + (tu.reportCount===1?'':'s') + (tu.suspended ? ' · <b>suspended</b>' : '') : tu ? esc(tu.name) + (tu.email ? ' · ' + esc(tu.email) : '') + ' · ' + tu.reportCount + ' report' + (tu.reportCount===1?'':'s') + (tu.suspended ? ' · <b>suspended</b>' : '') : '—') + '</dd>'
         +   '<dt>Reported by</dt><dd>' + esc(r.reporter) + '</dd>'
         +   (r.details ? '<dt>Reporter’s note</dt><dd>' + esc(r.details) + '</dd>' : '')
         +   (r.resolution ? '<dt>Resolution</dt><dd>' + esc(r.resolution) + '</dd>' : '')
@@ -1434,9 +2008,14 @@
         + (u.verified ? verifiedMark() : '')
         + (u.suspended ? '<span class="urgent-pill" style="margin-left:.35rem;">Suspended</span>' : '');
       return '<div class="card admin-card admin-user">'
-        + '<div><b>' + esc(u.displayName) + '</b>' + badges
-        +   '<div class="res-org">' + esc(u.email) + ' · ' + (u.emailVerified ? 'email confirmed' : 'email not confirmed') + ' · joined ' + fmtDate(u.createdAt) + '</div></div>'
-        + '<div class="card-actions">'
+        + '<div class="author-line">' + userAvatar(u, 'md') + '<div><b>' + esc(u.displayName) + '</b>' + badges
+        +   '<div class="res-org">' + esc(u.email) + ' · ' + (u.emailVerified ? 'email confirmed' : 'email not confirmed') + ' · joined ' + fmtDate(u.createdAt) + '</div>'
+        +   (u.bannerUrl ? '<a class="admin-banner-thumb" href="' + esc(u.bannerUrl) + '" target="_blank" rel="noopener" title="Open banner image"><img src="' + esc(u.bannerUrl) + '" alt="Banner"></a>' : '')
+        + '</div></div>'
+        + '<div class="card-actions" style="flex-wrap:wrap;">'
+        +   '<button class="btn btn-ghost btn-sm" data-action="view-member" data-user="' + esc(u.id) + '">Profile</button>'
+        +   (u.avatarUrl ? '<button class="btn btn-ghost btn-sm" data-action="admin-user" data-id="' + esc(u.id) + '" data-act="remove-avatar"' + dis + '>Remove photo</button>' : '')
+        +   (u.bannerUrl ? '<button class="btn btn-ghost btn-sm" data-action="admin-user" data-id="' + esc(u.id) + '" data-act="remove-banner"' + dis + '>Remove banner</button>' : '')
         +   '<button class="btn btn-ghost btn-sm" data-action="admin-user" data-id="' + esc(u.id) + '" data-name="' + esc(u.displayName) + '" data-act="reset-link"' + dis + '>Reset link</button>'
         +   (u.isAdmin ? '' : u.suspended
               ? '<button class="btn btn-secondary btn-sm" data-action="admin-user" data-id="' + esc(u.id) + '" data-act="unsuspend"' + dis + '>Unsuspend</button>'
@@ -1484,12 +2063,14 @@
   /* ============ RENDER: MODAL ============ */
   function renderModal(){
     if(state.modal==='report' && state.report) return renderReportModal();
+    if(state.modal==='image-edit' && state.imageEdit) return renderImageModal();
+    if(state.modal==='gate') return renderGateModal();
     if(state.modal!=='post-help') return '';
-    var u = state.user, dis = state.busy ? ' disabled' : '';
+    var u = state.user || { displayName:'Guest', location:'', region:'Greater Boston' }, dis = state.busy ? ' disabled' : '';
     return '<div class="modal-backdrop" data-action="close-modal">'
       + '<div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">'
       +   '<h3 id="help-modal-title">Post to the Help Board</h3>'
-      +   '<p class="posting-as">Posting as ' + esc(u.displayName) + '. Signed-in members can see your post.</p>'
+      +   '<p class="posting-as">' + (state.user ? 'Posting as ' + esc(u.displayName) + '. Signed-in members can see your post.' : 'You’re a guest: write your post, and we’ll keep it while you create a free account to publish it.') + '</p>'
       +   (state.formError ? '<div class="form-error" role="alert">' + esc(state.formError) + '</div>' : '')
       +   '<form data-action="submit-help">'
       +     '<div class="field-row">'
@@ -1512,7 +2093,7 @@
       +     '</div>'
       +     '<div class="modal-actions">'
       +       '<button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button>'
-      +       '<button type="submit" class="btn btn-primary"' + dis + '>' + (state.busy ? 'Posting…' : 'Post') + '</button>'
+      +       '<button type="submit" class="btn btn-primary"' + dis + '>' + (state.busy ? 'Posting…' : state.user ? 'Post' : 'Continue') + '</button>'
       +     '</div>'
       +   '</form>'
       + '</div></div>';
@@ -1530,8 +2111,9 @@
     root.innerHTML = state.view==='landing' ? renderLanding() : state.view==='auth' ? renderAuth() : renderApp();
     Object.keys(keep).forEach(function(id){
       var el = document.getElementById(id);
-      if(el && el.getAttribute('data-search')===null) el.value = keep[id];
+      if(el && el.getAttribute('data-search')===null && el.type!=='range') el.value = keep[id];
     });
+    if(state.modal==='image-edit') drawCrop();
   }
 
   /* ============ EVENTS ============ */
@@ -1547,7 +2129,27 @@
     }
     if(action==='auth-mode'){ state.authMode = el.getAttribute('data-mode'); state.formError=''; state.authNotice=''; render(); return; }
     if(action==='to-landing'){ state.view='landing'; state.formError=''; render(); return; }
+    if(action==='enter-guest'){ enterGuest(); return; }
+    if(action==='view-member'){ state.modal=null; openMember(el.getAttribute('data-user')); return; }
+    if(action==='member-back'){ state.tab = state.memberReturnTab; state.memberProfile=null; render(); return; }
+    if(action==='pick-image'){
+      state.pickKind = el.getAttribute('data-kind');
+      var picker = document.getElementById('file-pick'); picker.value = ''; picker.click();
+      return;
+    }
+    if(action==='save-image'){ saveImage(); return; }
+    if(action==='remove-media'){
+      var mk = el.getAttribute('data-kind');
+      if(!window.confirm(mk==='avatar' ? 'Remove your profile photo?' : 'Remove your banner image?')) return;
+      run(api('DELETE', 'me/media/' + mk).then(function(d){ state.user = d.user; toast('Removed.'); loadMemberOrgs(); }));
+      return;
+    }
+    if(action==='set-preset'){
+      run(api('PATCH', 'me', { bannerPreset:el.getAttribute('data-preset') }).then(function(d){ state.user = d.user; }));
+      return;
+    }
     if(action==='logout'){
+      try{ sessionStorage.removeItem('gn_guest'); }catch(err){}
       run(api('POST', 'auth/logout').then(function(){
         state.user=null; state.view='landing'; state.posts=[]; state.helpDetail=null; state.selectedHelpId=null;
         toast('You’re logged out.');
@@ -1595,6 +2197,7 @@
     }
     if(action==='view-org'){
       var oid = el.getAttribute('data-org');
+      if(oid.indexOf('member:')===0){ openMember(oid.slice(7)); return; }
       state.tab='directory'; state.selectedOrgId = oid; state.selectedHelpId=null; state.memberProfile=null;
       render(); window.scrollTo(0,0);
       if(oid.indexOf('member:')===0){
@@ -1654,7 +2257,7 @@
       if(uact==='suspend' && !window.confirm('Suspend this member? They’ll be signed out immediately and won’t be able to log in.')) return;
       run(api('POST', 'admin/users/' + uid, { action:uact }).then(function(d){
         if(uact==='reset-link'){ state.admin.resetLink = { name:uname, link:d.link }; toast('Reset link created.'); render(); }
-        else { toast(uact==='suspend' ? 'Member suspended.' : 'Member unsuspended.'); loadAdmin(); }
+        else { toast(uact==='suspend' ? 'Member suspended.' : uact==='unsuspend' ? 'Member unsuspended.' : 'Image removed.'); loadAdmin(); }
       }));
       return;
     }
@@ -1664,10 +2267,13 @@
       return;
     }
     if(action==='open-modal'){ state.modal = el.getAttribute('data-modal'); state.formError=''; render(); var t = document.getElementById('hp-title'); if(t) t.focus(); return; }
-    if(action==='close-modal'){ if(el.classList.contains('modal-backdrop') && e.target!==el) return; state.modal=null; state.formError=''; render(); return; }
+    if(action==='close-modal'){ if(el.classList.contains('modal-backdrop') && e.target!==el) return; state.modal=null; state.imageEdit=null; state.formError=''; render(); return; }
   });
 
   document.addEventListener('input', function(e){
+    if(e.target.getAttribute('data-role')==='crop' && state.imageEdit){
+      state.imageEdit[e.target.getAttribute('data-field')] = parseFloat(e.target.value); drawCrop(); return;
+    }
     var field = e.target.getAttribute('data-search');
     if(field){
       state[field] = e.target.value;
@@ -1679,6 +2285,7 @@
   });
 
   document.addEventListener('change', function(e){
+    if(e.target.id==='file-pick'){ loadPickedFile(e.target.files && e.target.files[0]); return; }
     var role = e.target.getAttribute('data-role');
     if(role==='signup-type'){ state.signupType = e.target.value; render(); }
     if(role==='help-cat'){ state.helpCat = e.target.value; render(); }
@@ -1742,6 +2349,12 @@
       return;
     }
     if(action==='admin-search'){ state.admin.userQuery = val('au-q'); state.admin.resetLink=null; loadAdmin(); return; }
+    if(action==='submit-help' && !state.user){
+      state.pendingDraft = {};
+      ['hp-type','hp-cat','hp-title','hp-detail','hp-loc','hp-region','hp-scale','hp-urgency','hp-pay','hp-paylabel'].forEach(function(id){ state.pendingDraft[id] = document.getElementById(id).value; });
+      state.gateReason = 'post'; state.modal = 'gate'; render(); return;
+    }
+    if(action==='send-reply' && !state.user){ state.gateReason = 'reply'; state.modal = 'gate'; render(); return; }
     if(action==='submit-help'){
       state.formError='';
       run(api('POST', 'help', {
@@ -1775,7 +2388,10 @@
       return;
     }
     if(action==='save-profile'){
-      var body = { displayName:val('pf-name'), headline:val('pf-headline'), location:val('pf-loc'), region:val('pf-region'), bio:val('pf-bio') };
+      var splitTags = function(v){ return v.split(',').map(function(x){ return x.trim(); }).filter(Boolean); };
+      var body = { displayName:val('pf-name'), headline:val('pf-headline'), location:val('pf-loc'), region:val('pf-region'), bio:val('pf-bio'),
+        skills:splitTags(val('pf-skills')), languages:splitTags(val('pf-langs')) };
+      if(!isOrg()) body.pronouns = val('pf-pronouns');
       if(isOrg()){
         body.website = val('pf-web');
         body.causes = [].slice.call(form.querySelectorAll('input[name=cause]:checked')).map(function(c){ return c.value; });
@@ -1802,7 +2418,7 @@
   });
 
   document.addEventListener('keydown', function(e){
-    if(e.key==='Escape' && state.modal){ state.modal=null; render(); }
+    if(e.key==='Escape' && state.modal){ state.modal=null; state.imageEdit=null; render(); }
   });
 
   /* ============ BOOT ============ */
@@ -1813,7 +2429,9 @@
   ]).then(function(r){
     state.config = Object.assign(state.config, r[0]);
     state.booting = false;
-    if(r[1].user) enterApp(r[1].user); else render();
+    var wasGuest = false;
+    try{ wasGuest = sessionStorage.getItem('gn_guest')==='1'; }catch(err){}
+    if(r[1].user) enterApp(r[1].user); else if(wasGuest) enterGuest(); else render();
     handleHashLink();
   }, function(){ state.booting = false; render(); handleHashLink(); });
 })();
