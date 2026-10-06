@@ -24,6 +24,7 @@
     --warning-soft:#FBF0DC;
     --danger:#B3261E;
     --danger-soft:#FBE3E1;
+    --series-1:#2a78d6;
     --shadow:0 1px 2px rgba(19,42,70,.06), 0 6px 18px rgba(19,42,70,.07);
     --shadow-lg:0 8px 16px rgba(19,42,70,.07), 0 20px 46px rgba(19,42,70,.1);
     --glow-accent:0 10px 26px rgba(226,113,29,.32);
@@ -37,7 +38,7 @@
       --bg:#0B1826; --surface:#122238; --surface-2:#16304A; --border:#25456A;
       --text:#EAF1F7; --text-muted:#93A9C1; --primary:#59B6D6; --primary-strong:#8BD1E8;
       --primary-soft:#173947; --accent:#F0934E; --accent-soft:#3B2413;
-      --success:#59C68A; --success-soft:#12331F; --warning:#E3A83B; --warning-soft:#3A2C0E; --danger:#F2A09A; --danger-soft:#3D1715;
+      --success:#59C68A; --success-soft:#12331F; --warning:#E3A83B; --warning-soft:#3A2C0E; --danger:#F2A09A; --danger-soft:#3D1715; --series-1:#3987e5;
       --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.35);
       --shadow-lg:0 10px 20px rgba(0,0,0,.35), 0 26px 54px rgba(0,0,0,.4);
       --glow-accent:0 10px 28px rgba(240,147,78,.28);
@@ -51,7 +52,7 @@
     --bg:#0B1826; --surface:#122238; --surface-2:#16304A; --border:#25456A;
     --text:#EAF1F7; --text-muted:#93A9C1; --primary:#59B6D6; --primary-strong:#8BD1E8;
     --primary-soft:#173947; --accent:#F0934E; --accent-soft:#3B2413;
-    --success:#59C68A; --success-soft:#12331F; --warning:#E3A83B; --warning-soft:#3A2C0E; --danger:#F2A09A; --danger-soft:#3D1715;
+    --success:#59C68A; --success-soft:#12331F; --warning:#E3A83B; --warning-soft:#3A2C0E; --danger:#F2A09A; --danger-soft:#3D1715; --series-1:#3987e5;
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.35);
     --shadow-lg:0 10px 20px rgba(0,0,0,.35), 0 26px 54px rgba(0,0,0,.4);
     --glow-accent:0 10px 28px rgba(240,147,78,.28);
@@ -459,6 +460,41 @@
     .avatar-xl{ width:96px; height:96px; font-size:2rem; }
     .avatar-wrap{ margin-top:-48px; }
   }
+
+  /* ---------- Admin activity dashboard ---------- */
+  .stat-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:.8rem; margin-bottom:1rem; }
+  .stat-tile{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:.85rem 1rem; box-shadow:var(--shadow); }
+  .stat-label{ font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); }
+  .stat-value{ font-family:'Newsreader',Georgia,serif; font-size:1.6rem; font-weight:600; color:var(--text); line-height:1.2; margin-top:.2rem; overflow-wrap:anywhere; }
+  .stat-value.stat-text{ font-size:1.15rem; padding-top:.25rem; }
+  .stat-sub{ font-size:.76rem; color:var(--text-muted); margin-top:.15rem; }
+  .viz-pair{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:1rem; margin-bottom:1rem; }
+  .viz-card{ margin-bottom:1rem; }
+  .viz-pair .viz-card{ margin-bottom:0; }
+  .viz-title{ font-family:'Public Sans',sans-serif; font-size:.92rem; font-weight:700; color:var(--text); margin-bottom:.7rem; }
+  .viz-svg{ width:100%; max-width:100%; height:auto; display:block; overflow:visible; }
+  .viz-grid{ stroke:var(--border); stroke-width:1; stroke-dasharray:2 4; vector-effect:non-scaling-stroke; }
+  .viz-base{ stroke:var(--text-muted); stroke-opacity:.5; stroke-width:1; vector-effect:non-scaling-stroke; }
+  .viz-axis{ font-size:11px; fill:var(--text-muted); font-family:'Public Sans',sans-serif; }
+  .viz-bar{ fill:var(--series-1); }
+  .viz-hit{ fill:transparent; cursor:default; }
+  .viz-hit:hover{ fill:var(--text); fill-opacity:.05; }
+  .hbars{ display:flex; flex-direction:column; gap:.45rem; }
+  .hbar-row{ display:grid; grid-template-columns:minmax(120px, 46%) 1fr 2.6rem; align-items:center; gap:.7rem; font-size:.84rem; padding:.15rem .25rem; border-radius:6px; }
+  .hbar-row:hover{ background:var(--surface-2); }
+  .hbar-label{ color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hbar-track{ height:12px; }
+  .hbar-fill{ display:block; height:100%; background:var(--series-1); border-radius:0 4px 4px 0; }
+  .hbar-value{ text-align:right; color:var(--text-muted); font-variant-numeric:tabular-nums; }
+  .viz-table{ margin-top:.7rem; font-size:.82rem; }
+  .viz-table summary{ cursor:pointer; color:var(--text-muted); font-weight:600; }
+  .table-scroll{ overflow-x:auto; }
+  .viz-table table, .activity-table{ width:100%; border-collapse:collapse; margin-top:.5rem; font-size:.84rem; }
+  .viz-table th, .viz-table td, .activity-table th, .activity-table td{ text-align:left; padding:.45rem .5rem; border-top:1px solid var(--border); vertical-align:top; }
+  .activity-table th{ font-size:.72rem; letter-spacing:.05em; text-transform:uppercase; color:var(--text-muted); border-top:none; white-space:nowrap; }
+  .activity-table td.num{ font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .viz-tip{ position:fixed; left:0; top:0; z-index:90; pointer-events:none; opacity:0; transition:opacity .1s; background:var(--text); color:var(--bg); font-size:.8rem; font-weight:600; padding:.4rem .6rem; border-radius:7px; box-shadow:0 6px 18px rgba(0,0,0,.2); max-width:280px; }
+  @media (max-width:560px){ .hbar-row{ grid-template-columns:1fr 2.6rem; } .hbar-track{ grid-column:1 / -1; grid-row:2; } }
 
   /* ---------- Trust & safety ---------- */
   .verified-badge{ display:inline-flex; align-items:center; gap:.2rem; font-family:'Public Sans',sans-serif; font-size:.68rem; font-weight:700; letter-spacing:.02em; padding:.14rem .5rem; border-radius:100px; background:var(--success-soft); color:var(--success); margin-left:.35rem; vertical-align:middle; white-space:nowrap; }
@@ -1092,10 +1128,11 @@
     authNotice:'', resetToken:null, agreeTerms:false,
     report:null,               // { type, id, label } while the report dialog is open
     blocks:null, myVerification:undefined,
-    adminView:'reports',
+    adminView:'activity',
     guest:false, memberId:null, memberReturnTab:'help', memberProfile:null,
     imageEdit:null, pickKind:'avatar', pendingDraft:null, gateReason:'',
-    admin:{ overview:null, reports:null, verifications:null, users:null, userQuery:'', reportFilter:'open', resetLink:null }
+    admin:{ overview:null, reports:null, verifications:null, users:null, userQuery:'', reportFilter:'open', resetLink:null,
+            activity:null, activityDays:30, activityUser:null, activityUserId:null, activitySort:'time' }
   };
   var REPORT_REASONS = ['Scam or fraud','Harassment or hate','Unsafe or exploitative request','Spam',
     'Impersonation or fake organization','Inappropriate content','Other'];
@@ -1196,6 +1233,7 @@
   }
   function openHelp(id){
     state.tab='help'; state.selectedHelpId=id; state.helpDetail=null; state.openThread=null;
+    track('post_view');
     var sample = SAMPLE_POSTS.filter(function(p){ return p.id===id; })[0];
     if(sample){ state.helpDetail = sample; render(); window.scrollTo(0,0); return Promise.resolve(); }
     render(); window.scrollTo(0,0);
@@ -1206,12 +1244,14 @@
   }
   function enterApp(user){
     state.user = user; state.view = 'app'; state.tab = 'help'; state.helpView = 'browse';
-    state.blocks = null; state.myVerification = undefined; state.adminView = 'reports';
-    state.admin = { overview:null, reports:null, verifications:null, users:null, userQuery:'', reportFilter:'open', resetLink:null };
+    state.blocks = null; state.myVerification = undefined; state.adminView = 'activity';
+    state.admin = { overview:null, reports:null, verifications:null, users:null, userQuery:'', reportFilter:'open', resetLink:null,
+                    activity:null, activityDays:30, activityUser:null, activityUserId:null, activitySort:'time' };
     state.selectedHelpId = null; state.selectedOrgId = null; state.formError = ''; state.guest = false;
     try{ sessionStorage.removeItem('gn_guest'); }catch(err){}
     render(); window.scrollTo(0,0);
     loadPosts(); loadMemberOrgs();
+    startTracking('help_board');
     // A guest who wrote a post before signing up gets it back, ready to publish.
     if(state.pendingDraft){
       var d = state.pendingDraft; state.pendingDraft = null;
@@ -1299,6 +1339,7 @@
   function openMember(id){
     if(state.tab!=='member') state.memberReturnTab = state.tab;
     state.tab='member'; state.memberId=id; state.memberProfile=null;
+    track('member_view');
     render(); window.scrollTo(0,0);
     api('GET', 'users/' + encodeURIComponent(id)).then(function(d){
       if(state.memberId===id){ state.memberProfile = d; render(); }
@@ -1363,7 +1404,7 @@
     if(url.length * 0.75 > limit){ state.formError = 'That image is too detailed to save. Try zooming in or choosing another.'; render(); return; }
     state.formError = '';
     run(api('POST', 'me/media/' + e.kind, { dataUrl:url }).then(function(d){
-      state.user = d.user; state.modal = null; state.imageEdit = null;
+      state.user = d.user; state.modal = null; state.imageEdit = null; track('photo_upload');
       toast(e.kind==='avatar' ? 'Profile photo updated.' : 'Banner updated.'); loadMemberOrgs();
     }), function(err){ state.formError = err.message; });
   }
@@ -1376,6 +1417,7 @@
     try{ sessionStorage.setItem('gn_guest', '1'); }catch(err){}
     render(); window.scrollTo(0,0);
     loadMemberOrgs();
+    startTracking('help_board');
   }
   function renderGateModal(){
     var what = state.gateReason==='post' ? 'publish your post' : state.gateReason==='profile' ? 'view member profiles' : 'reply';
@@ -1921,14 +1963,14 @@
   function renderAdmin(){
     var o = state.admin.overview;
     var seg = '<div class="seg" role="tablist">' + [
-      ['reports','Reports', o && o.openReports], ['verifications','Verifications', o && o.pendingVerifications], ['users','Members', o && o.users]
+      ['activity','Activity', null], ['reports','Reports', o && o.openReports], ['verifications','Verifications', o && o.pendingVerifications], ['users','Members', o && o.users]
     ].map(function(t){
       return '<button role="tab" aria-selected="' + (state.adminView===t[0]) + '" class="' + (state.adminView===t[0]?'active':'') + '" data-action="admin-view" data-view="' + t[0] + '">'
         + t[1] + (t[2]!=null ? ' <span class="count-pill">' + t[2] + '</span>' : '') + '</button>';
     }).join('') + '</div>';
     var emailNote = (o && !o.emailEnabled)
       ? '<div class="banner">Email isn’t connected yet, so members can’t reset their own passwords. If someone emails you for help, check that the request comes from the address on their account, then use <b>Members → Reset link</b>.</div>' : '';
-    var body = state.adminView==='reports' ? adminReports() : state.adminView==='verifications' ? adminVerifications() : adminUsers();
+    var body = state.adminView==='activity' ? adminActivity() : state.adminView==='reports' ? adminReports() : state.adminView==='verifications' ? adminVerifications() : adminUsers();
     return '<div class="page-head"><div><h2>Admin</h2><p>Review reports, verify organizations, and manage members. Every action is logged.</p></div></div>'
       + emailNote + seg + body;
   }
@@ -2029,7 +2071,12 @@
     api('GET', 'admin/overview').then(function(d){ a.overview = d; render(); }, function(err){ toast(err.message); });
     var done = function(key){ return function(d){ a[key] = d[key]; render(); }; };
     var fail = function(key){ return function(err){ a[key] = []; toast(err.message); render(); }; };
-    if(state.adminView==='reports'){ a.reports = null; api('GET', 'admin/reports?status=' + a.reportFilter).then(done('reports'), fail('reports')); }
+    var q = '?days=' + a.activityDays + '&tz=' + new Date().getTimezoneOffset();
+    if(state.adminView==='activity'){
+      if(a.activityUserId){ a.activityUser = null; api('GET', 'admin/activity/users/' + a.activityUserId + q).then(function(d){ a.activityUser = d; render(); }, function(err){ toast(err.message); a.activityUserId = null; a.activityUser = null; render(); }); }
+      else { a.activityUser = null; a.activity = null; api('GET', 'admin/activity' + q).then(function(d){ a.activity = d; render(); }, function(err){ a.activity = { days:a.activityDays, summary:{ sessions:0, guestSessions:0, activeMembers:0, activeMs:0, conversions:0, mobileSessions:0, members:0, newMembers:0 }, daily:[], features:[], members:[] }; toast(err.message); render(); }); }
+    }
+    else if(state.adminView==='reports'){ a.reports = null; api('GET', 'admin/reports?status=' + a.reportFilter).then(done('reports'), fail('reports')); }
     else if(state.adminView==='verifications'){ a.verifications = null; api('GET', 'admin/verifications').then(done('verifications'), fail('verifications')); }
     else { a.users = null; api('GET', 'admin/users?q=' + encodeURIComponent(a.userQuery)).then(done('users'), fail('users')); }
     render();
@@ -2059,6 +2106,262 @@
     }, function(err){ toast(err.message); });
     return false;
   }
+
+  /* ============ USAGE TRACKING (first-party, content-free) ============ */
+  // Counts active time only while the tab is visible and someone has interacted in the last minute.
+  var tracker = { sid:null, activeMs:0, lastInput:Date.now(), queue:[] };
+  var SESSION_IDLE_MS = 30 * 60 * 1000;
+  function newSid(){
+    var a = new Uint8Array(16); crypto.getRandomValues(a);
+    return Array.prototype.map.call(a, function(b){ return ('0' + b.toString(16)).slice(-2); }).join('');
+  }
+  function saveSid(){ try{ sessionStorage.setItem('gn_sid', tracker.sid); sessionStorage.setItem('gn_sid_t', String(Date.now())); }catch(err){} }
+  function resumeSid(){
+    try{
+      var s = sessionStorage.getItem('gn_sid'), t = +sessionStorage.getItem('gn_sid_t') || 0;
+      if(s && /^[a-f0-9]{32}$/.test(s) && Date.now() - t < SESSION_IDLE_MS) return s;
+    }catch(err){}
+    return newSid();
+  }
+  function trackingOn(){ return state.view==='app' && !!tracker.sid; }
+  function track(feature){
+    if(!trackingOn()) return;
+    tracker.queue.push(feature);
+    if(tracker.queue.length >= 20) flushActivity();
+  }
+  function flushActivity(final){
+    if(!tracker.sid || (!tracker.activeMs && !tracker.queue.length && !final)) return;
+    var body = { sid:tracker.sid, activeMs:tracker.activeMs, events:tracker.queue.splice(0, 25),
+      device:(window.matchMedia && window.matchMedia('(max-width: 720px)').matches) ? 'mobile' : 'desktop' };
+    tracker.activeMs = 0;
+    fetch('/api/activity', { method:'POST', credentials:'same-origin', keepalive:true,
+      headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(body) })
+      .then(function(r){ return r.json(); })
+      .then(function(d){ if(d && d.sid && d.sid!==tracker.sid){ tracker.sid = d.sid; saveSid(); } })
+      .catch(function(){});
+    saveSid();
+  }
+  function startTracking(firstFeature){
+    // A new session after 30 idle minutes, or when the tab first enters the app.
+    if(!tracker.sid) tracker.sid = resumeSid();
+    tracker.lastInput = Date.now();
+    saveSid();
+    tracker.queue.push(firstFeature);
+    flushActivity(true);
+  }
+  function stopTracking(){
+    flushActivity(true);
+    tracker.sid = null;
+    try{ sessionStorage.removeItem('gn_sid'); }catch(err){}
+  }
+  ['pointerdown','keydown','scroll','touchstart','mousemove'].forEach(function(t){
+    window.addEventListener(t, function(){
+      var now = Date.now();
+      // Coming back after 30 idle minutes counts as a new session.
+      if(trackingOn() && now - tracker.lastInput > SESSION_IDLE_MS){ flushActivity(); tracker.sid = newSid(); saveSid(); }
+      tracker.lastInput = now;
+    }, { passive:true, capture:true });
+  });
+  setInterval(function(){
+    if(trackingOn() && document.visibilityState==='visible' && Date.now() - tracker.lastInput < 60000) tracker.activeMs += 1000;
+  }, 1000);
+  setInterval(function(){ if(trackingOn()) flushActivity(); }, 30000);
+  document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden' && trackingOn()) flushActivity(); });
+
+  /* ============ ADMIN: ACTIVITY DASHBOARD ============ */
+  var FEATURE_LABELS = {
+    help_board:'Browsing the Help Board', post_view:'Opening posts', post_create:'Creating posts', reply:'Replying to posts',
+    message:'Messaging', directory:'Browsing the directory', org_view:'Viewing organizations', member_view:'Viewing member profiles',
+    my_profile:'Opening My profile', profile_edit:'Editing profiles', photo_upload:'Uploading photos', search:'Searching',
+    report:'Reporting', block:'Blocking', admin:'Admin panel', signup_prompt:'Guest sign-up prompts', guest_draft:'Guest post drafts'
+  };
+  function featureLabel(f){ return FEATURE_LABELS[f] || f; }
+  function fmtDuration(ms){
+    var s = Math.round((ms || 0) / 1000);
+    if(s < 60) return s + 's';
+    var m = Math.round(s / 60);
+    if(m < 60) return m + 'm';
+    return Math.floor(m / 60) + 'h ' + (m % 60) + 'm';
+  }
+  function localDay(d){ return d.getFullYear() + '-' + ('0' + (d.getMonth()+1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function shortDay(key){ var p = key.split('-'); return new Date(+p[0], +p[1]-1, +p[2]).toLocaleDateString(undefined, { month:'short', day:'numeric' }); }
+  // Fill every day in the window (zeros included) so gaps read as "no activity", not missing data.
+  function dailySeries(rows, days, field){
+    var map = {}; rows.forEach(function(r){ map[r.day] = r; });
+    var out = [], d = new Date();
+    d.setHours(0,0,0,0); d.setDate(d.getDate() - (days - 1));
+    for(var i = 0; i < days; i++){
+      var key = localDay(d);
+      out.push({ key:key, value: map[key] ? map[key][field] : 0 });
+      d.setDate(d.getDate() + 1);
+    }
+    return out;
+  }
+  // Axis top with four whole-number steps (counts and minutes are integers).
+  function niceMax(v){
+    var raw = Math.max(1, v / 4), p = Math.pow(10, Math.floor(Math.log10(raw)));
+    var step = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].map(function(m){ return m * p; })
+      .filter(function(x){ return x >= raw && x === Math.round(x); })[0];
+    return step * 4;
+  }
+  // Width a chart card will actually get, so the SVG draws at 1:1 and its text stays readable.
+  function chartWidth(paired){
+    var c = document.querySelector('.content');
+    var avail = (c ? c.clientWidth : 900) - 2 * 32;
+    var w = (paired && avail >= 616) ? (avail - 16) / 2 : avail;
+    return Math.max(260, Math.round(w - 40));
+  }
+  // Single-series vertical bar chart in inline SVG, with a hover tooltip per bar.
+  function barChart(series, fmt, unit, paired){
+    var W = chartWidth(paired), H = 200, L = 40, R = 8, T = 10, B = 26, pw = W - L - R, ph = H - T - B;
+    var max = niceMax(Math.max.apply(null, series.map(function(s){ return s.value; }).concat([0])));
+    var n = series.length, slot = pw / n, bw = Math.max(2, Math.min(28, slot - 2));
+    var grid = '', i;
+    for(i = 0; i <= 4; i++){
+      var y = T + ph - ph * i / 4, v = max * i / 4;
+      grid += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y + '" y2="' + y + '" class="viz-grid"/>'
+        + '<text x="' + (L - 6) + '" y="' + (y + 4) + '" class="viz-axis" text-anchor="end">' + esc(fmt(v, true)) + '</text>';
+    }
+    var every = Math.ceil(n / Math.max(2, Math.floor(pw / 70))), bars = '', labels = '';
+    series.forEach(function(s, k){
+      var h = max ? ph * s.value / max : 0, x = L + slot * k + (slot - bw) / 2, y0 = T + ph;
+      var r = Math.min(4, bw / 2, h);
+      if(h > 0){
+        bars += '<path class="viz-bar" d="M' + x + ',' + y0 + 'V' + (y0 - h + r) + 'q0,-' + r + ' ' + r + ',-' + r + 'H' + (x + bw - r)
+          + 'q' + r + ',0 ' + r + ',' + r + 'V' + y0 + 'Z"/>';
+      }
+      bars += '<rect class="viz-hit" x="' + (L + slot * k) + '" y="' + T + '" width="' + slot + '" height="' + ph + '" data-tip="' + esc(shortDay(s.key) + ': ' + fmt(s.value) + (unit ? ' ' + unit : '')) + '"/>';
+      if(k % every === 0) labels += '<text x="' + (L + slot * k + slot / 2) + '" y="' + (H - 8) + '" class="viz-axis" text-anchor="middle">' + esc(shortDay(s.key)) + '</text>';
+    });
+    return '<svg class="viz-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Bar chart; use “Show as table” for the values">' + grid
+      + '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + (T + ph) + '" y2="' + (T + ph) + '" class="viz-base"/>' + bars + labels + '</svg>';
+  }
+  function dataTable(head, rows){
+    return '<details class="viz-table"><summary>Show as table</summary><div class="table-scroll"><table><thead><tr>' + head.map(function(h){ return '<th>' + esc(h) + '</th>'; }).join('')
+      + '</tr></thead><tbody>' + rows.map(function(r){ return '<tr>' + r.map(function(c){ return '<td>' + esc(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div></details>';
+  }
+  // Ranked horizontal bars (HTML) for feature usage.
+  function featureBars(list, guestCol){
+    if(!list.length) return '<p class="res-org">No activity recorded in this period.</p>';
+    var max = list[0].uses || 1;
+    return '<div class="hbars">' + list.map(function(f){
+      var tip = featureLabel(f.feature) + ': ' + f.uses + ' use' + (f.uses===1?'':'s') + (f.members!=null ? ' by ' + f.members + ' member' + (f.members===1?'':'s') : '') + (guestCol && f.guestUses ? ', ' + f.guestUses + ' by guests' : '');
+      return '<div class="hbar-row" data-tip="' + esc(tip) + '"><span class="hbar-label">' + esc(featureLabel(f.feature)) + '</span>'
+        + '<span class="hbar-track"><span class="hbar-fill" style="width:' + Math.max(1.5, 100 * f.uses / max).toFixed(1) + '%"></span></span>'
+        + '<span class="hbar-value">' + f.uses + '</span></div>';
+    }).join('') + '</div>'
+      + dataTable(guestCol ? ['Feature','Uses','Members','Guest uses'] : ['Feature','Uses'], list.map(function(f){
+          return guestCol ? [featureLabel(f.feature), f.uses, f.members, f.guestUses] : [featureLabel(f.feature), f.uses];
+        }));
+  }
+  function statTile(label, value, sub){
+    return '<div class="stat-tile"><div class="stat-label">' + esc(label) + '</div><div class="stat-value' + (String(value).length > 9 ? ' stat-text' : '') + '">' + esc(value) + '</div>' + (sub ? '<div class="stat-sub">' + esc(sub) + '</div>' : '') + '</div>';
+  }
+  function periodChips(){
+    return '<div class="toolbar"><span class="toolbar-label">Period</span>' + [[7,'7 days'],[30,'30 days'],[90,'90 days']].map(function(p){
+      return '<button class="chip' + (state.admin.activityDays===p[0]?' active':'') + '" data-action="activity-days" data-days="' + p[0] + '">' + p[1] + '</button>';
+    }).join('') + '</div>';
+  }
+
+  function adminActivity(){
+    var a = state.admin;
+    if(a.activityUser !== null) return adminActivityUser();
+    var d = a.activity;
+    if(d===null) return periodChips() + '<div class="empty">Loading…</div>';
+    var s = d.summary, top = d.features[0];
+    var avg = s.sessions ? s.activeMs / s.sessions : 0;
+    var tiles = '<div class="stat-grid">'
+      + statTile('Sessions', s.sessions.toLocaleString(), s.guestSessions + ' by guests')
+      + statTile('Active members', s.activeMembers + ' of ' + s.members, s.newMembers + ' joined in this period')
+      + statTile('Time spent', fmtDuration(s.activeMs), 'avg ' + fmtDuration(avg) + ' per session')
+      + statTile('Most used', top ? featureLabel(top.feature) : '—', top ? top.uses + ' uses' : '')
+      + statTile('Guests who joined', String(s.conversions), 'signed up or logged in from a guest visit')
+      + statTile('On mobile', s.sessions ? Math.round(100 * s.mobileSessions / s.sessions) + '%' : '—', 'of sessions')
+      + '</div>';
+    var sessionsDaily = dailySeries(d.daily, d.days, 'sessions');
+    var minutesDaily = dailySeries(d.daily, d.days, 'activeMs').map(function(x){ return { key:x.key, value:Math.round(x.value / 60000) }; });
+    var charts = '<div class="viz-pair">'
+      + '<section class="card viz-card"><h3 class="viz-title">Sessions per day</h3>' + barChart(sessionsDaily, function(v){ return String(Math.round(v)); }, 'sessions', true)
+      +   dataTable(['Day','Sessions'], sessionsDaily.map(function(x){ return [shortDay(x.key), x.value]; })) + '</section>'
+      + '<section class="card viz-card"><h3 class="viz-title">Active minutes per day</h3>' + barChart(minutesDaily, function(v){ return String(Math.round(v)); }, 'min', true)
+      +   dataTable(['Day','Active minutes'], minutesDaily.map(function(x){ return [shortDay(x.key), x.value]; })) + '</section>'
+      + '</div>';
+    var features = '<section class="card viz-card"><h3 class="viz-title">What’s used most</h3><p class="hint" style="margin:-.3rem 0 .8rem;">Times each feature was used by members and guests in this period.</p>' + featureBars(d.features, true) + '</section>';
+
+    var sorters = { time:function(x,y){ return y.activeMs - x.activeMs; }, sessions:function(x,y){ return y.sessions - x.sessions; },
+      recent:function(x,y){ return (y.lastSeen || 0) - (x.lastSeen || 0); }, joined:function(x,y){ return y.joinedAt - x.joinedAt; } };
+    var list = d.members.slice().sort(sorters[a.activitySort] || sorters.time);
+    var sortChips = [['time','Time spent'],['sessions','Sessions'],['recent','Last active'],['joined','Newest']].map(function(o){
+      return '<button class="chip' + (a.activitySort===o[0]?' active':'') + '" data-action="activity-sort" data-sort="' + o[0] + '">' + o[1] + '</button>';
+    }).join('');
+    var table = '<section class="card viz-card"><h3 class="viz-title">Members</h3>'
+      + '<div class="toolbar"><span class="toolbar-label">Sort</span>' + sortChips + '</div>'
+      + '<div class="table-scroll"><table class="activity-table"><thead><tr><th>Member</th><th>Sessions</th><th>Time spent</th><th>Avg / session</th><th>Last active</th><th>Most used</th></tr></thead><tbody>'
+      + list.map(function(m){
+          return '<tr><td><button class="name-link" data-action="activity-user" data-user="' + esc(m.id) + '">' + esc(m.name) + '</button>'
+            + '<div class="res-org">' + esc(m.email) + ' · ' + (m.accountType==='org' ? 'Organization' : 'Individual') + '</div></td>'
+            + '<td class="num">' + m.sessions + '</td><td class="num">' + fmtDuration(m.activeMs) + '</td>'
+            + '<td class="num">' + (m.sessions ? fmtDuration(m.activeMs / m.sessions) : '—') + '</td>'
+            + '<td>' + (m.lastSeen ? fmtDate(m.lastSeen) : '<span class="res-org">No visits</span>') + '</td>'
+            + '<td>' + (m.topFeature ? esc(featureLabel(m.topFeature)) : '—') + '</td></tr>';
+        }).join('')
+      + '</tbody></table></div></section>';
+    return periodChips()
+      + '<p class="hint" style="margin:-.4rem 0 1rem;">Counts sessions, time the site was open and in use, and which features were used. Never what people type. Admin accounts are excluded. Data is kept for 180 days.</p>'
+      + tiles + charts + features + table;
+  }
+
+  function adminActivityUser(){
+    var back = '<div><button class="btn btn-ghost btn-sm" style="margin-bottom:1rem;" data-action="activity-back">← All members</button></div>';
+    var d = state.admin.activityUser;
+    if(!d) return back + '<div class="empty">Loading…</div>';
+    var total = d.sessions.reduce(function(t, x){ return t + x.activeMs; }, 0);
+    var top = d.features[0];
+    var minutesDaily = dailySeries(d.daily, d.days, 'activeMs').map(function(x){ return { key:x.key, value:Math.round(x.value / 60000) }; });
+    return back
+      + '<div class="author-line" style="margin-bottom:1rem;">' + userAvatar(d.user, 'md') + '<div><h3 style="font-size:1.15rem;">' + esc(d.user.displayName) + '</h3>'
+      +   '<div class="res-org">' + esc(d.user.email) + ' · ' + (d.user.accountType==='org' ? 'Organization' : 'Individual') + ' · joined ' + fmtDate(d.user.createdAt) + '</div></div>'
+      +   '<button class="btn btn-ghost btn-sm" style="margin-left:auto;" data-action="view-member" data-user="' + esc(d.user.id) + '">Profile</button></div>'
+      + periodChips()
+      + '<div class="stat-grid">'
+      +   statTile('Sessions', String(d.sessions.length), 'in the last ' + d.days + ' days')
+      +   statTile('Time spent', fmtDuration(total), d.sessions.length ? 'avg ' + fmtDuration(total / d.sessions.length) + ' per session' : '')
+      +   statTile('Most used', top ? featureLabel(top.feature) : '—', top ? top.uses + ' uses' : '')
+      +   statTile('Last active', d.lastSeenEver ? fmtDate(d.lastSeenEver) : 'Never', '')
+      + '</div>'
+      + '<div class="viz-pair">'
+      +   '<section class="card viz-card"><h3 class="viz-title">Active minutes per day</h3>' + barChart(minutesDaily, function(v){ return String(Math.round(v)); }, 'min', true)
+      +     dataTable(['Day','Active minutes'], minutesDaily.map(function(x){ return [shortDay(x.key), x.value]; })) + '</section>'
+      +   '<section class="card viz-card"><h3 class="viz-title">What they use most</h3>' + featureBars(d.features, false) + '</section>'
+      + '</div>'
+      + '<section class="card viz-card"><h3 class="viz-title">Recent sessions</h3>'
+      + (d.sessions.length ? '<div class="table-scroll"><table class="activity-table"><thead><tr><th>Started</th><th>Time spent</th><th>Device</th><th></th></tr></thead><tbody>'
+          + d.sessions.slice(0, 30).map(function(x){
+              return '<tr><td>' + esc(new Date(x.startedAt).toLocaleString(undefined, { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' })) + '</td>'
+                + '<td class="num">' + fmtDuration(x.activeMs) + '</td><td>' + (x.device==='mobile' ? 'Mobile' : 'Desktop') + '</td>'
+                + '<td>' + (x.fromGuest ? '<span class="kind-badge" style="margin:0;">Started as guest</span>' : '') + '</td></tr>';
+            }).join('') + '</tbody></table></div>'
+        : '<p class="res-org">No sessions in this period.</p>')
+      + '</section>';
+  }
+
+  var resizeTimer;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function(){ if(state.tab==='admin' && state.adminView==='activity') render(); }, 200);
+  });
+  // One floating tooltip for every chart mark (event delegation).
+  (function(){
+    var tip = document.createElement('div'); tip.className = 'viz-tip'; tip.setAttribute('role', 'status'); document.body.appendChild(tip);
+    document.addEventListener('mousemove', function(e){
+      var el = e.target.closest && e.target.closest('[data-tip]');
+      if(!el){ tip.style.opacity = 0; return; }
+      tip.textContent = el.getAttribute('data-tip');
+      var x = Math.min(e.clientX + 14, window.innerWidth - tip.offsetWidth - 8), y = e.clientY - tip.offsetHeight - 12;
+      tip.style.transform = 'translate(' + Math.max(8, x) + 'px,' + (y < 8 ? e.clientY + 18 : y) + 'px)';
+      tip.style.opacity = 1;
+    }, { passive:true });
+  })();
 
   /* ============ RENDER: MODAL ============ */
   function renderModal(){
@@ -2150,6 +2453,7 @@
     }
     if(action==='logout'){
       try{ sessionStorage.removeItem('gn_guest'); }catch(err){}
+      stopTracking();
       run(api('POST', 'auth/logout').then(function(){
         state.user=null; state.view='landing'; state.posts=[]; state.helpDetail=null; state.selectedHelpId=null;
         toast('You’re logged out.');
@@ -2158,6 +2462,7 @@
     }
     if(action==='set-tab'){
       state.tab = el.getAttribute('data-tab'); state.selectedOrgId=null; state.selectedHelpId=null; state.helpDetail=null;
+      track({ help:'help_board', directory:'directory', profile:'my_profile', admin:'admin' }[state.tab] || 'help_board');
       render(); if(state.tab==='help') loadPosts(); if(state.tab==='directory') loadMemberOrgs();
       if(state.tab==='profile') loadProfileExtras(); if(state.tab==='admin') loadAdmin(); return;
     }
@@ -2198,6 +2503,7 @@
     if(action==='view-org'){
       var oid = el.getAttribute('data-org');
       if(oid.indexOf('member:')===0){ openMember(oid.slice(7)); return; }
+      track('org_view');
       state.tab='directory'; state.selectedOrgId = oid; state.selectedHelpId=null; state.memberProfile=null;
       render(); window.scrollTo(0,0);
       if(oid.indexOf('member:')===0){
@@ -2214,7 +2520,7 @@
       var bid = el.getAttribute('data-user'), bname = el.getAttribute('data-name');
       if(!window.confirm('Block ' + bname + '? You won’t see each other’s posts, replies, or messages. You can unblock them later from My profile.')) return;
       run(api('POST', 'blocks', { userId:bid }).then(function(){
-        toast('Blocked ' + bname + '.');
+        toast('Blocked ' + bname + '.'); track('block');
         if(state.selectedOrgId){ state.selectedOrgId=null; }
         if(state.selectedHelpId){
           if(state.helpDetail && state.helpDetail.author.id===bid){ state.selectedHelpId=null; state.helpDetail=null; loadPosts(); }
@@ -2233,7 +2539,11 @@
       }));
       return;
     }
-    if(action==='admin-view'){ state.adminView = el.getAttribute('data-view'); state.admin.resetLink=null; loadAdmin(); return; }
+    if(action==='admin-view'){ state.adminView = el.getAttribute('data-view'); state.admin.resetLink=null; state.admin.activityUserId=null; loadAdmin(); return; }
+    if(action==='activity-days'){ state.admin.activityDays = +el.getAttribute('data-days'); loadAdmin(); return; }
+    if(action==='activity-sort'){ state.admin.activitySort = el.getAttribute('data-sort'); render(); return; }
+    if(action==='activity-user'){ state.admin.activityUserId = el.getAttribute('data-user'); loadAdmin(); window.scrollTo(0,0); return; }
+    if(action==='activity-back'){ state.admin.activityUserId = null; state.admin.activityUser = null; render(); if(!state.admin.activity) loadAdmin(); return; }
     if(action==='admin-report-filter'){ state.admin.reportFilter = el.getAttribute('data-value'); loadAdmin(); return; }
     if(action==='admin-report'){
       var rid2 = el.getAttribute('data-id'), act = el.getAttribute('data-act');
@@ -2276,6 +2586,7 @@
     }
     var field = e.target.getAttribute('data-search');
     if(field){
+      if(!state[field] && e.target.value) track('search');   // once per new search, never the text
       state[field] = e.target.value;
       var caret = e.target.selectionStart;
       render();
@@ -2337,7 +2648,7 @@
     if(action==='submit-report'){
       state.formError='';
       run(api('POST', 'reports', { targetType:state.report.type, targetId:state.report.id, reason:val('rpt-reason'), details:val('rpt-details') }).then(function(){
-        state.modal=null; state.report=null; toast('Thank you. A moderator will review this report.');
+        state.modal=null; state.report=null; track('report'); toast('Thank you. A moderator will review this report.');
       }), formError);
       return;
     }
@@ -2352,9 +2663,9 @@
     if(action==='submit-help' && !state.user){
       state.pendingDraft = {};
       ['hp-type','hp-cat','hp-title','hp-detail','hp-loc','hp-region','hp-scale','hp-urgency','hp-pay','hp-paylabel'].forEach(function(id){ state.pendingDraft[id] = document.getElementById(id).value; });
-      state.gateReason = 'post'; state.modal = 'gate'; render(); return;
+      state.gateReason = 'post'; state.modal = 'gate'; track('guest_draft'); track('signup_prompt'); render(); return;
     }
-    if(action==='send-reply' && !state.user){ state.gateReason = 'reply'; state.modal = 'gate'; render(); return; }
+    if(action==='send-reply' && !state.user){ state.gateReason = 'reply'; state.modal = 'gate'; track('signup_prompt'); render(); return; }
     if(action==='submit-help'){
       state.formError='';
       run(api('POST', 'help', {
@@ -2363,14 +2674,14 @@
         payKind:val('hp-pay'), payLabel:val('hp-paylabel')
       }).then(function(){
         state.modal=null; state.tab='help'; state.helpView='mine'; state.selectedHelpId=null;
-        toast('Posted to the Help Board.'); loadPosts();
+        track('post_create'); toast('Posted to the Help Board.'); loadPosts();
       }), formError);
       return;
     }
     if(action==='send-reply'){
       var id = state.helpDetail.id;
       run(api('POST', 'help/' + id + '/replies', { text:val('help-reply-text') }).then(function(d){
-        state.helpDetail = d.post; toast('Reply sent to ' + d.post.author.name + '.');
+        state.helpDetail = d.post; track('reply'); toast('Reply sent to ' + d.post.author.name + '.');
       }));
       return;
     }
@@ -2380,7 +2691,7 @@
       if(!textVal) return;
       var replyId = form.getAttribute('data-reply');
       run(api('POST', 'replies/' + replyId + '/messages', { text:textVal }).then(function(d){
-        state.helpDetail = d.post; state.openThread = replyId;
+        state.helpDetail = d.post; state.openThread = replyId; track('message');
       })).then(function(){
         var next = document.querySelector('form[data-action="send-message"] input');
         if(next){ next.value=''; next.focus(); }
@@ -2397,7 +2708,7 @@
         body.causes = [].slice.call(form.querySelectorAll('input[name=cause]:checked')).map(function(c){ return c.value; });
       }
       run(api('PATCH', 'me', body).then(function(d){
-        state.user = d.user; loadMemberOrgs();
+        state.user = d.user; loadMemberOrgs(); track('profile_edit');
         toast(d.verificationReset ? 'Saved. Because you changed your organization’s name, it will need to be verified again.' : 'Profile saved.');
         if(d.verificationReset) loadProfileExtras();
       }));
@@ -2411,6 +2722,7 @@
     if(action==='delete-account'){
       if(!window.confirm('Permanently delete your account and everything you’ve posted? This can’t be undone.')) return;
       run(api('DELETE', 'me', { password:document.getElementById('del-pass').value }).then(function(){
+        tracker.sid = null; try{ sessionStorage.removeItem('gn_sid'); }catch(err){}
         state.user=null; state.view='landing'; state.posts=[]; toast('Your account has been deleted.');
       }));
       return;

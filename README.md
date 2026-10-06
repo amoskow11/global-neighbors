@@ -10,6 +10,7 @@ Live site: https://global-neighbors.pages.dev · Sample-data demo: https://globa
 - **Help Board:** post asks or offers (volunteer, paid, stipend, or funding), reply, accept or decline replies, and message privately. Posts can be resolved, reopened, or deleted.
 - **Privacy:** the Help Board and individual profiles are visible to signed-in members only. A reply and its messages are visible only to the post's author and the person who replied. Emails are never shown to other members.
 - **Trust & safety:** report posts, replies, or members; block members (both directions); an admin panel to review reports, hide posts, suspend accounts, and look up members; every admin action is logged.
+- **Usage analytics (admin):** an Activity dashboard in the Admin panel with sessions, active members, time spent, most-used features, guest-to-member conversions, device mix, daily charts, and a per-member drill-down. Tracking is first-party and content-free: it records active time (only while the tab is visible and in use), device type, and which features are used, never what anyone types. Admin accounts are excluded, and data is deleted after 180 days or with the account.
 - **Organization verification:** orgs submit legal name, registration number, and role; an admin checks public records and approves, which adds a ✓ Verified badge (renaming the org clears it).
 - **Email:** confirmation and password-reset links via Resend, switched on by configuration. Until it's configured, admins can issue one-time reset links.
 - **Policies:** `/privacy`, `/terms`, and `/safety` pages. Sign-up requires confirming 18+ and accepting the Terms.
@@ -59,6 +60,8 @@ wrangler.toml         Pages + D1 binding config
 | GET / POST | `/api/admin/*` | overview, reports, verifications, users, posts; admins only |
 | POST / DELETE | `/api/me/media/avatar`, `/api/me/media/banner` | upload `{dataUrl}` (JPEG/PNG/WebP) or remove |
 | GET | `/api/media/:id` | org images public; individuals' members-only |
+| POST | `/api/activity` | `{sid, activeMs, device, events[]}` usage ping (guests and members) |
+| GET | `/api/admin/activity?days=&tz=` · `/api/admin/activity/users/:id` | dashboard data; admins only |
 
 ## Admins
 
@@ -94,7 +97,7 @@ With the dev server running **without** `.dev.vars` (email off):
 bash tests/run.sh
 ```
 
-This runs `api_test.sh`, `trust_test.sh`, and `media_test.sh`. To exercise the email flows, start the server with `RESEND_API_KEY=dev-log` in `.dev.vars` and run `bash tests/trust_test.sh http://127.0.0.1:8788 devlog <path-to-dev-server-log>`. Test accounts all use `@example.com` addresses.
+This runs `api_test.sh`, `trust_test.sh`, `media_test.sh`, and `activity_test.sh`. To exercise the email flows, start the server with `RESEND_API_KEY=dev-log` in `.dev.vars` and run `bash tests/trust_test.sh http://127.0.0.1:8788 devlog <path-to-dev-server-log>`. Test accounts all use `@example.com` addresses.
 
 ## Deployment
 

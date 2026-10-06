@@ -22,6 +22,15 @@ const MAX_UPLOAD_BODY_BYTES = 1600 * 1024;
 const MEDIA_LIMITS = { avatar: 300 * 1024, banner: 900 * 1024 };   // after browser-side resizing
 const MAX_UPLOADS_PER_HOUR = 20;
 const BANNER_PRESETS = ['harbor', 'sunrise', 'meadow', 'dusk', 'sand', 'night'];
+const DAY = 24 * HOUR;
+// Features the app reports for usage analytics (never content).
+const FEATURES = [
+  'help_board', 'post_view', 'post_create', 'reply', 'message', 'directory', 'org_view', 'member_view',
+  'my_profile', 'profile_edit', 'photo_upload', 'search', 'report', 'block', 'admin', 'signup_prompt', 'guest_draft'
+];
+const ACTIVITY_RETENTION_MS = 180 * DAY;
+const MAX_ACTIVE_MS_PER_PING = 70 * 1000;
+const MAX_NEW_SESSIONS_PER_IP_PER_HOUR = 120;
 
 const REGIONS = ['Greater Boston', 'North America', 'Latin America', 'Africa', 'South Asia', 'Global'];
 const CATEGORIES = [
@@ -62,6 +71,7 @@ export async function onRequest(context) {
     const route = seg.join('/');
 
     if (seg[0] === 'media' && seg.length === 2 && method === 'GET') return await serveMedia(ctx, seg[1]);
+    if (route === 'activity' && method === 'POST') return await recordActivity(ctx);
     if (route === 'config' && method === 'GET') return json({ emailEnabled: emailEnabled(env), contactEmail: contact(env) });
 
     // Auth
@@ -117,6 +127,8 @@ export async function onRequest(context) {
       if (route === 'admin/users' && method === 'GET') return await adminListUsers(ctx);
       if (seg[1] === 'users' && seg.length === 3 && method === 'POST') return await adminUserAction(ctx, seg[2]);
       if (seg[1] === 'posts' && seg.length === 3 && method === 'POST') return await adminPostAction(ctx, seg[2]);
+      if (route === 'admin/activity' && method === 'GET') return await adminActivity(ctx);
+      if (seg[1] === 'activity' && seg[2] === 'users' && seg.length === 4 && method === 'GET') return await adminActivityUser(ctx, seg[3]);
     }
 
     throw new HttpError(404, 'Not found.');
@@ -347,6 +359,8 @@ async function deleteMe(ctx) {
     db.prepare('DELETE FROM sessions WHERE user_id=?').bind(user.id),
     db.prepare('DELETE FROM auth_tokens WHERE user_id=?').bind(user.id),
     db.prepare('DELETE FROM media WHERE user_id=?').bind(user.id),
+    db.prepare('DELETE FROM activity_events WHERE user_id=?').bind(user.id),
+    db.prepare('DELETE FROM activity_sessions WHERE user_id=?').bind(user.id),
     db.prepare('DELETE FROM blocks WHERE blocker_id=?1 OR blocked_id=?1').bind(user.id),
     db.prepare('DELETE FROM org_verifications WHERE user_id=?').bind(user.id),
     db.prepare('UPDATE reports SET reporter_id=NULL WHERE reporter_id=?').bind(user.id),
@@ -928,6 +942,134 @@ async function serveMedia(ctx, id) {
       'Content-Security-Policy': "default-src 'none'; sandbox",
       'Content-Disposition': 'inline'
     }
+  });
+}
+
+/* ---------- usage analytics ---------- */
+
+// The browser pings every ~30s while the app is open, sending active time since the last ping
+// and the features used. Works for guests (anonymous) and members.
+async function recordActivity(ctx) {
+  const { env } = ctx;
+  const b = await readJson(ctx.request);
+  let sid = String(b.sid || '');
+  if (!/^[a-f0-9]{32}$/.test(sid)) throw new HttpError(400, 'Invalid session.');
+  const device = b.device === 'mobile' ? 'mobile' : 'desktop';
+  const events = (Array.isArray(b.events) ? b.events : []).filter(f => FEATURES.includes(f)).slice(0, 25);
+  const user = await currentUser(ctx);
+  const now = Date.now();
+  let row = await env.DB.prepare('SELECT * FROM activity_sessions WHERE id = ?').bind(sid).first();
+
+  // A tab that changes hands (log out, then someone else logs in) starts a fresh session.
+  if (row && row.user_id && (!user || user.id !== row.user_id)) {
+    sid = [...crypto.getRandomValues(new Uint8Array(16))].map(x => x.toString(16).padStart(2, '0')).join('');
+    row = null;
+  }
+  const stmts = [];
+  if (!row) {
+    const ipKey = 'act-ip:' + clientIp(ctx.request);
+    if (await countAttempts(env, ipKey, now - HOUR) >= MAX_NEW_SESSIONS_PER_IP_PER_HOUR) return json({ ok: true, sid });
+    stmts.push(env.DB.prepare(`INSERT INTO activity_sessions (id, user_id, kind, device, started_at, last_seen_at, active_ms)
+                               VALUES (?, ?, ?, ?, ?, ?, 0)`).bind(sid, user ? user.id : null, user ? 'member' : 'guest', device, now, now));
+    stmts.push(env.DB.prepare('INSERT INTO login_attempts (key, created_at) VALUES (?, ?)').bind(ipKey, now));
+    if (Math.random() < 0.02) {
+      stmts.push(env.DB.prepare('DELETE FROM activity_events WHERE created_at < ?').bind(now - ACTIVITY_RETENTION_MS));
+      stmts.push(env.DB.prepare('DELETE FROM activity_sessions WHERE last_seen_at < ?').bind(now - ACTIVITY_RETENTION_MS));
+    }
+  } else {
+    // Never credit more active time than has actually passed since the last ping.
+    const credit = Math.max(0, Math.min(Number(b.activeMs) || 0, MAX_ACTIVE_MS_PER_PING, now - row.last_seen_at + 5000));
+    if (row.kind === 'guest' && user) {
+      stmts.push(env.DB.prepare("UPDATE activity_sessions SET user_id = ?, kind = 'member', converted = 1 WHERE id = ?").bind(user.id, sid));
+    }
+    stmts.push(env.DB.prepare('UPDATE activity_sessions SET last_seen_at = ?, active_ms = active_ms + ? WHERE id = ?').bind(now, Math.round(credit), sid));
+  }
+  for (const f of events) {
+    stmts.push(env.DB.prepare('INSERT INTO activity_events (session_id, user_id, feature, created_at) VALUES (?, ?, ?, ?)')
+      .bind(sid, user ? user.id : null, f, now));
+  }
+  await env.DB.batch(stmts);
+  return json({ ok: true, sid });
+}
+
+function activityWindow(url) {
+  const days = Math.min(365, Math.max(1, parseInt(url.searchParams.get('days'), 10) || 30));
+  const tz = Math.min(840, Math.max(-840, parseInt(url.searchParams.get('tz'), 10) || 0));   // minutes, as from getTimezoneOffset()
+  return { days, since: Date.now() - days * DAY, tzMs: tz * 60000 };
+}
+
+async function adminActivity(ctx) {
+  await requireAdmin(ctx);
+  const db = ctx.env.DB;
+  const { days, since, tzMs } = activityWindow(ctx.url);
+  // Admin accounts are left out so testing the site doesn't skew the numbers.
+  const notAdmin = '(s.user_id IS NULL OR s.user_id IN (SELECT id FROM users WHERE is_admin = 0))';
+  const notAdminE = '(e.user_id IS NULL OR e.user_id IN (SELECT id FROM users WHERE is_admin = 0))';
+  const [summary, people, daily, features, members] = await db.batch([
+    db.prepare(`SELECT COUNT(*) AS sessions,
+                  SUM(CASE WHEN kind = 'guest' AND converted = 0 THEN 1 ELSE 0 END) AS guest_sessions,
+                  COUNT(DISTINCT user_id) AS active_members,
+                  COALESCE(SUM(active_ms), 0) AS active_ms,
+                  SUM(converted) AS conversions,
+                  SUM(CASE WHEN device = 'mobile' THEN 1 ELSE 0 END) AS mobile_sessions
+                FROM activity_sessions s WHERE started_at >= ?1 AND ${notAdmin}`).bind(since),
+    db.prepare(`SELECT (SELECT COUNT(*) FROM users WHERE is_admin = 0) AS members,
+                       (SELECT COUNT(*) FROM users WHERE is_admin = 0 AND created_at >= ?1) AS new_members`).bind(since),
+    db.prepare(`SELECT date((started_at - ?2) / 1000, 'unixepoch') AS day, COUNT(*) AS sessions,
+                  COUNT(DISTINCT user_id) AS members, COALESCE(SUM(active_ms), 0) AS active_ms
+                FROM activity_sessions s WHERE started_at >= ?1 AND ${notAdmin}
+                GROUP BY day ORDER BY day`).bind(since, tzMs),
+    db.prepare(`SELECT feature, COUNT(*) AS uses, COUNT(DISTINCT user_id) AS members,
+                  SUM(CASE WHEN user_id IS NULL THEN 1 ELSE 0 END) AS guest_uses
+                FROM activity_events e WHERE created_at >= ?1 AND ${notAdminE}
+                GROUP BY feature ORDER BY uses DESC`).bind(since),
+    db.prepare(`SELECT u.id, u.display_name, u.email, u.account_type, u.created_at,
+                  COUNT(s.id) AS sessions, COALESCE(SUM(s.active_ms), 0) AS active_ms, MAX(s.last_seen_at) AS last_seen,
+                  (SELECT e.feature FROM activity_events e WHERE e.user_id = u.id AND e.created_at >= ?1
+                    GROUP BY e.feature ORDER BY COUNT(*) DESC LIMIT 1) AS top_feature
+                FROM users u LEFT JOIN activity_sessions s ON s.user_id = u.id AND s.started_at >= ?1
+                WHERE u.is_admin = 0
+                GROUP BY u.id ORDER BY active_ms DESC, last_seen DESC LIMIT 300`).bind(since)
+  ]);
+  const sm = summary.results[0], pp = people.results[0];
+  return json({
+    days,
+    summary: {
+      sessions: sm.sessions || 0, guestSessions: sm.guest_sessions || 0, activeMembers: sm.active_members || 0,
+      activeMs: sm.active_ms || 0, conversions: sm.conversions || 0, mobileSessions: sm.mobile_sessions || 0,
+      members: pp.members, newMembers: pp.new_members
+    },
+    daily: daily.results.map(d => ({ day: d.day, sessions: d.sessions, members: d.members, activeMs: d.active_ms })),
+    features: features.results.map(f => ({ feature: f.feature, uses: f.uses, members: f.members, guestUses: f.guest_uses })),
+    members: members.results.map(m => ({
+      id: m.id, name: m.display_name, email: m.email, accountType: m.account_type, joinedAt: m.created_at,
+      sessions: m.sessions, activeMs: m.active_ms, lastSeen: m.last_seen, topFeature: m.top_feature
+    }))
+  });
+}
+
+async function adminActivityUser(ctx, id) {
+  await requireAdmin(ctx);
+  const db = ctx.env.DB;
+  const { days, since, tzMs } = activityWindow(ctx.url);
+  const user = await db.prepare('SELECT * FROM users WHERE id = ?').bind(id).first();
+  if (!user) throw new HttpError(404, 'Member not found.');
+  const [sessions, daily, features, lastEver] = await db.batch([
+    db.prepare(`SELECT started_at, last_seen_at, active_ms, device, converted FROM activity_sessions
+                WHERE user_id = ?1 AND started_at >= ?2 ORDER BY started_at DESC LIMIT 100`).bind(id, since),
+    db.prepare(`SELECT date((started_at - ?3) / 1000, 'unixepoch') AS day, COUNT(*) AS sessions, COALESCE(SUM(active_ms), 0) AS active_ms
+                FROM activity_sessions WHERE user_id = ?1 AND started_at >= ?2 GROUP BY day ORDER BY day`).bind(id, since, tzMs),
+    db.prepare(`SELECT feature, COUNT(*) AS uses FROM activity_events WHERE user_id = ?1 AND created_at >= ?2
+                GROUP BY feature ORDER BY uses DESC`).bind(id, since),
+    db.prepare('SELECT MAX(last_seen_at) AS t FROM activity_sessions WHERE user_id = ?').bind(id)
+  ]);
+  return json({
+    days,
+    user: Object.assign(publicUser(user), { email: user.email }),
+    lastSeenEver: lastEver.results[0].t,
+    sessions: sessions.results.map(s => ({ startedAt: s.started_at, lastSeen: s.last_seen_at, activeMs: s.active_ms, device: s.device, fromGuest: !!s.converted })),
+    daily: daily.results.map(d => ({ day: d.day, sessions: d.sessions, activeMs: d.active_ms })),
+    features: features.results.map(f => ({ feature: f.feature, uses: f.uses }))
   });
 }
 
