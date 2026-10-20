@@ -26,8 +26,12 @@ const DAY = 24 * HOUR;
 // Features the app reports for usage analytics (never content).
 const FEATURES = [
   'help_board', 'post_view', 'post_create', 'reply', 'message', 'directory', 'org_view', 'member_view',
-  'my_profile', 'profile_edit', 'photo_upload', 'search', 'report', 'block', 'admin', 'signup_prompt', 'guest_draft'
+  'my_profile', 'profile_edit', 'photo_upload', 'search', 'report', 'block', 'admin', 'signup_prompt', 'guest_draft',
+  'notifications', 'feedback', 'signup_nudge', 'signup_click'
 ];
+const NOTIFICATION_RETENTION_MS = 90 * DAY;
+const FEEDBACK_KINDS = ['idea', 'problem', 'category', 'other'];
+const MAX_FEEDBACK_PER_IP_PER_HOUR = 10;
 const ACTIVITY_RETENTION_MS = 180 * DAY;
 const MAX_ACTIVE_MS_PER_PING = 70 * 1000;
 const MAX_NEW_SESSIONS_PER_IP_PER_HOUR = 120;
@@ -36,7 +40,12 @@ const REGIONS = ['Greater Boston', 'North America', 'Latin America', 'Africa', '
 const CATEGORIES = [
   'Groceries & errands', 'Elder care & companionship', 'Clean water & sanitation', 'Food & meals',
   'Housing & repairs', 'Health & medical', 'Education & tutoring', 'Transportation & rides',
-  'Jobs & livelihoods', 'Legal & paperwork', 'Disaster & emergency', 'Energy & solar', 'Tech & skills'
+  'Jobs & livelihoods', 'Legal & paperwork', 'Disaster & emergency', 'Energy & solar', 'Tech & skills',
+  // Added after member feedback asked for more inclusive categories (Oct 2026).
+  'Childcare & family', 'Pets & animals', 'Emotional support & wellbeing', 'Moving & heavy lifting',
+  'Translation & interpretation', 'Clothing & household items', 'Mentoring & career advice',
+  'Arts, music & culture', 'Sports & recreation', 'Community events & organizing', 'Environment & cleanup',
+  'Small business & entrepreneurship', 'Other'
 ];
 const CAUSES = [
   'Community Health', 'Disability & Access', 'Disaster Response', 'Economic Development', 'Education',
@@ -72,6 +81,10 @@ export async function onRequest(context) {
 
     if (seg[0] === 'media' && seg.length === 2 && method === 'GET') return await serveMedia(ctx, seg[1]);
     if (route === 'activity' && method === 'POST') return await recordActivity(ctx);
+    if (route === 'stats' && method === 'GET') return await publicStats(ctx);
+    if (route === 'feedback' && method === 'POST') return await createFeedback(ctx);
+    if (route === 'notifications' && method === 'GET') return await listNotifications(ctx);
+    if (route === 'notifications/read' && method === 'POST') return await readNotifications(ctx);
     if (route === 'config' && method === 'GET') return json({ emailEnabled: emailEnabled(env), contactEmail: contact(env) });
 
     // Auth
@@ -128,6 +141,8 @@ export async function onRequest(context) {
       if (seg[1] === 'users' && seg.length === 3 && method === 'POST') return await adminUserAction(ctx, seg[2]);
       if (seg[1] === 'posts' && seg.length === 3 && method === 'POST') return await adminPostAction(ctx, seg[2]);
       if (route === 'admin/activity' && method === 'GET') return await adminActivity(ctx);
+      if (route === 'admin/feedback' && method === 'GET') return await adminListFeedback(ctx);
+      if (seg[1] === 'feedback' && seg.length === 3 && method === 'POST') return await adminUpdateFeedback(ctx, seg[2]);
       if (seg[1] === 'activity' && seg[2] === 'users' && seg.length === 4 && method === 'GET') return await adminActivityUser(ctx, seg[3]);
     }
 
@@ -155,8 +170,8 @@ async function signup(ctx) {
   validatePassword(password);
   const accountType = oneOf(body.accountType, ['person', 'org'], 'Account type');
   const displayName = text(body.displayName, 80, accountType === 'org' ? 'Organization name' : 'Name', true);
-  const location = text(body.location, 100, 'Location', true);
-  const region = oneOf(body.region, REGIONS, 'Region');
+  const location = text(body.location, 100, 'Location');
+  const region = oneOf(body.region || 'Greater Boston', REGIONS, 'Region');
   const headline = text(body.headline, 120, 'Headline');
 
   const existing = await env.DB.prepare('SELECT 1 FROM users WHERE email = ?').bind(email).first();
@@ -302,7 +317,7 @@ async function updateMe(ctx) {
   const f = {
     display_name: body.displayName !== undefined ? text(body.displayName, 80, 'Name', true) : user.display_name,
     headline: body.headline !== undefined ? text(body.headline, 120, 'Headline') : user.headline,
-    location: body.location !== undefined ? text(body.location, 100, 'Location', true) : user.location,
+    location: body.location !== undefined ? text(body.location, 100, 'Location') : user.location,
     region: body.region !== undefined ? oneOf(body.region, REGIONS, 'Region') : user.region,
     bio: body.bio !== undefined ? text(body.bio, 2000, 'About') : user.bio,
     website: body.website !== undefined ? websiteUrl(body.website) : user.website,
@@ -360,6 +375,8 @@ async function deleteMe(ctx) {
     db.prepare('DELETE FROM auth_tokens WHERE user_id=?').bind(user.id),
     db.prepare('DELETE FROM media WHERE user_id=?').bind(user.id),
     db.prepare('DELETE FROM activity_events WHERE user_id=?').bind(user.id),
+    db.prepare('DELETE FROM notifications WHERE user_id=?1 OR actor_id=?1').bind(user.id),
+    db.prepare('UPDATE feedback SET user_id=NULL WHERE user_id=?').bind(user.id),
     db.prepare('DELETE FROM activity_sessions WHERE user_id=?').bind(user.id),
     db.prepare('DELETE FROM blocks WHERE blocker_id=?1 OR blocked_id=?1').bind(user.id),
     db.prepare('DELETE FROM org_verifications WHERE user_id=?').bind(user.id),
@@ -462,7 +479,7 @@ function helpRow(r, viewerId) {
   return {
     id: r.id,
     author: { id: r.author_id, name: r.author_name, accountType: r.author_type, headline: r.author_headline, verified: r.author_verification === 'verified', avatarUrl: mediaUrl(r.author_avatar) },
-    type: r.type, category: r.category, scale: r.scale, title: r.title, detail: r.detail,
+    type: r.type, category: r.category, categoryNote: r.category_note || '', scale: r.scale, title: r.title, detail: r.detail,
     location: r.location, region: r.region, pay: { kind: r.pay_kind, label: r.pay_label },
     urgency: r.urgency, status: r.status, createdAt: r.created_at, hidden: !!r.hidden_at,
     replyCount: r.reply_count, myReplyStatus: r.my_reply_status || null, isMine: r.author_id === viewerId
@@ -525,13 +542,15 @@ async function createHelp(ctx) {
   const b = await readJson(ctx.request);
   const now = Date.now();
   const id = crypto.randomUUID();
+  const category = oneOf(b.category, CATEGORIES, 'Category');
+  const categoryNote = category === 'Other' ? text(b.categoryNote, 40, 'Category description', true) : '';
   await ctx.env.DB.prepare(
-    `INSERT INTO help_posts (id, author_id, type, category, scale, title, detail, location, region, pay_kind, pay_label, urgency, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)`
+    `INSERT INTO help_posts (id, author_id, type, category, category_note, scale, title, detail, location, region, pay_kind, pay_label, urgency, status, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)`
   ).bind(
     id, user.id,
     oneOf(b.type, ['ask', 'offer'], 'Post type'),
-    oneOf(b.category, CATEGORIES, 'Category'),
+    category, categoryNote,
     oneOf(b.scale, SCALES, 'Reach'),
     text(b.title, 120, 'Title', true),
     text(b.detail, 3000, 'Details', true),
@@ -579,9 +598,13 @@ async function createReply(ctx, postId) {
   if (post.status === 'resolved') throw new HttpError(400, 'This post has been resolved.');
   if (await isBlocked(ctx.env, user.id, post.author_id)) throw new HttpError(403, 'You can’t reply to this post.');
   const replyText = text(b.text, 2000, 'Reply', true);
+  const replyId = crypto.randomUUID();
   try {
-    await ctx.env.DB.prepare('INSERT INTO help_replies (id, post_id, user_id, text, status, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-      .bind(crypto.randomUUID(), postId, user.id, replyText, 'pending', Date.now()).run();
+    await ctx.env.DB.batch([
+      ctx.env.DB.prepare('INSERT INTO help_replies (id, post_id, user_id, text, status, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+        .bind(replyId, postId, user.id, replyText, 'pending', Date.now()),
+      notifyStmt(ctx.env.DB, post.author_id, 'reply', { actor: user.id, post: postId, reply: replyId })
+    ]);
   } catch (e) {
     if (/UNIQUE/i.test(String(e && e.message))) throw new HttpError(409, 'You’ve already replied to this post.');
     throw e;
@@ -610,6 +633,9 @@ async function updateReply(ctx, replyId) {
   if (status === 'accepted' && r.post_status === 'open') {
     stmts.push(db.prepare("UPDATE help_posts SET status='in-progress', updated_at=? WHERE id=?").bind(Date.now(), r.post_id));
   }
+  if (status === 'accepted' && r.status !== 'accepted') {
+    stmts.push(notifyStmt(db, r.user_id, 'accepted', { actor: user.id, post: r.post_id, reply: replyId }));
+  }
   await db.batch(stmts);
   return getHelp(ctx, r.post_id);
 }
@@ -623,8 +649,13 @@ async function createMessage(ctx, replyId) {
   if (r.post_hidden_at) throw new HttpError(400, 'This post was hidden by moderators.');
   const other = r.user_id === user.id ? r.post_author_id : r.user_id;
   if (await isBlocked(ctx.env, user.id, other)) throw new HttpError(403, 'You can’t message this member.');
-  await ctx.env.DB.prepare('INSERT INTO help_messages (id, reply_id, user_id, text, created_at) VALUES (?, ?, ?, ?, ?)')
-    .bind(crypto.randomUUID(), replyId, user.id, text(b.text, 2000, 'Message', true), Date.now()).run();
+  // One unread "new messages" notice per conversation, refreshed with each message.
+  await ctx.env.DB.batch([
+    ctx.env.DB.prepare('INSERT INTO help_messages (id, reply_id, user_id, text, created_at) VALUES (?, ?, ?, ?, ?)')
+      .bind(crypto.randomUUID(), replyId, user.id, text(b.text, 2000, 'Message', true), Date.now()),
+    ctx.env.DB.prepare("DELETE FROM notifications WHERE user_id = ? AND type = 'message' AND reply_id = ? AND read_at IS NULL").bind(other, replyId),
+    notifyStmt(ctx.env.DB, other, 'message', { actor: user.id, post: r.post_id, reply: replyId })
+  ]);
   return getHelp(ctx, r.post_id);
 }
 
@@ -727,8 +758,10 @@ async function adminOverview(ctx) {
       (SELECT COUNT(*) FROM reports WHERE status='open') AS open_reports,
       (SELECT COUNT(*) FROM org_verifications WHERE status='pending') AS pending_verifications,
       (SELECT COUNT(*) FROM users) AS users,
-      (SELECT COUNT(*) FROM help_posts) AS posts`).first();
-  return json({ openReports: row.open_reports, pendingVerifications: row.pending_verifications, users: row.users, posts: row.posts, emailEnabled: emailEnabled(ctx.env) });
+      (SELECT COUNT(*) FROM help_posts) AS posts,
+      (SELECT COUNT(*) FROM feedback WHERE status='new') AS new_feedback`).first();
+  return json({ openReports: row.open_reports, pendingVerifications: row.pending_verifications, users: row.users, posts: row.posts,
+                newFeedback: row.new_feedback, emailEnabled: emailEnabled(ctx.env) });
 }
 
 async function adminListReports(ctx) {
@@ -766,6 +799,8 @@ async function adminResolveReport(ctx, id) {
   if ((action === 'hide-post' || action === 'hide-and-suspend')) {
     if (r.target_type !== 'post') throw new HttpError(400, 'Only post reports can hide a post.');
     stmts.push(db.prepare('UPDATE help_posts SET hidden_at = COALESCE(hidden_at, ?) WHERE id = ?').bind(Date.now(), r.target_id));
+    const post = await db.prepare('SELECT author_id FROM help_posts WHERE id = ?').bind(r.target_id).first();
+    if (post) stmts.push(notifyStmt(db, post.author_id, 'post_hidden', { post: r.target_id }));
   }
   if (action === 'suspend-user' || action === 'hide-and-suspend') {
     const target = await db.prepare('SELECT is_admin FROM users WHERE id = ?').bind(r.target_user_id).first();
@@ -811,6 +846,7 @@ async function adminReviewVerification(ctx, id) {
       .bind(decision === 'approve' ? 'approved' : 'rejected', now, admin.id, note, id),
     db.prepare('UPDATE users SET verification_status=?, updated_at=? WHERE id=?')
       .bind(decision === 'approve' ? 'verified' : 'rejected', now, v.user_id),
+    notifyStmt(db, v.user_id, 'verification', { detail: decision === 'approve' ? 'approved' : 'rejected' }),
     audit(db, admin, 'verification:' + decision, 'user:' + v.user_id, note)
   ]);
   return json({ ok: true });
@@ -859,7 +895,10 @@ async function adminPostAction(ctx, id) {
   const b = await readJson(ctx.request);
   const action = oneOf(b.action, ['hide', 'unhide'], 'Action');
   const db = ctx.env.DB;
+  const post = await db.prepare('SELECT author_id, hidden_at FROM help_posts WHERE id = ?').bind(id).first();
+  if (!post) throw new HttpError(404, 'That post isn’t available.');
   await db.batch([
+    ...(action === 'hide' && !post.hidden_at ? [notifyStmt(db, post.author_id, 'post_hidden', { post: id })] : []),
     db.prepare(action === 'hide' ? 'UPDATE help_posts SET hidden_at = COALESCE(hidden_at, ?1) WHERE id = ?2' : 'UPDATE help_posts SET hidden_at = NULL WHERE id = ?2 AND ?1 IS NOT NULL')
       .bind(Date.now(), id),
     audit(db, admin, 'post:' + action, 'post:' + id, text(b.note, 500, 'Note'))
@@ -943,6 +982,121 @@ async function serveMedia(ctx, id) {
       'Content-Disposition': 'inline'
     }
   });
+}
+
+/* ---------- notifications ---------- */
+
+// Prepared INSERT for a notification (or a no-op when someone would notify themselves).
+function notifyStmt(db, userId, type, o = {}) {
+  if (!userId || userId === o.actor) return db.prepare('SELECT 1');
+  return db.prepare('INSERT INTO notifications (id, user_id, type, actor_id, post_id, reply_id, detail, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+    .bind(crypto.randomUUID(), userId, type, o.actor || null, o.post || null, o.reply || null, o.detail || '', Date.now());
+}
+
+async function listNotifications(ctx) {
+  const user = await requireUser(ctx);
+  const db = ctx.env.DB;
+  const since = Number(ctx.url.searchParams.get('since')) || 0;
+  const [list, unread] = await db.batch([
+    db.prepare(`SELECT n.*, a.display_name AS actor_name, a.account_type AS actor_type, a.avatar_id AS actor_avatar, p.title AS post_title
+                  FROM notifications n
+                  LEFT JOIN users a ON a.id = n.actor_id
+                  LEFT JOIN help_posts p ON p.id = n.post_id
+                 WHERE n.user_id = ?1 AND n.created_at > ?2
+                   AND (n.actor_id IS NULL OR NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker_id = ?1 AND b.blocked_id = n.actor_id) OR (b.blocker_id = n.actor_id AND b.blocked_id = ?1)))
+                 ORDER BY n.created_at DESC LIMIT 50`).bind(user.id, since),
+    db.prepare('SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL').bind(user.id)
+  ]);
+  if (Math.random() < 0.05) await db.prepare('DELETE FROM notifications WHERE created_at < ?').bind(Date.now() - NOTIFICATION_RETENTION_MS).run();
+  return json({
+    unread: unread.results[0].n,
+    notifications: list.results.map(n => ({
+      id: n.id, type: n.type, detail: n.detail, createdAt: n.created_at, read: !!n.read_at, postId: n.post_id, postTitle: n.post_title || '',
+      actor: n.actor_id ? { id: n.actor_id, name: n.actor_name || 'A former member', accountType: n.actor_type, avatarUrl: mediaUrl(n.actor_avatar) } : null
+    }))
+  });
+}
+
+async function readNotifications(ctx) {
+  const user = await requireUser(ctx);
+  const b = await readJson(ctx.request);
+  const now = Date.now();
+  if (b.all === true) {
+    await ctx.env.DB.prepare('UPDATE notifications SET read_at = ? WHERE user_id = ? AND read_at IS NULL').bind(now, user.id).run();
+  } else {
+    const ids = (Array.isArray(b.ids) ? b.ids : []).filter(x => typeof x === 'string' && x.length <= 64).slice(0, 50);
+    if (ids.length) {
+      await ctx.env.DB.prepare(`UPDATE notifications SET read_at = ? WHERE user_id = ? AND read_at IS NULL AND id IN (${ids.map(() => '?').join(',')})`)
+        .bind(now, user.id, ...ids).run();
+    }
+  }
+  const row = await ctx.env.DB.prepare('SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL').bind(user.id).first();
+  return json({ unread: row.n });
+}
+
+/* ---------- feedback ---------- */
+
+async function createFeedback(ctx) {
+  const { env } = ctx;
+  const user = await currentUser(ctx);
+  const now = Date.now();
+  const ipKey = 'feedback-ip:' + clientIp(ctx.request);
+  if (await countAttempts(env, ipKey, now - HOUR) >= MAX_FEEDBACK_PER_IP_PER_HOUR) throw new HttpError(429, 'Thanks for all the feedback! Please try again in a little while.');
+  const b = await readJson(ctx.request);
+  const kind = oneOf(b.kind, FEEDBACK_KINDS, 'Feedback type');
+  const message = text(b.message, 2000, 'Feedback', true);
+  const contact = user ? '' : (b.contactEmail ? normalizeEmail(b.contactEmail) : '');
+  const page = text(b.page, 40, 'Page');
+  const id = crypto.randomUUID();
+  const { results: admins } = await env.DB.prepare('SELECT id FROM users WHERE is_admin = 1').all();
+  await env.DB.batch([
+    env.DB.prepare('INSERT INTO feedback (id, user_id, kind, message, contact_email, page, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .bind(id, user ? user.id : null, kind, message, contact, page, now),
+    env.DB.prepare('INSERT INTO login_attempts (key, created_at) VALUES (?, ?)').bind(ipKey, now),
+    ...admins.map(a => notifyStmt(env.DB, a.id, 'feedback', { actor: user ? user.id : null, detail: kind }))
+  ]);
+  return json({ ok: true }, 201);
+}
+
+async function adminListFeedback(ctx) {
+  await requireAdmin(ctx);
+  const status = ctx.url.searchParams.get('status');
+  const filter = ['new', 'reviewed', 'done'].includes(status) ? 'WHERE f.status = ?1' : '';
+  const stmt = ctx.env.DB.prepare(
+    `SELECT f.*, u.display_name, u.email, u.account_type FROM feedback f LEFT JOIN users u ON u.id = f.user_id
+     ${filter} ORDER BY f.created_at DESC LIMIT 200`);
+  const { results } = await (filter ? stmt.bind(status) : stmt).all();
+  return json({ feedback: results.map(f => ({
+    id: f.id, kind: f.kind, message: f.message, page: f.page, status: f.status, createdAt: f.created_at,
+    from: f.user_id ? { id: f.user_id, name: f.display_name, email: f.email, accountType: f.account_type } : null,
+    contactEmail: f.contact_email
+  })) });
+}
+
+async function adminUpdateFeedback(ctx, id) {
+  const admin = await requireAdmin(ctx);
+  const b = await readJson(ctx.request);
+  const status = oneOf(b.status, ['new', 'reviewed', 'done'], 'Status');
+  const db = ctx.env.DB;
+  const res = await db.prepare('UPDATE feedback SET status = ? WHERE id = ?').bind(status, id).run();
+  if (!res.meta.changes) throw new HttpError(404, 'Feedback not found.');
+  await audit(db, admin, 'feedback:' + status, 'feedback:' + id, '').run();
+  return json({ ok: true });
+}
+
+/* ---------- public stats (aggregate counts only; shown to guests) ---------- */
+
+async function publicStats(ctx) {
+  const row = await ctx.env.DB.prepare(`SELECT
+      (SELECT COUNT(*) FROM users WHERE suspended_at IS NULL AND is_admin = 0) AS members,
+      (SELECT COUNT(*) FROM users WHERE suspended_at IS NULL AND account_type = 'org') AS orgs,
+      (SELECT COUNT(*) FROM help_posts p JOIN users u ON u.id = p.author_id
+        WHERE p.status <> 'resolved' AND p.hidden_at IS NULL AND u.suspended_at IS NULL) AS open_posts,
+      (SELECT COUNT(*) FROM help_posts WHERE created_at > ?1 AND hidden_at IS NULL) AS posts_this_week,
+      (SELECT COUNT(*) FROM help_replies WHERE created_at > ?1) AS replies_this_week`).bind(Date.now() - 7 * DAY).first();
+  return new Response(JSON.stringify({
+    members: row.members, orgs: row.orgs, openPosts: row.open_posts, postsThisWeek: row.posts_this_week, repliesThisWeek: row.replies_this_week
+  }), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=300' } });
 }
 
 /* ---------- usage analytics ---------- */

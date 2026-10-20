@@ -10,6 +10,10 @@ Live site: https://global-neighbors.pages.dev · Sample-data demo: https://globa
 - **Help Board:** post asks or offers (volunteer, paid, stipend, or funding), reply, accept or decline replies, and message privately. Posts can be resolved, reopened, or deleted.
 - **Privacy:** the Help Board and individual profiles are visible to signed-in members only. A reply and its messages are visible only to the post's author and the person who replied. Emails are never shown to other members.
 - **Trust & safety:** report posts, replies, or members; block members (both directions); an admin panel to review reports, hide posts, suspend accounts, and look up members; every admin action is logged.
+- **Notifications:** a bell with an unread count (also shown in the browser tab title) for replies, accepted offers, new messages (one notice per conversation), verification decisions, and moderation notices; admins also hear about new feedback. Optional browser alerts while the site is open in a tab. Polled every 45 seconds.
+- **Feedback tab:** a "Feedback" button on every page, for guests too, sends ideas, problems, and category requests to Admin → Feedback (new / reviewed / done).
+- **Categories:** 26 help categories in six groups, plus "Other" with the poster's own topic, which is shown as the post's category and is searchable.
+- **Guest → member:** guests see real aggregate counts (open posts, members, posts this week; never content), a one-time invitation after opening two posts or about 90 seconds, and a shorter sign-up (location optional). The Activity dashboard tracks invitations shown and sign-up clicks.
 - **Usage analytics (admin):** an Activity dashboard in the Admin panel with sessions, active members, time spent, most-used features, guest-to-member conversions, device mix, daily charts, and a per-member drill-down. Tracking is first-party and content-free: it records active time (only while the tab is visible and in use), device type, and which features are used, never what anyone types. Admin accounts are excluded, and data is deleted after 180 days or with the account.
 - **Organization verification:** orgs submit legal name, registration number, and role; an admin checks public records and approves, which adds a ✓ Verified badge (renaming the org clears it).
 - **Email:** confirmation and password-reset links via Resend, switched on by configuration. Until it's configured, admins can issue one-time reset links.
@@ -62,6 +66,10 @@ wrangler.toml         Pages + D1 binding config
 | GET | `/api/media/:id` | org images public; individuals' members-only |
 | POST | `/api/activity` | `{sid, activeMs, device, events[]}` usage ping (guests and members) |
 | GET | `/api/admin/activity?days=&tz=` · `/api/admin/activity/users/:id` | dashboard data; admins only |
+| GET · POST | `/api/notifications` · `/api/notifications/read` `{ids[]}\|{all:true}` | members only |
+| POST | `/api/feedback` | `{kind, message, contactEmail?, page}`; guests allowed (10/hour per IP) |
+| GET · POST | `/api/admin/feedback?status=` · `/api/admin/feedback/:id` `{status}` | admins only |
+| GET | `/api/stats` | public aggregate counts for guests (cached 5 min) |
 
 ## Admins
 
@@ -97,7 +105,7 @@ With the dev server running **without** `.dev.vars` (email off):
 bash tests/run.sh
 ```
 
-This runs `api_test.sh`, `trust_test.sh`, `media_test.sh`, and `activity_test.sh`. To exercise the email flows, start the server with `RESEND_API_KEY=dev-log` in `.dev.vars` and run `bash tests/trust_test.sh http://127.0.0.1:8788 devlog <path-to-dev-server-log>`. Test accounts all use `@example.com` addresses.
+This runs `api_test.sh`, `trust_test.sh`, `media_test.sh`, `activity_test.sh`, and `writeup_test.sh`. To exercise the email flows, start the server with `RESEND_API_KEY=dev-log` in `.dev.vars` and run `bash tests/trust_test.sh http://127.0.0.1:8788 devlog <path-to-dev-server-log>`. Test accounts all use `@example.com` addresses.
 
 ## Deployment
 
@@ -108,6 +116,7 @@ npx wrangler pages deploy
 
 ## Not yet built
 
-- Email is built but not switched on: it needs a Resend account and a domain (see above).
+- Email is built but not switched on: it needs a Resend account and a domain (see above). Email notifications would build on it.
+- Web push (alerts when the site is closed) needs a service worker and VAPID keys. Browser alerts currently work only while a tab is open.
 - Partnership requests, resource listings, and blueprint sharing from the prototype still exist only in `demo.html`.
 - The privacy policy and terms were drafted for this prototype. Have them reviewed by someone qualified before a wide launch.
