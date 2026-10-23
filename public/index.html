@@ -461,6 +461,59 @@
     .avatar-wrap{ margin-top:-48px; }
   }
 
+  /* ---------- Asks vs offers, commitments, ratings ---------- */
+  .type-choice{ display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin:.4rem 0 .6rem; }
+  .type-card{ display:flex; flex-direction:column; gap:.35rem; text-align:left; padding:1.2rem 1.1rem; min-height:130px; border-radius:14px; border:2px solid var(--border); background:var(--surface); color:var(--text); font:inherit; cursor:pointer; transition:border-color .15s, transform .15s, box-shadow .15s; }
+  .type-card b{ font-family:'Newsreader',Georgia,serif; font-size:1.35rem; font-weight:600; }
+  .type-card span{ font-size:.86rem; color:var(--text-muted); line-height:1.45; }
+  .type-card:hover, .type-card:focus-visible{ transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+  .type-card.type-ask{ border-top:6px solid var(--accent); }
+  .type-card.type-ask:hover{ border-color:var(--accent); }
+  .type-card.type-offer{ border-top:6px solid var(--success); }
+  .type-card.type-offer:hover{ border-color:var(--success); }
+  .type-chosen{ display:flex; align-items:center; gap:.6rem; font-weight:700; font-size:.9rem; padding:.55rem .8rem; border-radius:10px; margin-bottom:1rem; }
+  .type-chosen.type-ask{ background:var(--accent-soft); color:var(--accent); }
+  .type-chosen.type-offer{ background:var(--success-soft); color:var(--success); }
+  .type-chosen .link-btn{ margin-left:auto; color:var(--text); }
+  .preview-box{ border:1px solid var(--border); border-radius:12px; padding:1rem 1.1rem; background:var(--surface-2); }
+  .preview-box h4{ font-family:'Newsreader',Georgia,serif; font-size:1.3rem; margin:.1rem 0 .5rem; }
+  .preview-detail{ font-size:.9rem; line-height:1.5; white-space:pre-wrap; margin-bottom:.8rem; max-height:8rem; overflow:auto; }
+  .post-lead{ font-size:.9rem; color:var(--text-muted); font-weight:600; margin-bottom:.15rem; }
+  .spots{ font-size:.74rem; font-weight:700; padding:.24rem .58rem; border-radius:100px; }
+  .spots-open{ background:var(--accent-soft); color:var(--accent); }
+  .spots-full{ background:var(--success-soft); color:var(--success); }
+  .spots-done{ background:var(--surface-2); color:var(--text-muted); }
+  .rating-badge{ display:inline-block; font-family:'Public Sans',sans-serif; font-size:.72rem; font-weight:700; padding:.12rem .48rem; border-radius:100px; background:var(--warning-soft); color:var(--text); vertical-align:middle; white-space:nowrap; }
+  .rating-badge.rating-new{ background:var(--surface-2); color:var(--text-muted); }
+  .stars{ color:#C98500; letter-spacing:.05em; }
+  .star-row{ display:flex; gap:.15rem; margin-bottom:.6rem; }
+  .star-btn{ font-size:1.7rem; line-height:1; background:none; border:none; padding:.1rem .15rem; color:var(--border); cursor:pointer; }
+  .star-btn.on{ color:#C98500; }
+  .star-btn:hover{ transform:scale(1.1); }
+  .rate-box{ border:1px solid var(--border); border-left:4px solid #C98500; border-radius:10px; padding:.8rem .9rem; margin:.7rem 0; background:var(--surface); }
+  .rating-item{ padding:.55rem 0; border-top:1px solid var(--border); font-size:.88rem; }
+  .rating-item:first-of-type{ border-top:none; }
+  .rating-item p{ margin:.25rem 0; }
+  .conv-status{ font-size:.86rem; font-weight:600; padding:.5rem .7rem; border-radius:8px; margin:.6rem 0 .2rem; }
+  .conv-talking{ background:var(--warning-soft); color:var(--text); }
+  .conv-committed{ background:var(--success-soft); color:var(--text); }
+  .conv-completed{ background:var(--primary-soft); color:var(--text); }
+  .conv-ended{ background:var(--surface-2); color:var(--text-muted); }
+  .poster-panel{ margin-bottom:1rem; border-left:4px solid var(--primary); }
+  .team-list{ list-style:none; margin:0 0 .8rem; padding:0; display:flex; flex-direction:column; gap:.45rem; }
+  .team-list li{ display:flex; align-items:center; gap:.55rem; font-size:.9rem; }
+  .team-list li .link-btn{ margin-left:auto; }
+  .helpers-edit{ display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; margin:.4rem 0 .8rem; }
+  .team-update{ margin-top:.4rem; }
+  .stepper{ display:inline-flex; align-items:center; border:1px solid var(--border); border-radius:10px; overflow:hidden; background:var(--surface); }
+  .stepper-btn{ width:40px; height:40px; border:none; background:var(--surface-2); color:var(--text); font-size:1.2rem; font-weight:700; cursor:pointer; }
+  .stepper-btn:disabled{ opacity:.4; cursor:default; }
+  .stepper input{ width:3.2rem; height:40px; border:none; text-align:center; font:inherit; font-weight:700; font-size:1rem; background:var(--surface); color:var(--text); -moz-appearance:textfield; }
+  .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+  .how-list{ margin:0; padding-left:1.1rem; font-size:.84rem; line-height:1.55; color:var(--text); }
+  .how-list li{ margin-bottom:.3rem; }
+  @media (max-width:560px){ .type-choice{ grid-template-columns:1fr; } .type-card{ min-height:0; } }
+
   /* ---------- Notifications, feedback, guest invite ---------- */
   .topbar-right{ position:relative; display:flex; align-items:center; gap:.7rem; }
   .bell{ position:relative; display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; }
@@ -1147,6 +1200,11 @@
   ];
   SAMPLE_POSTS.forEach(function(p){
     p.createdAt = Date.now() - p.daysAgo * 86400000; p.author.id = null; p.isMine = false; p.myReplyStatus = null; p.replies = [];
+    var spots = { 'sample-h8':[4,2], 'sample-h4':[2,0], 'sample-h9':[10,3], 'sample-h2':[1,1], 'sample-h5':[3,1] }[p.id] || [1,0];
+    p.helpersNeeded = spots[0]; p.committedCount = spots[1];
+    p.status = spots[1] ? 'in-progress' : 'open'; p.full = spots[1] >= spots[0]; p.spotsLeft = Math.max(0, spots[0] - spots[1]);
+    p.committed = []; p.ratingsDue = 0;
+    p.author.rating = p.author.accountType==='org' ? { avg:4.9, count:23 } : { avg:null, count:0 };
   });
 
   /* ============ STATE ============ */
@@ -1174,6 +1232,8 @@
     adminView:'activity',
     guest:false, memberId:null, memberReturnTab:'help', memberProfile:null,
     imageEdit:null, pickKind:'avatar', pendingDraft:null, gateReason:'', postCat:'Groceries & errands',
+    postType:null, postStep:'details', postDraft:null, postHelpers:1,
+    helpOpenOnly:false, rateDraft:{}, commitTarget:null, editHelpers:null,
     admin:{ overview:null, reports:null, verifications:null, users:null, userQuery:'', reportFilter:'open', resetLink:null,
             activity:null, activityDays:30, activityUser:null, activityUserId:null, activitySort:'time', feedback:null, feedbackFilter:'new' }
   };
@@ -1301,9 +1361,10 @@
     // A guest who wrote a post before signing up gets it back, ready to publish.
     if(state.pendingDraft){
       var d = state.pendingDraft; state.pendingDraft = null;
-      state.postCat = d['hp-cat'] || state.postCat;
-      state.modal = 'post-help'; render(); fillDraft(d);
-      setTimeout(function(){ toast('Welcome! Your draft is ready. Review it and press Post.'); }, 50);
+      state.postType = d.type; state.postDraft = d; state.postStep = 'preview';
+      state.postCat = d.category || state.postCat; state.postHelpers = d.helpersNeeded || 1;
+      state.modal = 'post-help'; render();
+      setTimeout(function(){ toast('Welcome! Your post is ready. Check it and press Publish.'); }, 50);
     }
   }
 
@@ -1345,7 +1406,7 @@
       +     (o.editable ? '<button class="avatar-edit" data-action="pick-image" data-kind="avatar" aria-label="Change profile photo" title="Change profile photo">' + ICONS.camera + '</button>' : '')
       +   '</div>'
       +   (o.actions ? '<div class="profile-hero-actions">' + o.actions + '</div>' : '')
-      +   '<h2 class="profile-name">' + esc(u.displayName) + (u.verified ? ' ' + verifiedMark() : '')
+      +   '<h2 class="profile-name">' + esc(u.displayName) + (u.verified ? ' ' + verifiedMark() : '') + (u.rating ? ' ' + ratingBadge(u.rating) : '')
       +     (u.pronouns ? ' <span class="pronouns">(' + esc(u.pronouns) + ')</span>' : '') + '</h2>'
       +   (u.headline ? '<p class="profile-headline">' + esc(u.headline) + '</p>' : '')
       +   '<div class="meta-row" style="margin:.55rem 0 0;"><span>' + ICONS.pin + esc(u.location) + '</span><span>' + ICONS.globe + esc(regionLabel(u.region)) + '</span>'
@@ -1379,8 +1440,14 @@
           + (u.verified ? 'Global Neighbors has checked this organization’s registration details.' : 'This organization created its own profile. It hasn’t been verified yet.') + '</p></div>' : '')
       + (state.user && !self ? '<div class="side-card"><div class="section-label">Safety</div>'
           + safetyRow({ reportType:'user', reportId:u.id, label:(org ? 'organization ' : '') + u.displayName, blockId:u.id, blockName:u.displayName }) + '</div>' : '');
+    var ratings = (mp.ratings && mp.ratings.length) ? '<div class="card" style="margin-bottom:1rem;"><div class="section-label">Ratings</div>'
+      + mp.ratings.map(function(g){
+          return '<div class="rating-item">' + starsText(g.stars) + ' <span class="res-org">' + esc(g.from) + ' · ' + fmtDate(g.createdAt) + '</span>'
+            + (g.comment ? '<p>' + esc(g.comment) + '</p>' : '')
+            + (state.user && !self ? '<button class="link-btn" data-action="open-report" data-type="rating" data-id="' + esc(g.id) + '" data-label="rating from ' + esc(g.from) + '">Report</button>' : '') + '</div>';
+        }).join('') + '</div>' : '';
     return back + profileHero(u, { actions:actions })
-      + '<div class="profile-grid"><div>' + about + skills + posts + '</div><div>' + side + '</div></div>';
+      + '<div class="profile-grid"><div>' + about + skills + ratings + posts + '</div><div>' + side + '</div></div>';
   }
 
   function openMember(id){
@@ -1485,9 +1552,7 @@
       +   '</div>'
       + '</div></div>';
   }
-  function fillDraft(d){
-    Object.keys(d).forEach(function(id){ var el = document.getElementById(id); if(el) el.value = d[id]; });
-  }
+
 
   /* ============ RENDER: LANDING ============ */
   function renderLanding(){
@@ -1649,11 +1714,41 @@
       : pay.label || (pay.kind==='funding' ? 'Needs funding' : 'Stipend');
     return '<span class="pay-tag ' + esc(pay.kind) + '">' + esc(label) + '</span>';
   }
+  // One vocabulary everywhere: an "ask" needs help, an "offer" is someone offering it.
+  var TYPE_WORDS = {
+    ask:   { pill:'Needs help',    cta:'I can help',   helperNoun:'helper', peopleQ:'How many people do you need?', previewLead:'You’re asking for help with:' },
+    offer: { pill:'Offering help', cta:'Request this', helperNoun:'spot',   peopleQ:'How many people can you help?', previewLead:'You’re offering:' }
+  };
   function statusPill(p){
-    if(p.status==='resolved') return '<span class="status-pill status-declined">Resolved</span>';
-    if(p.status==='in-progress') return '<span class="status-pill status-accepted">Help underway</span>';
+    if(p.status==='resolved') return '<span class="status-pill status-declined">Completed</span>';
+    if(p.full) return '<span class="status-pill status-accepted">In progress · full</span>';
+    if(p.status==='in-progress') return '<span class="status-pill status-accepted">In progress</span>';
     return '';
   }
+  // "2 of 4 helpers · needs 2 more", "Helper found", "1 of 3 spots taken · 2 left", "Full".
+  function spotsText(p){
+    var n = p.helpersNeeded || 1, c = p.committedCount || 0, left = Math.max(0, n - c);
+    if(p.status==='resolved') return c ? (p.type==='ask' ? c + ' helped' : c + ' helped') : 'Completed';
+    if(p.type==='ask'){
+      if(n===1) return c ? 'Helper found' : 'Needs 1 helper';
+      if(!c) return 'Needs ' + n + ' helpers';
+      return left ? c + ' of ' + n + ' helpers · needs ' + left + ' more' : 'Full · ' + n + ' of ' + n + ' helpers';
+    }
+    if(n===1) return c ? 'Full' : 'Can help 1 person';
+    if(!c) return 'Can help ' + n + ' people';
+    return left ? c + ' of ' + n + ' spots taken · ' + left + ' left' : 'Full · ' + n + ' of ' + n + ' spots';
+  }
+  function spotsChip(p){
+    var cls = p.status==='resolved' ? 'spots-done' : p.full ? 'spots-full' : 'spots-open';
+    return '<span class="spots ' + cls + '">' + esc(spotsText(p)) + '</span>';
+  }
+  function ratingBadge(rating){
+    if(!rating) return '';
+    if(!rating.count) return '<span class="rating-badge rating-new" title="No ratings yet">New</span>';
+    return '<span class="rating-badge" title="Average of ' + rating.count + ' rating' + (rating.count===1?'':'s') + '">★ ' + Number(rating.avg).toFixed(1) + ' · ' + rating.count + ' rating' + (rating.count===1?'':'s') + '</span>';
+  }
+  function starsText(n){ var s = ''; for(var i = 1; i <= 5; i++) s += i <= n ? '★' : '☆'; return '<span class="stars" aria-label="' + n + ' out of 5 stars">' + s + '</span>'; }
+  function shortDate(ms){ return new Date(ms).toLocaleDateString(undefined, { month:'short', day:'numeric' }); }
   function repliesLabel(n){ return n===0 ? 'No replies yet' : n + (n===1 ? ' reply' : ' replies'); }
   function whoLine(name, accountType, verified){
     return esc(name) + (accountType==='org' ? (verified ? verifiedMark() : '<span class="kind-badge">Org</span>') : '');
@@ -1666,21 +1761,22 @@
       + (o.blockId ? '<button class="link-btn" data-action="block-user" data-user="' + esc(o.blockId) + '" data-name="' + esc(o.blockName) + '">Block ' + esc(o.blockName) + '</button>' : '')
       + '</div>';
   }
-  function typePill(p){ return '<span class="res-type ' + (p.type==='ask'?'ask':'offer') + '">' + (p.type==='ask' ? 'Asking for help' : 'Offering help') + '</span>'; }
+  function typePill(p){ return '<span class="res-type ' + (p.type==='ask'?'ask':'offer') + '">' + TYPE_WORDS[p.type].pill + '</span>'; }
 
   function helpCard(p){
     var cta;
-    if(p.isMine) cta = '<button class="btn btn-secondary btn-sm" data-action="view-help" data-id="' + esc(p.id) + '">Manage post</button>';
-    else if(p.myReplyStatus) cta = '<button class="btn btn-secondary btn-sm" data-action="view-help" data-id="' + esc(p.id) + '">View your reply</button>';
+    if(p.ratingsDue) cta = '<button class="btn btn-primary btn-sm" data-action="view-help" data-id="' + esc(p.id) + '">Rate your experience</button>';
+    else if(p.isMine) cta = '<button class="btn btn-secondary btn-sm" data-action="view-help" data-id="' + esc(p.id) + '">Manage post</button>';
+    else if(p.myReplyStatus) cta = '<button class="btn btn-secondary btn-sm" data-action="view-help" data-id="' + esc(p.id) + '">Open conversation</button>';
     else if(p.status==='resolved') cta = '<button class="btn btn-ghost btn-sm" data-action="view-help" data-id="' + esc(p.id) + '">Details</button>';
-    else cta = '<button class="btn btn-primary btn-sm" data-action="view-help" data-id="' + esc(p.id) + '">' + (p.type==='ask' ? 'I can help' : 'Request this') + '</button>';
+    else cta = '<button class="btn btn-primary btn-sm" data-action="view-help" data-id="' + esc(p.id) + '">' + TYPE_WORDS[p.type].cta + '</button>';
     return '<div class="card help-card">'
       + '<div class="help-top">' + typePill(p) + (p.sample ? '<span class="sample-pill">Sample</span>' : '') + (p.urgency==='Urgent' ? '<span class="urgent-pill">Urgent</span>' : '') + statusPill(p)
       +   '<span class="res-date">' + fmtDate(p.createdAt) + '</span></div>'
       + '<h3 style="font-size:1rem; font-weight:600;">' + esc(p.title) + '</h3>'
       + '<div class="author-line">' + avatarHtml(p.author, 'xs') + '<div class="res-org">' + nameLink(p.author) + ' · ' + esc(p.location) + '</div></div>'
       + '<div class="help-snippet">' + esc(p.detail) + '</div>'
-      + '<div class="tag-row" style="margin-bottom:0;"><span class="tag">' + esc(categoryLabel(p)) + '</span>' + payTag(p.pay) + '<span class="tag muted">' + esc(scaleLabel(p.scale)) + '</span></div>'
+      + '<div class="tag-row" style="margin-bottom:0;">' + spotsChip(p) + '<span class="tag">' + esc(categoryLabel(p)) + '</span>' + payTag(p.pay) + '<span class="tag muted">' + esc(scaleLabel(p.scale)) + '</span></div>'
       + '<div class="help-foot"><span class="reply-count">' + (p.isMine ? repliesLabel(p.replyCount) : '') + '</span><div class="card-actions">' + cta + '</div></div>'
       + '</div>';
   }
@@ -1695,7 +1791,8 @@
         && (state.helpType==='all' || p.type===state.helpType)
         && (state.helpRegion==='All' || p.region===state.helpRegion)
         && (state.helpCat==='All' || p.category===state.helpCat)
-        && (state.helpPay==='all' || payKind===state.helpPay);
+        && (state.helpPay==='all' || payKind===state.helpPay)
+        && (!state.helpOpenOnly || (p.status!=='resolved' && !p.full));
     });
 
     var seg = !state.user ? '' : '<div class="seg" role="tablist">' + [
@@ -1712,9 +1809,15 @@
     var filters = state.helpView!=='browse' ? '' :
         '<div class="toolbar"><input class="search-input" type="text" placeholder="Search posts: groceries, water, tutoring, Nairobi…" value="' + esc(state.helpQuery) + '" data-search="helpQuery" aria-label="Search help posts">'
       +   '<select class="filter-select" data-role="help-cat" aria-label="Category">' + groupedCategoryOpts(state.helpCat, true) + '</select></div>'
-      + '<div class="toolbar">' + chips('helpType', [['all','Asks & offers'],['ask','Asking for help'],['offer','Offering help']])
+      + '<div class="toolbar">' + chips('helpType', [['all','Everything'],['ask','Needs help'],['offer','Offering help']])
+      +   '<button class="chip' + (state.helpOpenOnly ? ' active' : '') + '" data-action="toggle-open-only" aria-pressed="' + !!state.helpOpenOnly + '">Still needs helpers</button>'
       +   '<span style="width:.6rem;"></span>' + chips('helpPay', [['all','Any'],['volunteer','Volunteer'],['paid','Paid & stipend'],['funding','Needs funding']]) + '</div>'
       + '<div class="toolbar"><span class="toolbar-label">Where</span>' + chips('helpRegion', [['All','Everywhere']].concat(REGIONS.map(function(r){ return [r, regionLabel(r)]; }))) + '</div>';
+
+    // Nudge members toward ratings they still owe.
+    var due = state.posts.filter(function(p){ return p.ratingsDue; });
+    var rateBanner = due.length ? '<div class="banner">You have ' + due.length + ' completed task' + (due.length===1?'':'s') + ' to rate. Ratings help neighbors know who to trust. '
+      + '<button class="link-btn" data-action="view-help" data-id="' + esc(due[0].id) + '">Rate now</button></div>' : '';
 
     var empty = state.postsLoading ? 'Loading posts…'
       : state.helpView==='mine' ? 'You haven’t posted anything yet. Ask for a hand, or offer one.'
@@ -1730,10 +1833,63 @@
 
     return '<div class="page-head">'
       +   '<div><h2>Help Board</h2><p>' + sub + '</p></div>'
-      +   '<button class="btn btn-primary" data-action="open-modal" data-modal="post-help">+ Post to the Help Board</button>'
+      +   '<button class="btn btn-primary" data-action="open-modal" data-modal="post-help">+ New post</button>'
       + '</div>'
-      + seg + filters
+      + rateBanner + seg + filters
       + (list.length && !state.postsLoading ? '<div class="grid">' + list.map(helpCard).join('') + '</div>' : '<div class="empty">' + empty + '</div>');
+  }
+
+  /* ---------- conversations: talking → committed → completed (or withdrawn / declined) ---------- */
+  function helperIsMe(p, r){ return p.type==='ask' ? r.isMine : p.isMine; }
+  function helperName(p, r){ return p.type==='ask' ? r.user.name : p.author.name; }
+  function otherName(p, r){ return r.isMine ? p.author.name : r.user.name; }
+
+  function conversationStatus(p, r){
+    var me = helperIsMe(p, r), dis = state.busy ? ' disabled' : '', line = '', buttons = '';
+    var helper = me ? 'You' : esc(helperName(p, r));
+    if(r.status==='talking' && p.status==='resolved'){
+      return { cls:'conv-ended', line:'This task is complete. You can still message each other.', buttons:'' };
+    }
+    if(r.status==='talking'){
+      if(me){
+        line = p.full ? 'This task is full. You can still message ' + esc(otherName(p, r)) + '.'
+          : 'You haven’t committed yet. Ask any questions first, then commit when you’re ready.';
+        if(!p.full && p.status!=='resolved') buttons += '<button class="btn btn-primary btn-sm" data-action="ask-commit" data-reply="' + esc(r.id) + '"' + dis + '>Commit to this task</button>';
+      } else {
+        line = 'Waiting for ' + helper + ' to commit.' + (p.full && p.isMine ? ' (All spots are filled right now.)' : '');
+      }
+      if(p.isMine && p.type==='ask') buttons += '<button class="btn btn-ghost btn-sm" data-action="decline-reply" data-reply="' + esc(r.id) + '"' + dis + '>Decline</button>';
+      else if(p.isMine && p.type==='offer') buttons += '<button class="btn btn-ghost btn-sm" data-action="decline-reply" data-reply="' + esc(r.id) + '"' + dis + '>Decline request</button>';
+      else buttons += '<button class="btn btn-ghost btn-sm" data-action="withdraw-reply" data-reply="' + esc(r.id) + '" data-mode="leave"' + dis + '>Withdraw reply</button>';
+      return { cls:'conv-talking', line:line, buttons:buttons };
+    }
+    if(r.status==='committed'){
+      line = helper + ' committed on ' + shortDate(r.committedAt) + '.';
+      if(me) buttons = '<button class="btn btn-ghost btn-sm" data-action="withdraw-reply" data-reply="' + esc(r.id) + '" data-mode="backout"' + dis + '>Back out</button>';
+      else if(p.isMine) buttons = '<button class="btn btn-ghost btn-sm" data-action="withdraw-reply" data-reply="' + esc(r.id) + '" data-mode="release"' + dis + '>Release helper</button>';
+      else buttons = '<button class="btn btn-ghost btn-sm" data-action="withdraw-reply" data-reply="' + esc(r.id) + '" data-mode="cancel"' + dis + '>Cancel request</button>';
+      return { cls:'conv-committed', line:line, buttons:buttons };
+    }
+    if(r.status==='completed'){
+      line = 'Completed on ' + shortDate(r.endedAt) + '.' + (r.myStars ? ' You rated ' + esc(otherName(p, r)) + ' ' + starsText(r.myStars) + '.' : '');
+      return { cls:'conv-completed', line:line, buttons:'' };
+    }
+    if(r.status==='declined') return { cls:'conv-ended', line:'Declined' + (r.endedAt ? ' on ' + shortDate(r.endedAt) : '') + '. Messaging is closed.', buttons:'' };
+    return { cls:'conv-ended', line:(r.endedBy==='me' ? 'You ended this' : esc(otherName(p, r)) + ' ended this') + (r.endedAt ? ' on ' + shortDate(r.endedAt) : '') + '. Messaging is closed.', buttons:'' };
+  }
+
+  function ratingForm(p, r){
+    var picked = state.rateDraft[r.id] || 0, dis = state.busy ? ' disabled' : '';
+    var stars = '';
+    for(var i = 1; i <= 5; i++){
+      stars += '<button type="button" class="star-btn' + (i <= picked ? ' on' : '') + '" role="radio" aria-checked="' + (i===picked) + '" aria-label="' + i + ' star' + (i===1?'':'s') + '" data-action="rate-star" data-reply="' + esc(r.id) + '" data-stars="' + i + '">★</button>';
+    }
+    return '<form class="rate-box" data-action="submit-rating" data-reply="' + esc(r.id) + '">'
+      + '<div class="section-label" style="margin:0 0 .4rem;">How was it working with ' + esc(otherName(p, r)) + '?</div>'
+      + '<div class="star-row" role="radiogroup" aria-label="Rating">' + stars + '</div>'
+      + '<textarea id="rate-comment-' + esc(r.id) + '" maxlength="280" placeholder="Optional: a short note others will see (280 characters)"></textarea>'
+      + '<div class="card-actions" style="margin-top:.6rem;"><button class="btn btn-primary btn-sm" type="submit"' + (picked ? '' : ' disabled') + dis + '>Submit rating</button></div>'
+      + '</form>';
   }
 
   function renderThread(p, r){
@@ -1741,81 +1897,117 @@
     return '<div class="thread">' + msgs.map(function(m){
         return '<div class="msg ' + (m.isMine?'msg-me':'msg-them') + '">' + esc(m.text) + '<div class="msg-meta">' + (m.isMine ? 'You' : esc(m.from)) + ' · ' + fmtDate(m.createdAt) + '</div></div>';
       }).join('')
-      + (p.status==='resolved' ? '' :
+      + (!r.canMessage ? '' :
         '<form class="msg-form" data-action="send-message" data-reply="' + esc(r.id) + '">'
         + '<input type="text" maxlength="2000" placeholder="Write a message…" aria-label="Message" required>'
         + '<button class="btn btn-primary btn-sm" type="submit"' + (state.busy?' disabled':'') + '>Send</button></form>')
       + '</div>';
   }
-  function replyStatus(r){
-    if(r.status==='accepted') return '<span class="status-pill status-accepted">Accepted</span>';
-    if(r.status==='declined') return '<span class="status-pill status-declined">Declined</span>';
-    return '<span class="status-pill status-pending">Awaiting reply</span>';
+
+  // One conversation card; the poster sees one per reply, everyone else sees only their own.
+  function conversationCard(p, r){
+    var st = conversationStatus(p, r);
+    var other = r.isMine ? p.author : r.user;
+    var open = !p.isMine || state.openThread===r.id;
+    return '<div class="card response">'
+      + '<div class="response-head"><div class="author-line">' + avatarHtml(other, 'sm') + '<div><h3 style="font-size:.98rem;">' + nameLink(other) + ' ' + ratingBadge(other.rating) + '</h3>'
+      +   (p.isMine ? '<div class="res-org">' + esc(r.user.headline ? r.user.headline + ' · ' : '') + esc(r.user.location) + '</div>' : '<div class="res-org">Your conversation</div>') + '</div></div></div>'
+      + '<div class="conv-status ' + st.cls + '">' + st.line + '</div>'
+      + (r.canRate ? ratingForm(p, r) : '')
+      + (open ? renderThread(p, r) : '<div class="req-note">' + esc(r.text) + '</div>')
+      + '<div class="card-actions" style="margin-top:.7rem; flex-wrap:wrap;">' + st.buttons
+      +   (p.isMine ? '<button class="btn btn-secondary btn-sm" data-action="toggle-thread" data-reply="' + esc(r.id) + '">' + (open ? 'Hide messages' : 'Messages (' + (r.messages.length + 1) + ')') + '</button>' : '') + '</div>'
+      + safetyRow(p.isMine ? { reportType:'reply', reportId:r.id, label:'reply from ' + r.user.name, blockId:r.user.id, blockName:r.user.name }
+                           : { reportType:'reply', reportId:r.id, label:'conversation with ' + p.author.name })
+      + '</div>';
+  }
+
+  // Poster tools: who's committed, how many are needed, a group update, and completion.
+  function posterPanel(p){
+    var dis = state.busy ? ' disabled' : '';
+    if(p.status==='resolved'){
+      return '<div class="card poster-panel"><div class="section-label">Completed</div><p style="font-size:.9rem;">You marked this task complete. Everyone who helped has been asked to rate the experience, and you can rate them below.</p></div>';
+    }
+    var team = p.committed || [];
+    var minNeeded = Math.max(1, team.length), n = state.editHelpers != null ? state.editHelpers : p.helpersNeeded;
+    return '<div class="card poster-panel">'
+      + '<div class="section-label">' + (p.type==='ask' ? 'Your helpers' : 'People you’re helping') + ' · ' + esc(spotsText(p)) + '</div>'
+      + (team.length ? '<ul class="team-list">' + team.map(function(t){
+          var reply = p.replies.filter(function(r){ return r.user.id===t.id; })[0];
+          return '<li>' + avatarHtml({ id:t.id, name:t.name, avatarUrl:t.avatarUrl, accountType:t.accountType }, 'xs') + '<span>' + esc(t.name) + ' ' + ratingBadge(t.rating) + '</span>'
+            + (reply ? '<button class="link-btn" data-action="withdraw-reply" data-reply="' + esc(reply.id) + '" data-mode="release">Release</button>' : '') + '</li>';
+        }).join('') + '</ul>'
+        : '<p class="res-org" style="margin-bottom:.6rem;">No one has committed yet. Replies start as conversations; a spot fills when ' + (p.type==='ask' ? 'a helper commits.' : 'you commit to someone’s request.') + '</p>')
+      + '<div class="helpers-edit"><span class="field-label" style="margin:0;">' + TYPE_WORDS[p.type].peopleQ + '</span>'
+      +   stepperHtml('edit-helpers', n, minNeeded)
+      +   (n !== p.helpersNeeded ? '<button class="btn btn-secondary btn-sm" data-action="save-helpers"' + dis + '>Save</button>' : '') + '</div>'
+      + (team.length ? '<form class="team-update" data-action="send-update"><label class="field-label" for="team-update-text">Send one update to everyone committed</label>'
+          + '<div class="msg-form" style="margin-top:0;"><input id="team-update-text" maxlength="2000" placeholder="e.g. We’re meeting at 10am at the library entrance" required>'
+          + '<button class="btn btn-secondary btn-sm" type="submit"' + dis + '>Send</button></div><p class="hint">Delivered into each person’s private conversation.</p></form>' : '')
+      + '<div class="card-actions" style="margin-top:.8rem;"><button class="btn btn-primary btn-sm" data-action="complete-post"' + dis + '>Mark task complete</button></div>'
+      + '</div>';
+  }
+  function stepperHtml(id, value, min){
+    return '<div class="stepper" role="group" aria-label="Number of people">'
+      + '<button type="button" class="stepper-btn" data-action="step" data-target="' + id + '" data-delta="-1" aria-label="Fewer"' + (value <= (min || 1) ? ' disabled' : '') + '>−</button>'
+      + '<input id="' + id + '" type="number" inputmode="numeric" min="' + (min || 1) + '" max="20" value="' + value + '" data-role="stepper" aria-label="Number of people">'
+      + '<button type="button" class="stepper-btn" data-action="step" data-target="' + id + '" data-delta="1" aria-label="More"' + (value >= 20 ? ' disabled' : '') + '>+</button>'
+      + '</div>';
   }
 
   function renderHelpDetail(){
     var back = '<button class="btn btn-ghost btn-sm" style="margin-bottom:1rem;" data-action="close-help">← Back to Help Board</button>';
     var p = state.helpDetail;
     if(!p) return back + '<div class="empty">Loading…</div>';
-    var dis = state.busy ? ' disabled' : '';
-
-    var ownerActions = p.isMine
-      ? '<div class="card-actions">'
-        + (p.status!=='resolved'
-            ? '<button class="btn btn-secondary btn-sm" data-action="set-post-status" data-status="resolved"' + dis + '>Mark as resolved</button>'
-            : '<button class="btn btn-secondary btn-sm" data-action="set-post-status" data-status="open"' + dis + '>Reopen</button>')
-        + '<button class="btn btn-ghost btn-sm" data-action="delete-post"' + dis + '>Delete</button></div>'
-      : '';
+    var dis = state.busy ? ' disabled' : '', W = TYPE_WORDS[p.type];
 
     var head = back
       + '<div class="profile-head">'
       +   '<div><div class="help-top" style="margin-bottom:.6rem;">' + typePill(p) + (p.urgency==='Urgent' ? '<span class="urgent-pill">Urgent</span>' : '') + statusPill(p) + '</div>'
-      +   '<h2>' + esc(p.title) + '</h2></div>' + ownerActions
+      +   '<p class="post-lead">' + esc(p.isMine ? (p.type==='ask' ? 'You’re asking for help with:' : 'You’re offering:') : p.author.name + (p.type==='ask' ? ' needs help with:' : ' is offering:')) + '</p>'
+      +   '<h2>' + esc(p.title) + '</h2></div>'
+      +   (p.isMine ? '<div class="card-actions"><button class="btn btn-ghost btn-sm" data-action="delete-post"' + dis + '>Delete</button></div>' : '')
       + '</div>'
       + '<div class="meta-row" style="margin-bottom:.8rem;"><span>' + ICONS.pin + esc(p.location) + '</span><span>' + ICONS.globe + esc(scaleLabel(p.scale)) + '</span><span>Posted ' + fmtDate(p.createdAt) + '</span></div>'
-      + '<div class="tag-row"><span class="tag">' + esc(categoryLabel(p)) + '</span>' + payTag(p.pay) + '<span class="tag muted">' + esc(p.urgency) + '</span></div>'
+      + '<div class="tag-row">' + spotsChip(p) + '<span class="tag">' + esc(categoryLabel(p)) + '</span>' + payTag(p.pay) + '<span class="tag muted">' + esc(p.urgency) + '</span></div>'
       + (p.hidden ? '<div class="form-error">Moderators hid this post after a report, so other members can’t see it. If you think this is a mistake, email ' + esc(contactEmail()) + '.</div>' : '');
 
-    var replies;
-    var mine = p.replies.filter(function(r){ return r.isMine; })[0];
+    var mine = (p.replies || []).filter(function(r){ return r.isMine; })[0];
+    var main;
     if(p.isMine){
-      replies = '<div class="section-label" style="margin-top:.4rem;">Replies (' + p.replies.length + ')</div>'
-        + (p.replies.length ? p.replies.map(function(r){
-            var open = state.openThread===r.id;
-            var btns = (r.status==='pending' && p.status!=='resolved')
-              ? '<button class="btn btn-primary btn-sm" data-action="respond-reply" data-reply="' + esc(r.id) + '" data-status="accepted"' + dis + '>Accept</button>'
-                + '<button class="btn btn-ghost btn-sm" data-action="respond-reply" data-reply="' + esc(r.id) + '" data-status="declined"' + dis + '>Decline</button>'
-              : '';
-            return '<div class="card response">'
-              + '<div class="response-head"><div class="author-line">' + avatarHtml(r.user, 'sm') + '<div><h3 style="font-size:.98rem;">' + nameLink(r.user) + '</h3><div class="res-org">' + esc(r.user.headline ? r.user.headline + ' · ' : '') + esc(r.user.location) + '</div></div></div>' + replyStatus(r) + '</div>'
-              + (open ? renderThread(p, r) : '<div class="req-note">' + esc(r.text) + '</div>')
-              + '<div class="card-actions" style="margin-top:.7rem;">' + btns
-              +   '<button class="btn btn-secondary btn-sm" data-action="toggle-thread" data-reply="' + esc(r.id) + '">' + (open ? 'Hide messages' : 'Messages (' + (r.messages.length + 1) + ')') + '</button></div>'
-              + safetyRow({ reportType:'reply', reportId:r.id, label:'reply from ' + r.user.name, blockId:r.user.id, blockName:r.user.name })
-              + '</div>';
-          }).join('') : '<div class="card empty" style="padding:1.4rem;">No replies yet. The organizations on the right work on this kind of need, so you can also contact them directly.</div>');
+      main = posterPanel(p)
+        + '<div class="section-label" style="margin-top:1rem;">Conversations (' + p.replies.length + ')</div>'
+        + (p.replies.length ? p.replies.map(function(r){ return conversationCard(p, r); }).join('')
+          : '<div class="card empty" style="padding:1.4rem;">No replies yet. The organizations on the right work on this kind of need, so you can also contact them directly.</div>');
     } else if(mine){
-      replies = '<div class="card response"><div class="response-head"><div class="section-label" style="margin:0;">Your reply</div>' + replyStatus(mine) + '</div>' + renderThread(p, mine)
-        + safetyRow({ reportType:'reply', reportId:mine.id, label:'conversation with ' + p.author.name }) + '</div>';
+      var others = (p.committed || []).filter(function(t){ return !t.isMe; });
+      main = conversationCard(p, mine)
+        + (others.length ? '<p class="hint" style="margin:-.3rem 0 1rem;">Also committed: ' + others.map(function(t){ return esc(t.name); }).join(', ') + '</p>' : '');
     } else if(p.status==='resolved'){
-      replies = '<div class="card empty" style="padding:1.4rem;">This post has been resolved.</div>';
+      main = '<div class="card empty" style="padding:1.4rem;">This task is complete.</div>';
     } else {
-      replies = '<form class="card request-composer" data-action="send-reply">'
-        + '<label class="section-label" for="help-reply-text">' + (p.type==='ask' ? 'Offer to help' : 'Request this help') + '</label>'
-        + '<textarea id="help-reply-text" maxlength="2000" required placeholder="' + (p.type==='ask' ? 'Say how you can help and when you’re available…' : 'Say what you need and when…') + '"></textarea>'
-        + '<div class="card-actions" style="margin-top:.7rem;"><button class="btn btn-primary btn-sm" type="submit"' + dis + '>Send reply</button></div>'
-        + '<p class="posting-as" style="margin:.7rem 0 0;">' + (state.user ? 'Only ' + esc(p.author.name) + ' will see your reply. Don’t share your address or financial details until you trust the other person.' : 'You’re a guest, so you’ll be asked to create a free account before a reply is sent.') + '</p>'
+      main = '<form class="card request-composer" data-action="send-reply">'
+        + '<label class="section-label" for="help-reply-text">' + (p.type==='ask' ? 'I can help' : 'Request this') + '</label>'
+        + (p.full ? '<p class="hint" style="margin:0 0 .6rem;"><b>This task is full</b> right now, but you can still send a message in case a spot opens up.</p>' : '')
+        + '<textarea id="help-reply-text" maxlength="2000" required placeholder="' + (p.type==='ask' ? 'Say how you can help and when you’re available. You’ll be able to ask questions before committing.' : 'Say what you need and when…') + '"></textarea>'
+        + '<div class="card-actions" style="margin-top:.7rem;"><button class="btn btn-primary btn-sm" type="submit"' + dis + '>' + (p.type==='ask' ? 'Start a conversation' : 'Send request') + '</button></div>'
+        + '<p class="posting-as" style="margin:.7rem 0 0;">' + (state.user ? 'Replying starts a private conversation with ' + esc(p.author.name) + '. Nothing is promised until ' + (p.type==='ask' ? 'you commit' : 'they commit') + '. Don’t share your address or financial details until you trust the other person.' : 'You’re a guest, so you’ll be asked to create a free account before a reply is sent.') + '</p>'
         + '</form>';
     }
 
     var suggestions = suggestOrgs(p);
     var side = '<div class="side-card"><div class="section-label">Posted by</div>'
       +   '<div class="author-line">' + avatarHtml(p.author, 'md') + '<div><p style="font-size:.92rem; font-weight:600;">' + nameLink(p.author) + '</p>'
+      +   '<div>' + ratingBadge(p.author.rating) + '</div>'
       +   (p.author.headline ? '<p class="res-org" style="margin-top:.1rem;">' + esc(p.author.headline) + '</p>' : '') + '</div></div>'
       +   (p.sample ? '<p class="hint" style="margin-top:.7rem;">This is a sample post for guests to explore. The people in it are fictional.</p>' : '')
       +   (p.author.id && !p.isMine ? '<button class="btn btn-ghost btn-sm" style="margin-top:.7rem;" data-action="view-member" data-user="' + esc(p.author.id) + '">View profile</button>' : '')
       +   (p.isMine || !state.user ? '' : safetyRow({ reportType:'post', reportId:p.id, label:'post “' + p.title + '”', blockId:p.author.id, blockName:p.author.name }))
       + '</div>'
+      + '<div class="side-card"><div class="section-label">How it works</div><ol class="how-list">'
+      +   '<li>Reply to start a private conversation and ask questions.</li>'
+      +   '<li>' + (p.type==='ask' ? 'The helper' : 'The person offering') + ' clicks <b>Commit</b> when they’re sure. That fills a spot.</li>'
+      +   '<li>The poster marks the task complete, then you rate each other.</li></ol></div>'
       + '<div class="side-card"><div class="section-label">Organizations working on this</div>'
       +   (suggestions.length ? '<div class="suggest">' + suggestions.map(function(o){
             return '<button class="suggest-item suggest-org" data-action="view-org" data-org="' + esc(o.id) + '">'
@@ -1827,9 +2019,97 @@
 
     return head
       + '<div class="profile-grid">'
-      +   '<div><div class="card" style="margin-bottom:1rem;"><div class="section-label">Details</div><p style="font-size:.94rem; line-height:1.6; white-space:pre-wrap;">' + esc(p.detail) + '</p></div>' + replies + '</div>'
+      +   '<div><div class="card" style="margin-bottom:1rem;"><div class="section-label">Details</div><p style="font-size:.94rem; line-height:1.6; white-space:pre-wrap;">' + esc(p.detail) + '</p></div>' + main + '</div>'
       +   '<div>' + side + '</div>'
       + '</div>';
+  }
+
+  /* ---------- confirmation dialogs ---------- */
+  function renderCommitModal(){
+    var c = state.commitTarget, dis = state.busy ? ' disabled' : '';
+    return '<div class="modal-backdrop" data-action="close-modal">'
+      + '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="commit-title">'
+      +   '<h3 id="commit-title">Commit to this task?</h3>'
+      +   '<p style="font-size:.95rem; line-height:1.55;">You’re committing to help ' + (c.who ? esc(c.who) + ' ' : '') + 'with “' + esc(c.title) + '”. ' + esc(c.notify) + ' will be notified.</p>'
+      +   '<p class="hint" style="margin-top:.6rem;">If something changes, you can back out later, and that reopens the spot for someone else.</p>'
+      +   '<div class="modal-actions"><button type="button" class="btn btn-ghost" data-action="close-modal">Not yet</button>'
+      +     '<button type="button" class="btn btn-primary" data-action="confirm-commit"' + dis + '>Commit</button></div>'
+      + '</div></div>';
+  }
+
+  /* ---------- new post: choose ask/offer → details → preview ---------- */
+  function renderPostModal(){
+    var u = state.user || { displayName:'Guest', location:'', region:'Greater Boston' }, dis = state.busy ? ' disabled' : '';
+    var t = state.postType, W = t ? TYPE_WORDS[t] : null, d = state.postDraft || {};
+    var shell = function(inner){
+      return '<div class="modal-backdrop" data-action="close-modal"><div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">' + inner + '</div></div>';
+    };
+    if(!t){
+      return shell('<h3 id="help-modal-title">What would you like to do?</h3>'
+        + '<div class="type-choice">'
+        +   '<button type="button" class="type-card type-ask" data-action="post-type" data-type="ask"><b>I need help</b><span>e.g. a ride to an appointment, moving a couch</span></button>'
+        +   '<button type="button" class="type-card type-offer" data-action="post-type" data-type="offer"><b>I can help</b><span>e.g. tutoring math, grocery runs</span></button>'
+        + '</div>'
+        + '<div class="modal-actions"><button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button></div>');
+    }
+    var chosen = '<div class="type-chosen type-' + t + '">' + (t==='ask' ? 'You’re asking for help' : 'You’re offering help')
+      + ' <button type="button" class="link-btn" data-action="post-type-change">Change</button></div>';
+    if(state.postStep==='preview'){
+      return shell('<h3 id="help-modal-title">Check your post</h3>' + chosen
+        + (state.formError ? '<div class="form-error" role="alert">' + esc(state.formError) + '</div>' : '')
+        + '<div class="preview-box"><p class="post-lead">' + W.previewLead + '</p><h4>' + esc(d.title) + '</h4>'
+        +   '<p class="preview-detail">' + esc(d.detail) + '</p>'
+        +   '<dl class="kv"><dt>' + (t==='ask' ? 'People needed' : 'People you can help') + '</dt><dd>' + d.helpersNeeded + '</dd>'
+        +   '<dt>Category</dt><dd>' + esc(d.category==='Other' ? d.categoryNote : d.category) + '</dd>'
+        +   '<dt>Where</dt><dd>' + esc(d.location) + ' · ' + esc(scaleLabel(d.scale)) + '</dd>'
+        +   '<dt>Timing</dt><dd>' + esc(d.urgency) + '</dd>'
+        +   '<dt>Compensation</dt><dd>' + esc({ volunteer:'Volunteer', paid:'Paid', stipend:'Stipend / expenses', funding:'Needs funding or donations' }[d.payKind] + (d.payLabel ? ' · ' + d.payLabel : '')) + '</dd></dl>'
+        + '</div>'
+        + '<p class="posting-as" style="margin-top:.8rem;">' + (state.user ? 'Signed-in members will see this.' : 'You’re a guest: we’ll keep this while you create a free account to publish it.') + '</p>'
+        + '<div class="modal-actions"><button type="button" class="btn btn-ghost" data-action="post-edit">← Edit</button>'
+        +   '<button type="button" class="btn btn-primary" data-action="publish-post"' + dis + '>' + (state.busy ? 'Publishing…' : state.user ? 'Publish' : 'Continue') + '</button></div>');
+    }
+    return shell('<h3 id="help-modal-title">' + (t==='ask' ? 'Ask for help' : 'Offer help') + '</h3>' + chosen
+      + (state.formError ? '<div class="form-error" role="alert">' + esc(state.formError) + '</div>' : '')
+      + '<form data-action="preview-help" novalidate>'
+      +   '<div class="field"><label for="hp-title">' + (t==='ask' ? 'What do you need help with?' : 'What can you help with?') + '</label><input id="hp-title" type="text" maxlength="120" required placeholder="' + (t==='ask' ? 'e.g. A ride to my doctor’s appointment on Tuesday' : 'e.g. Math tutoring for middle schoolers') + '"></div>'
+      +   '<div class="field"><label for="hp-detail">Details</label><textarea id="hp-detail" maxlength="3000" required placeholder="' + (t==='ask' ? 'When, where, and anything a helper should know. Don’t include your street address.' : 'When you’re available, where, and anything people should know. Don’t include your street address.') + '"></textarea></div>'
+      +   '<div class="field-row">'
+      +     '<div class="field"><label for="hp-cat">Category</label><select id="hp-cat" data-role="post-cat">' + groupedCategoryOpts(state.postCat) + '</select></div>'
+      +     '<div class="field"><span class="field-label">' + W.peopleQ + '</span>' + stepperHtml('hp-helpers', state.postHelpers, 1) + '</div>'
+      +   '</div>'
+      +   (state.postCat==='Other' ? '<div class="field"><label for="hp-catnote">Your topic</label><input id="hp-catnote" maxlength="40" required placeholder="e.g. Wedding photography, Beekeeping, Bike repair"><p class="hint">Shown as the post’s category. Don’t see a category that fits? <button type="button" class="link-btn" data-action="open-feedback">Suggest one</button></p></div>' : '')
+      +   '<div class="field-row">'
+      +     '<div class="field"><label for="hp-loc">Location</label><input id="hp-loc" type="text" maxlength="100" required value="' + esc(u.location) + '" placeholder="Neighborhood &amp; city"></div>'
+      +     '<div class="field"><label for="hp-region">Region</label><select id="hp-region">' + opts(REGIONS, u.region, regionLabel) + '</select></div>'
+      +   '</div>'
+      +   '<div class="field-row">'
+      +     '<div class="field"><label for="hp-scale">Reach</label><select id="hp-scale">' + opts(SCALES, 'Neighborhood', scaleLabel) + '</select></div>'
+      +     '<div class="field"><label for="hp-urgency">Timing</label><select id="hp-urgency">' + opts(URGENCIES) + '</select></div>'
+      +   '</div>'
+      +   '<div class="field-row">'
+      +     '<div class="field"><label for="hp-pay">Compensation</label><select id="hp-pay"><option value="volunteer">Volunteer</option><option value="paid">Paid job</option><option value="stipend">Stipend / expenses</option><option value="funding">Needs funding or donations</option></select></div>'
+      +     '<div class="field"><label for="hp-paylabel">Amount (optional)</label><input id="hp-paylabel" type="text" maxlength="60" placeholder="e.g. $20/hr, gas reimbursed"></div>'
+      +   '</div>'
+      +   '<div class="modal-actions"><button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button>'
+      +     '<button type="submit" class="btn btn-primary">Preview →</button></div>'
+      + '</form>');
+  }
+  var POST_FIELDS = { title:'hp-title', detail:'hp-detail', category:'hp-cat', categoryNote:'hp-catnote', location:'hp-loc', region:'hp-region',
+                      scale:'hp-scale', urgency:'hp-urgency', payKind:'hp-pay', payLabel:'hp-paylabel', helpersNeeded:'hp-helpers' };
+  function readPostForm(){
+    var d = {};
+    Object.keys(POST_FIELDS).forEach(function(k){ var el = document.getElementById(POST_FIELDS[k]); d[k] = el ? el.value.trim() : ''; });
+    d.helpersNeeded = Math.min(20, Math.max(1, parseInt(d.helpersNeeded, 10) || 1));
+    d.type = state.postType;
+    return d;
+  }
+  function fillPostForm(d){
+    Object.keys(POST_FIELDS).forEach(function(k){ var el = document.getElementById(POST_FIELDS[k]); if(el && d[k] != null) el.value = d[k]; });
+  }
+  function openPostModal(){
+    state.modal = 'post-help'; state.postType = null; state.postStep = 'details'; state.postDraft = null;
+    state.postCat = 'Groceries & errands'; state.postHelpers = 1; state.formError = '';
   }
 
   /* ============ RENDER: DIRECTORY ============ */
@@ -2058,6 +2338,7 @@
             + '<div class="card-actions" style="flex-wrap:wrap;">'
             + btn('dismiss', 'Dismiss', 'btn-ghost')
             + (r.targetType==='post' ? btn('hide-post', 'Hide post', 'btn-secondary') : '')
+            + (r.targetType==='rating' ? btn('hide-rating', 'Hide rating', 'btn-secondary') : '')
             + (tu && !tu.suspended && !tu.deleted ? btn('suspend-user', 'Suspend member', 'btn-danger') : '')
             + (r.targetType==='post' && tu && !tu.suspended && !tu.deleted ? btn('hide-and-suspend', 'Hide post & suspend', 'btn-danger') : '')
             + '</div>'
@@ -2194,6 +2475,11 @@
     switch(n.type){
       case 'reply': return who + ' replied to ' + t;
       case 'accepted': return who + ' accepted your reply on ' + t;
+      case 'committed': return who + ' committed to ' + t;
+      case 'withdrawn': return n.detail==='released' ? who + ' released you from ' + t : n.detail==='backed_out' ? who + ' backed out of ' + t + '. The spot is open again.' : who + ' ended your conversation about ' + t;
+      case 'declined': return who + ' declined your reply on ' + t;
+      case 'completed': return who + ' marked ' + t + ' complete. Rate your experience!';
+      case 'rated': return who + ' rated you ' + esc(n.detail) + ' ★ for ' + t;
       case 'message': return who + ' sent you a message about ' + t;
       case 'verification': return n.detail==='approved' ? 'Your organization is now <b>verified</b> ✓' : 'Your verification request needs changes. Open My profile for details.';
       case 'post_hidden': return 'A moderator hid your post ' + t + '. Email ' + esc(contactEmail()) + ' if you think this is a mistake.';
@@ -2393,7 +2679,8 @@
     message:'Messaging', directory:'Browsing the directory', org_view:'Viewing organizations', member_view:'Viewing member profiles',
     my_profile:'Opening My profile', profile_edit:'Editing profiles', photo_upload:'Uploading photos', search:'Searching',
     report:'Reporting', block:'Blocking', admin:'Admin panel', signup_prompt:'Guest sign-up prompts', guest_draft:'Guest post drafts',
-    notifications:'Opening notifications', feedback:'Sending feedback', signup_nudge:'Guest join invitations shown', signup_click:'Guests choosing to sign up'
+    notifications:'Opening notifications', feedback:'Sending feedback', signup_nudge:'Guest join invitations shown', signup_click:'Guests choosing to sign up',
+    commit:'Committing to tasks', complete:'Completing tasks', rating:'Leaving ratings'
   };
   function featureLabel(f){ return FEATURE_LABELS[f] || f; }
   function fmtDuration(ms){
@@ -2589,39 +2876,9 @@
     if(state.modal==='image-edit' && state.imageEdit) return renderImageModal();
     if(state.modal==='gate') return renderGateModal();
     if(state.modal==='feedback') return renderFeedbackModal();
-    if(state.modal!=='post-help') return '';
-    var u = state.user || { displayName:'Guest', location:'', region:'Greater Boston' }, dis = state.busy ? ' disabled' : '';
-    return '<div class="modal-backdrop" data-action="close-modal">'
-      + '<div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">'
-      +   '<h3 id="help-modal-title">Post to the Help Board</h3>'
-      +   '<p class="posting-as">' + (state.user ? 'Posting as ' + esc(u.displayName) + '. Signed-in members can see your post.' : 'You’re a guest: write your post, and we’ll keep it while you create a free account to publish it.') + '</p>'
-      +   (state.formError ? '<div class="form-error" role="alert">' + esc(state.formError) + '</div>' : '')
-      +   '<form data-action="submit-help">'
-      +     '<div class="field-row">'
-      +       '<div class="field"><label for="hp-type">I’m…</label><select id="hp-type"><option value="ask">Asking for help</option><option value="offer">Offering help</option></select></div>'
-      +       '<div class="field"><label for="hp-cat">Category</label><select id="hp-cat" data-role="post-cat">' + groupedCategoryOpts(state.postCat) + '</select></div>'
-      +     '</div>'
-      +     (state.postCat==='Other' ? '<div class="field"><label for="hp-catnote">Your topic</label><input id="hp-catnote" maxlength="40" required placeholder="e.g. Wedding photography, Beekeeping, Bike repair"><p class="hint">Shown as the post’s category. Don’t see a category that fits? <button type="button" class="link-btn" data-action="open-feedback">Suggest one</button></p></div>' : '')
-      +     '<div class="field"><label for="hp-title">Title</label><input id="hp-title" type="text" maxlength="120" required placeholder="e.g. Grocery run for my neighbor on Thursdays"></div>'
-      +     '<div class="field"><label for="hp-detail">Details</label><textarea id="hp-detail" maxlength="3000" required placeholder="What’s needed, when, and anything a helper should know. Don’t include your street address."></textarea></div>'
-      +     '<div class="field-row">'
-      +       '<div class="field"><label for="hp-loc">Location</label><input id="hp-loc" type="text" maxlength="100" required value="' + esc(u.location) + '"></div>'
-      +       '<div class="field"><label for="hp-region">Region</label><select id="hp-region">' + opts(REGIONS, u.region, regionLabel) + '</select></div>'
-      +     '</div>'
-      +     '<div class="field-row">'
-      +       '<div class="field"><label for="hp-scale">Reach</label><select id="hp-scale">' + opts(SCALES, 'Neighborhood', scaleLabel) + '</select></div>'
-      +       '<div class="field"><label for="hp-urgency">Timing</label><select id="hp-urgency">' + opts(URGENCIES) + '</select></div>'
-      +     '</div>'
-      +     '<div class="field-row">'
-      +       '<div class="field"><label for="hp-pay">Compensation</label><select id="hp-pay"><option value="volunteer">Volunteer</option><option value="paid">Paid job</option><option value="stipend">Stipend / expenses</option><option value="funding">Needs funding or donations</option></select></div>'
-      +       '<div class="field"><label for="hp-paylabel">Amount (optional)</label><input id="hp-paylabel" type="text" maxlength="60" placeholder="e.g. $20/hr, gas reimbursed"></div>'
-      +     '</div>'
-      +     '<div class="modal-actions">'
-      +       '<button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button>'
-      +       '<button type="submit" class="btn btn-primary"' + dis + '>' + (state.busy ? 'Posting…' : state.user ? 'Post' : 'Continue') + '</button>'
-      +     '</div>'
-      +   '</form>'
-      + '</div></div>';
+    if(state.modal==='commit' && state.commitTarget) return renderCommitModal();
+    if(state.modal==='post-help') return renderPostModal();
+    return '';
   }
 
   /* ============ RENDER DISPATCH ============ */
@@ -2745,20 +3002,84 @@
     if(action==='view-help'){ openHelp(el.getAttribute('data-id')); return; }
     if(action==='close-help'){ state.selectedHelpId=null; state.helpDetail=null; render(); loadPosts(); return; }
     if(action==='toggle-thread'){ var rid = el.getAttribute('data-reply'); state.openThread = state.openThread===rid ? null : rid; render(); return; }
-    if(action==='respond-reply'){
-      var st = el.getAttribute('data-status'), replyId = el.getAttribute('data-reply');
-      run(api('PATCH', 'replies/' + replyId, { status:st }).then(function(d){
-        state.helpDetail = d.post; if(st==='accepted') state.openThread = replyId;
-        toast(st==='accepted' ? 'Accepted. Say hello and sort out the details.' : 'Reply declined.');
+    if(action==='toggle-open-only'){ state.helpOpenOnly = !state.helpOpenOnly; render(); return; }
+    if(action==='ask-commit'){
+      var cp = state.helpDetail, cr = cp.replies.filter(function(x){ return x.id===el.getAttribute('data-reply'); })[0];
+      state.commitTarget = { replyId:cr.id, title:cp.title,
+        who: cp.type==='offer' ? cr.user.name : '', notify: cp.type==='ask' ? cp.author.name : cr.user.name };
+      state.modal = 'commit'; render(); return;
+    }
+    if(action==='confirm-commit'){
+      var ct = state.commitTarget;
+      run(api('POST', 'replies/' + ct.replyId + '/commit').then(function(d){
+        state.helpDetail = d.post; state.modal = null; state.commitTarget = null;
+        toast('You’re committed. ' + ct.notify + ' has been notified.');
+      }), function(err){ state.modal = null; toast(err.message); if(state.helpDetail) openHelp(state.helpDetail.id); });
+      return;
+    }
+    if(action==='withdraw-reply'){
+      var mode = el.getAttribute('data-mode');
+      var q = { backout:'Back out of this task? The spot reopens for someone else, and they’ll be notified.',
+                release:'Release this helper? Their spot reopens and they’ll be notified.',
+                cancel:'Cancel your request? They’ll be notified.',
+                leave:'Withdraw your reply? The conversation will close.' }[mode];
+      if(!window.confirm(q)) return;
+      run(api('POST', 'replies/' + el.getAttribute('data-reply') + '/withdraw').then(function(d){
+        state.helpDetail = d.post; state.editHelpers = null;
+        toast({ backout:'You’ve backed out.', release:'Helper released. The spot is open again.', cancel:'Request cancelled.', leave:'Reply withdrawn.' }[mode]);
       }));
       return;
     }
-    if(action==='set-post-status'){
-      var ns = el.getAttribute('data-status');
-      run(api('PATCH', 'help/' + state.helpDetail.id, { status:ns }).then(function(){
-        toast(ns==='resolved' ? 'Marked as resolved. Thanks for closing the loop!' : 'Post reopened.');
-        return openHelp(state.helpDetail.id);
+    if(action==='decline-reply'){
+      if(!window.confirm('Decline this reply? The conversation will close and they’ll be notified.')) return;
+      run(api('POST', 'replies/' + el.getAttribute('data-reply') + '/decline').then(function(d){ state.helpDetail = d.post; toast('Declined.'); }));
+      return;
+    }
+    if(action==='complete-post'){
+      var n = (state.helpDetail.committed || []).length;
+      if(!window.confirm(n ? 'Mark this task complete? The ' + n + ' committed ' + (n===1 ? 'person' : 'people') + ' will be asked to rate the experience, and you can rate them too.' : 'Mark this task complete? No one has committed, so there will be nothing to rate.')) return;
+      run(api('POST', 'help/' + state.helpDetail.id + '/complete').then(function(d){
+        state.helpDetail = d.post; state.editHelpers = null; toast('Task complete. Thank you!');
       }));
+      return;
+    }
+    if(action==='step'){
+      var inp = document.getElementById(el.getAttribute('data-target'));
+      var nv = Math.min(20, Math.max(+inp.min || 1, (parseInt(inp.value, 10) || 1) + (+el.getAttribute('data-delta'))));
+      inp.value = nv;   // render() restores typed values by id, so update the input first
+      if(inp.id==='hp-helpers') state.postHelpers = nv; else state.editHelpers = nv;
+      render();
+      return;
+    }
+    if(action==='save-helpers'){
+      run(api('PATCH', 'help/' + state.helpDetail.id, { helpersNeeded:state.editHelpers }).then(function(d){
+        state.helpDetail = d.post; state.editHelpers = null; toast('Updated.');
+      }), function(err){ state.editHelpers = null; toast(err.message); });
+      return;
+    }
+    if(action==='rate-star'){ state.rateDraft[el.getAttribute('data-reply')] = +el.getAttribute('data-stars'); render(); return; }
+    if(action==='post-type'){
+      state.postType = el.getAttribute('data-type'); state.postStep = 'details'; state.formError = '';
+      render(); if(state.postDraft) fillPostForm(state.postDraft);
+      var tt = document.getElementById('hp-title'); if(tt) tt.focus();
+      return;
+    }
+    if(action==='post-type-change'){
+      if(state.postStep!=='preview') state.postDraft = readPostForm();
+      state.postType = null; state.formError = ''; render(); return;
+    }
+    if(action==='post-edit'){ state.postStep = 'details'; state.formError = ''; render(); fillPostForm(state.postDraft); return; }
+    if(action==='publish-post'){
+      var pd = state.postDraft;
+      if(!state.user){
+        state.pendingDraft = Object.assign({}, pd);
+        state.gateReason = 'post'; state.modal = 'gate'; track('guest_draft'); track('signup_prompt'); render(); return;
+      }
+      state.formError = '';
+      run(api('POST', 'help', pd).then(function(){
+        state.modal=null; state.postDraft=null; state.tab='help'; state.helpView='mine'; state.selectedHelpId=null;
+        track('post_create'); toast(pd.type==='ask' ? 'Your request is posted.' : 'Your offer is posted.'); loadPosts();
+      }), function(err){ state.formError = err.message; });
       return;
     }
     if(action==='delete-post'){
@@ -2844,8 +3165,11 @@
       (navigator.clipboard ? navigator.clipboard.writeText(out.value) : Promise.reject()).then(function(){ toast('Copied.'); }, function(){ out.select(); toast('Press Ctrl/⌘+C to copy.'); });
       return;
     }
-    if(action==='open-modal'){ state.modal = el.getAttribute('data-modal'); state.formError=''; if(state.modal==='post-help') state.postCat = 'Groceries & errands'; render(); var t = document.getElementById('hp-title'); if(t) t.focus(); return; }
-    if(action==='close-modal'){ if(el.classList.contains('modal-backdrop') && e.target!==el) return; state.modal=null; state.imageEdit=null; state.formError=''; render(); return; }
+    if(action==='open-modal'){
+      if(el.getAttribute('data-modal')==='post-help') openPostModal(); else { state.modal = el.getAttribute('data-modal'); state.formError=''; }
+      render(); return;
+    }
+    if(action==='close-modal'){ if(el.classList.contains('modal-backdrop') && e.target!==el) return; state.modal=null; state.imageEdit=null; state.commitTarget=null; state.formError=''; render(); return; }
   });
 
   document.addEventListener('input', function(e){
@@ -2868,7 +3192,12 @@
     var role = e.target.getAttribute('data-role');
     if(role==='signup-type'){ state.signupType = e.target.value; render(); }
     if(role==='help-cat'){ state.helpCat = e.target.value; render(); }
-    if(role==='post-cat'){ state.postCat = e.target.value; render(); var note = document.getElementById('hp-catnote'); if(note) note.focus(); }
+    if(role==='stepper'){
+      var sv = Math.min(20, Math.max(+e.target.min || 1, parseInt(e.target.value, 10) || 1));
+      if(e.target.id==='hp-helpers') state.postHelpers = sv; else state.editHelpers = sv;
+      render(); return;
+    }
+    if(role==='post-cat'){ state.postCat = e.target.value; state.postHelpers = parseInt((document.getElementById('hp-helpers')||{}).value, 10) || state.postHelpers; render(); var note = document.getElementById('hp-catnote'); if(note) note.focus(); }
     if(role==='agree-terms'){ state.agreeTerms = e.target.checked; }
   });
 
@@ -2937,22 +3266,30 @@
       return;
     }
     if(action==='admin-search'){ state.admin.userQuery = val('au-q'); state.admin.resetLink=null; loadAdmin(); return; }
-    if(action==='submit-help' && !state.user){
-      state.pendingDraft = {};
-      ['hp-type','hp-cat','hp-catnote','hp-title','hp-detail','hp-loc','hp-region','hp-scale','hp-urgency','hp-pay','hp-paylabel'].forEach(function(id){ var el = document.getElementById(id); if(el) state.pendingDraft[id] = el.value; });
-      state.gateReason = 'post'; state.modal = 'gate'; track('guest_draft'); track('signup_prompt'); render(); return;
+    if(action==='preview-help'){
+      var d = readPostForm(), missing = [];
+      if(!d.title) missing.push(d.type==='ask' ? 'what you need help with' : 'what you can help with');
+      if(!d.detail) missing.push('details');
+      if(!d.location) missing.push('a location');
+      if(d.category==='Other' && !d.categoryNote) missing.push('your topic');
+      if(missing.length){ state.formError = 'Please add ' + missing.join(', ') + '.'; state.postDraft = d; render(); fillPostForm(d); return; }
+      state.postDraft = d; state.postStep = 'preview'; state.formError = ''; render(); return;
     }
     if(action==='send-reply' && !state.user){ state.gateReason = 'reply'; state.modal = 'gate'; track('signup_prompt'); render(); return; }
-    if(action==='submit-help'){
-      state.formError='';
-      run(api('POST', 'help', {
-        type:val('hp-type'), category:val('hp-cat'), categoryNote:val('hp-catnote'), title:val('hp-title'), detail:val('hp-detail'),
-        location:val('hp-loc'), region:val('hp-region'), scale:val('hp-scale'), urgency:val('hp-urgency'),
-        payKind:val('hp-pay'), payLabel:val('hp-paylabel')
-      }).then(function(){
-        state.modal=null; state.tab='help'; state.helpView='mine'; state.selectedHelpId=null;
-        track('post_create'); toast('Posted to the Help Board.'); loadPosts();
-      }), formError);
+    if(action==='submit-rating'){
+      var rr = form.getAttribute('data-reply'), stars = state.rateDraft[rr];
+      if(!stars) return;
+      run(api('POST', 'replies/' + rr + '/rating', { stars:stars, comment:val('rate-comment-' + rr) }).then(function(d){
+        state.helpDetail = d.post; delete state.rateDraft[rr]; toast('Thanks for rating!');
+      }));
+      return;
+    }
+    if(action==='send-update'){
+      run(api('POST', 'help/' + state.helpDetail.id + '/update', { text:val('team-update-text') }).then(function(d){
+        toast('Update sent to ' + d.sent + (d.sent===1 ? ' person.' : ' people.'));
+        var ti = document.getElementById('team-update-text'); if(ti) ti.value = '';
+        return openHelp(state.helpDetail.id);
+      }));
       return;
     }
     if(action==='send-reply'){

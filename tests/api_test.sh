@@ -47,9 +47,11 @@ check "org replies" 200 $(req o POST help/$P/replies '{"text":"We can add you to
 check "org sees only its own reply" 1 "$(j "len(d['post']['replies'])")"
 check "author sees both replies" 2 "$(req a GET help/$P >/dev/null; j "len(d['post']['replies'])")"
 check "stranger sees no replies" 0 "$(req s GET help/$P >/dev/null; j "len(d['post']['replies'])")"
-check "stranger can't accept reply" 403 $(req s PATCH replies/$R '{"status":"accepted"}')
-check "helper can't accept own reply" 403 $(req h PATCH replies/$R '{"status":"accepted"}')
-check "author accepts" 200 $(req a PATCH replies/$R '{"status":"accepted"}')
+check "reply starts as talking" talking "$(req h GET help/$P >/dev/null; j "d['post']['replies'][0]['status']")"
+check "post still open after reply" open "$(j "d['post']['status']")"
+check "stranger can't commit" 403 $(req s POST replies/$R/commit '{}')
+check "poster can't commit for the helper" 403 $(req a POST replies/$R/commit '{}')
+check "helper commits" 200 $(req h POST replies/$R/commit '{}')
 check "post now in-progress" in-progress "$(j "d['post']['status']")"
 check "author messages" 200 $(req a POST replies/$R/messages '{"text":"Thursday at 2?"}')
 check "helper messages" 200 $(req h POST replies/$R/messages '{"text":"See you then"}')
@@ -57,9 +59,11 @@ check "helper sees thread" 2 "$(j "len(d['post']['replies'][0]['messages'])")"
 check "stranger can't message" 403 $(req s POST replies/$R/messages '{"text":"hi"}')
 check "helping view" True "$(req h GET 'help?view=helping' >/dev/null; j "[p['id'] for p in d['posts']]==['$P']")"
 check "mine view" 2 "$(req a GET 'help?view=mine' >/dev/null; j "len(d['posts'])")"
-check "stranger can't resolve" 403 $(req s PATCH help/$P '{"status":"resolved"}')
-check "author resolves" 200 $(req a PATCH help/$P '{"status":"resolved"}')
-check "no messages after resolve" 400 $(req h POST replies/$R/messages '{"text":"late"}')
+check "stranger can't complete" 403 $(req s POST help/$P/complete '{}')
+check "author completes" 200 $(req a POST help/$P/complete '{}')
+check "post resolved" resolved "$(j "d['post']['status']")"
+check "messages still allowed after completion" 200 $(req h POST replies/$R/messages '{"text":"Thanks again"}')
+check "no new replies after completion" 400 $(req s POST help/$P/replies '{"text":"late"}')
 check "stranger can't delete" 403 $(req s DELETE help/$P2)
 check "author deletes post" 200 $(req a DELETE help/$P2)
 check "deleted post gone" 404 $(req a GET help/$P2)

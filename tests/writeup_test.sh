@@ -32,14 +32,15 @@ check "notice names the replier" "Hal $S" "$(j "d['notifications'][0]['actor']['
 check "notice carries post title" "Fix my bike $S" "$(j "d['notifications'][0]['postTitle']")"
 check "unread count" 1 "$(j "d['unread']")"
 NID=$(j "d['notifications'][0]['id']")
-check "accept" 200 $(req a PATCH replies/$R '{"status":"accepted"}')
-check "helper notified of acceptance" "accepted" "$(req h GET notifications >/dev/null; j "d['notifications'][0]['type']")"
+check "helper commits" 200 $(req h POST replies/$R/commit '{}')
+check "poster notified of commitment" "committed" "$(req a GET notifications >/dev/null; j "d['notifications'][0]['type']")"
 check "message 1" 200 $(req a POST replies/$R/messages '{"text":"Saturday?"}')
 check "message 2" 200 $(req a POST replies/$R/messages '{"text":"Around 10am"}')
 check "messages collapse into one unread notice" 1 "$(req h GET notifications >/dev/null; j "len([n for n in d['notifications'] if n['type']=='message' and not n['read']])")"
-check "no self-notifications" 0 "$(req a GET notifications >/dev/null; j "len([n for n in d['notifications'] if n['type'] in ('message','accepted')])")"
-check "mark one read" 0 "$(req a POST notifications/read "{\"ids\":[\"$NID\"]}" >/dev/null; j "d['unread']")"
-check "can't mark others' notices" 2 "$(req h POST notifications/read "{\"ids\":[\"$NID\"]}" >/dev/null; j "d['unread']")"
+check "no self-notifications" 0 "$(req a GET notifications >/dev/null; j "len([n for n in d['notifications'] if n['type']=='message'])")"
+check "helper not notified of own commit" 0 "$(req h GET notifications >/dev/null; j "len([n for n in d['notifications'] if n['type']=='committed'])")"
+check "mark one read" 1 "$(req a POST notifications/read "{\"ids\":[\"$NID\"]}" >/dev/null; j "d['unread']")"
+check "can't mark others' notices" 1 "$(req h POST notifications/read "{\"ids\":[\"$NID\"]}" >/dev/null; j "d['unread']")"
 check "mark all read" 0 "$(req h POST notifications/read '{"all":true}' >/dev/null; j "d['unread']")"
 UH=$(req h GET me >/dev/null; j "d['user']['id']")
 check "message after block" 200 $(req h POST replies/$R/messages '{"text":"See you"}')

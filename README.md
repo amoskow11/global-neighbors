@@ -7,7 +7,10 @@ Live site: https://global-neighbors.pages.dev · Sample-data demo: https://globa
 ## Features
 
 - **Accounts:** email + password sign-up and login for individuals and organizations, editable profiles, password change (signs out other devices), and self-service account deletion.
-- **Help Board:** post asks or offers (volunteer, paid, stipend, or funding), reply, accept or decline replies, and message privately. Posts can be resolved, reopened, or deleted.
+- **Help Board:** a three-step post form (choose "I need help" or "I can help", fill in details, then preview) for asks and offers (volunteer, paid, stipend, or funding). One vocabulary everywhere: "Needs help" / "Offering help", with "I can help" on asks and "Request this" on offers.
+- **Commitments:** a reply starts a private conversation (`talking`). Spots fill only when the helper commits (the replier on an ask, the poster on an offer) after a confirmation dialog. Replies move through `talking → committed → completed`, or end as `withdrawn` (back out, release, or cancel) or `declined`. Messaging works in every state except declined and withdrawn.
+- **Multi-helper posts:** `helpers_needed` (1–20, editable but never below the number committed). Status is derived from commitments: open, in progress (still needs N or full), and resolved when the poster marks it complete. Commits are a single conditional statement, so two people can't overfill a post. Cards show "2 of 4 helpers · needs 2 more" or "Full", and there's a "Still needs helpers" filter. The poster sees helpers with ratings, can release them, and can send one update to all of them. Helpers see each other by first name and last initial.
+- **Ratings:** after completion, the poster and each helper rate each other once (1–5 stars, an optional comment of up to 280 characters), enforced on the server. "★ 4.8 · 12 ratings" (or "New") appears on profiles, organization pages, and next to names. Ratings are reportable, and admins can hide them, which removes them from averages.
 - **Privacy:** the Help Board and individual profiles are visible to signed-in members only. A reply and its messages are visible only to the post's author and the person who replied. Emails are never shown to other members.
 - **Trust & safety:** report posts, replies, or members; block members (both directions); an admin panel to review reports, hide posts, suspend accounts, and look up members; every admin action is logged.
 - **Notifications:** a bell with an unread count (also shown in the browser tab title) for replies, accepted offers, new messages (one notice per conversation), verification decisions, and moderation notices; admins also hear about new feedback. Optional browser alerts while the site is open in a tab. Polled every 45 seconds.
@@ -54,9 +57,11 @@ wrangler.toml         Pages + D1 binding config
 | GET | `/api/orgs` | public list of member organizations |
 | GET | `/api/users/:id` | org profiles public; individuals members-only |
 | GET / POST | `/api/help?view=browse\|mine\|helping` | members only |
-| GET / PATCH / DELETE | `/api/help/:id` | PATCH/DELETE author only |
+| GET / DELETE | `/api/help/:id` | DELETE author only |
 | POST | `/api/help/:id/replies` | one reply per member per post |
-| PATCH | `/api/replies/:id` | accept/decline; post author only |
+| POST | `/api/replies/:id/commit` · `/withdraw` · `/decline` · `/rating` | helper commits; either side withdraws; poster declines; ratings after completion |
+| PATCH · POST | `/api/help/:id` `{helpersNeeded}` · `/api/help/:id/complete` · `/api/help/:id/update` `{text}` | poster only |
+| POST | `/api/admin/ratings/:id` `{action: hide\|unhide}` | admins only |
 | POST | `/api/replies/:id/messages` | post author or replier only |
 | POST | `/api/auth/verify/send`, `/api/auth/verify`, `/api/auth/forgot`, `/api/auth/reset` | email flows |
 | GET / POST | `/api/me/verification` | org verification request |
@@ -105,7 +110,7 @@ With the dev server running **without** `.dev.vars` (email off):
 bash tests/run.sh
 ```
 
-This runs `api_test.sh`, `trust_test.sh`, `media_test.sh`, `activity_test.sh`, and `writeup_test.sh`. To exercise the email flows, start the server with `RESEND_API_KEY=dev-log` in `.dev.vars` and run `bash tests/trust_test.sh http://127.0.0.1:8788 devlog <path-to-dev-server-log>`. Test accounts all use `@example.com` addresses.
+This runs `api_test.sh`, `trust_test.sh`, `media_test.sh`, `activity_test.sh`, `writeup_test.sh`, and `commit_test.sh`. To exercise the email flows, start the server with `RESEND_API_KEY=dev-log` in `.dev.vars` and run `bash tests/trust_test.sh http://127.0.0.1:8788 devlog <path-to-dev-server-log>`. Test accounts all use `@example.com` addresses.
 
 ## Deployment
 

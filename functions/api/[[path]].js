@@ -27,7 +27,7 @@ const DAY = 24 * HOUR;
 const FEATURES = [
   'help_board', 'post_view', 'post_create', 'reply', 'message', 'directory', 'org_view', 'member_view',
   'my_profile', 'profile_edit', 'photo_upload', 'search', 'report', 'block', 'admin', 'signup_prompt', 'guest_draft',
-  'notifications', 'feedback', 'signup_nudge', 'signup_click'
+  'notifications', 'feedback', 'signup_nudge', 'signup_click', 'commit', 'complete', 'rating'
 ];
 const NOTIFICATION_RETENTION_MS = 90 * DAY;
 const FEEDBACK_KINDS = ['idea', 'problem', 'category', 'other'];
@@ -120,9 +120,18 @@ export async function onRequest(context) {
       if (method === 'PATCH') return await updateHelp(ctx, seg[1]);
       if (method === 'DELETE') return await deleteHelp(ctx, seg[1]);
     }
-    if (seg[0] === 'help' && seg.length === 3 && seg[2] === 'replies' && method === 'POST') return await createReply(ctx, seg[1]);
-    if (seg[0] === 'replies' && seg.length === 2 && method === 'PATCH') return await updateReply(ctx, seg[1]);
-    if (seg[0] === 'replies' && seg.length === 3 && seg[2] === 'messages' && method === 'POST') return await createMessage(ctx, seg[1]);
+    if (seg[0] === 'help' && seg.length === 3 && method === 'POST') {
+      if (seg[2] === 'replies') return await createReply(ctx, seg[1]);
+      if (seg[2] === 'complete') return await completeHelp(ctx, seg[1]);
+      if (seg[2] === 'update') return await postUpdate(ctx, seg[1]);
+    }
+    if (seg[0] === 'replies' && seg.length === 3 && method === 'POST') {
+      if (seg[2] === 'messages') return await createMessage(ctx, seg[1]);
+      if (seg[2] === 'commit') return await commitReply(ctx, seg[1]);
+      if (seg[2] === 'withdraw') return await withdrawReply(ctx, seg[1]);
+      if (seg[2] === 'decline') return await declineReply(ctx, seg[1]);
+      if (seg[2] === 'rating') return await createRating(ctx, seg[1]);
+    }
 
     // Safety
     if (route === 'reports' && method === 'POST') return await createReport(ctx);
@@ -140,6 +149,7 @@ export async function onRequest(context) {
       if (route === 'admin/users' && method === 'GET') return await adminListUsers(ctx);
       if (seg[1] === 'users' && seg.length === 3 && method === 'POST') return await adminUserAction(ctx, seg[2]);
       if (seg[1] === 'posts' && seg.length === 3 && method === 'POST') return await adminPostAction(ctx, seg[2]);
+      if (seg[1] === 'ratings' && seg.length === 3 && method === 'POST') return await adminRatingAction(ctx, seg[2]);
       if (route === 'admin/activity' && method === 'GET') return await adminActivity(ctx);
       if (route === 'admin/feedback' && method === 'GET') return await adminListFeedback(ctx);
       if (seg[1] === 'feedback' && seg.length === 3 && method === 'POST') return await adminUpdateFeedback(ctx, seg[2]);
@@ -376,6 +386,7 @@ async function deleteMe(ctx) {
     db.prepare('DELETE FROM media WHERE user_id=?').bind(user.id),
     db.prepare('DELETE FROM activity_events WHERE user_id=?').bind(user.id),
     db.prepare('DELETE FROM notifications WHERE user_id=?1 OR actor_id=?1').bind(user.id),
+    db.prepare('DELETE FROM ratings WHERE rater_id=?1 OR ratee_id=?1').bind(user.id),
     db.prepare('UPDATE feedback SET user_id=NULL WHERE user_id=?').bind(user.id),
     db.prepare('DELETE FROM activity_sessions WHERE user_id=?').bind(user.id),
     db.prepare('DELETE FROM blocks WHERE blocker_id=?1 OR blocked_id=?1').bind(user.id),
@@ -432,14 +443,14 @@ async function requestVerification(ctx) {
 
 async function listOrgs(ctx) {
   const { results } = await ctx.env.DB.prepare(
-    "SELECT * FROM users WHERE account_type='org' AND suspended_at IS NULL ORDER BY display_name COLLATE NOCASE LIMIT 500"
+    `SELECT u.*, ${RATING_COLS('u')} FROM users u WHERE u.account_type='org' AND u.suspended_at IS NULL ORDER BY u.display_name COLLATE NOCASE LIMIT 500`
   ).all();
   return json({ orgs: results.map(publicUser) });
 }
 
 async function getUser(ctx, id) {
   const viewer = await currentUser(ctx);
-  const user = await ctx.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(id).first();
+  const user = await ctx.env.DB.prepare(`SELECT u.*, ${RATING_COLS('u')} FROM users u WHERE u.id = ?`).bind(id).first();
   const admin = viewer && viewer.is_admin;
   // Organization profiles are public; individuals are visible to signed-in members only.
   if (!user || (user.account_type === 'person' && !viewer) || (user.suspended_at && !admin)) throw new HttpError(404, 'Profile not found.');
@@ -450,10 +461,27 @@ async function getUser(ctx, id) {
     posts = results.map(r => helpRow(r, viewer.id));
   }
   const iBlocked = viewer ? !!(await ctx.env.DB.prepare('SELECT 1 FROM blocks WHERE blocker_id=? AND blocked_id=?').bind(viewer.id, id).first()) : false;
-  return json({ user: publicUser(user), posts, blockedByMe: iBlocked });
+  return json({ user: publicUser(user), posts, blockedByMe: iBlocked, ratings: viewer ? await ratingsAbout(ctx.env.DB, id) : [] });
 }
 
 /* ---------- help board ---------- */
+//
+// Replies start a conversation ('talking'). A spot fills only when the helper commits:
+// the replier on an "ask", or the poster on an "offer". Post status is derived from commitments:
+// open (none) → in-progress (some, maybe full) → resolved (poster marked it complete).
+
+const RATING_COLS = alias => `
+  (SELECT ROUND(AVG(g.stars), 1) FROM ratings g WHERE g.ratee_id = ${alias}.id AND g.hidden_at IS NULL) AS rating_avg,
+  (SELECT COUNT(*) FROM ratings g WHERE g.ratee_id = ${alias}.id AND g.hidden_at IS NULL) AS rating_count`;
+const COMMITTED = "('committed','completed')";
+
+function ratingOf(r) { return { avg: r.rating_avg == null ? null : Number(r.rating_avg), count: r.rating_count || 0 }; }
+// First name and last initial, for showing helpers to people other than the poster. Organizations keep their name.
+function shortName(name, accountType) {
+  if (accountType === 'org') return name;
+  const w = String(name || '').trim().split(/\s+/);
+  return w.length > 1 ? `${w[0]} ${w[w.length - 1].charAt(0)}.` : w[0];
+}
 
 // Posts a viewer (?1) may see: not hidden by moderators (unless theirs), author not suspended,
 // and no block in either direction. Admins reviewing reports skip those filters.
@@ -467,22 +495,32 @@ function helpSelect(extra, opts = {}) {
   }
   if (extra) conds.push(extra);
   return `SELECT p.*, u.display_name AS author_name, u.account_type AS author_type, u.headline AS author_headline,
-            u.verification_status AS author_verification, u.avatar_id AS author_avatar,
+            u.verification_status AS author_verification, u.avatar_id AS author_avatar, ${RATING_COLS('u')},
             (SELECT COUNT(*) FROM help_replies r WHERE r.post_id = p.id) AS reply_count,
-            (SELECT r.status FROM help_replies r WHERE r.post_id = p.id AND r.user_id = ?1) AS my_reply_status
+            (SELECT COUNT(*) FROM help_replies r WHERE r.post_id = p.id AND r.status IN ${COMMITTED}) AS committed_count,
+            (SELECT r.status FROM help_replies r WHERE r.post_id = p.id AND r.user_id = ?1) AS my_reply_status,
+            (SELECT COUNT(*) FROM help_replies r WHERE r.post_id = p.id AND r.status = 'completed'
+               AND (r.user_id = ?1 OR p.author_id = ?1)
+               AND NOT EXISTS (SELECT 1 FROM ratings g WHERE g.reply_id = r.id AND g.rater_id = ?1)) AS ratings_due
           FROM help_posts p JOIN users u ON u.id = p.author_id
           ${conds.length ? 'WHERE ' + conds.join(' AND ') : ''}
           ORDER BY p.created_at DESC LIMIT 300`;
 }
 
 function helpRow(r, viewerId) {
+  const needed = r.helpers_needed || 1, committed = r.committed_count || 0;
   return {
     id: r.id,
-    author: { id: r.author_id, name: r.author_name, accountType: r.author_type, headline: r.author_headline, verified: r.author_verification === 'verified', avatarUrl: mediaUrl(r.author_avatar) },
+    author: { id: r.author_id, name: r.author_name, accountType: r.author_type, headline: r.author_headline,
+              verified: r.author_verification === 'verified', avatarUrl: mediaUrl(r.author_avatar), rating: ratingOf(r) },
     type: r.type, category: r.category, categoryNote: r.category_note || '', scale: r.scale, title: r.title, detail: r.detail,
     location: r.location, region: r.region, pay: { kind: r.pay_kind, label: r.pay_label },
     urgency: r.urgency, status: r.status, createdAt: r.created_at, hidden: !!r.hidden_at,
-    replyCount: r.reply_count, myReplyStatus: r.my_reply_status || null, isMine: r.author_id === viewerId
+    helpersNeeded: needed, committedCount: committed,
+    spotsLeft: r.status === 'resolved' ? 0 : Math.max(0, needed - committed),
+    full: r.status !== 'resolved' && committed >= needed,
+    replyCount: r.reply_count, myReplyStatus: r.my_reply_status || null, ratingsDue: r.ratings_due || 0,
+    isMine: r.author_id === viewerId
   };
 }
 
@@ -506,17 +544,26 @@ async function getHelp(ctx, id) {
   const user = await requireUser(ctx);
   const db = ctx.env.DB;
   const post = helpRow(await loadPost(ctx, id, user), user.id);
+  post.helperIsReplier = post.type === 'ask';
 
   // Only the post's author sees every reply (minus blocked or suspended members); everyone else sees only their own.
   const filter = post.isMine
     ? `r.post_id = ?1 AND u.suspended_at IS NULL AND NOT EXISTS (SELECT 1 FROM blocks b
          WHERE (b.blocker_id = ?2 AND b.blocked_id = r.user_id) OR (b.blocker_id = r.user_id AND b.blocked_id = ?2))`
     : 'r.post_id = ?1 AND r.user_id = ?2';
-  const { results: replies } = await db.prepare(
-    `SELECT r.*, u.display_name, u.account_type, u.headline, u.location, u.verification_status, u.avatar_id
-       FROM help_replies r JOIN users u ON u.id = r.user_id
-      WHERE ${filter} ORDER BY r.created_at`
-  ).bind(id, user.id).all();
+  const [{ results: replies }, { results: team }] = await db.batch([
+    db.prepare(
+      `SELECT r.*, u.display_name, u.account_type, u.headline, u.location, u.verification_status, u.avatar_id, ${RATING_COLS('u')},
+              (SELECT g.stars FROM ratings g WHERE g.reply_id = r.id AND g.rater_id = ?2) AS my_stars,
+              (SELECT g.stars FROM ratings g WHERE g.reply_id = r.id AND g.rater_id <> ?2) AS their_stars
+         FROM help_replies r JOIN users u ON u.id = r.user_id
+        WHERE ${filter} ORDER BY r.created_at`).bind(id, user.id),
+    // Everyone committed to this post (shown to participants; non-posters see short names only).
+    db.prepare(
+      `SELECT r.user_id, r.status, r.committed_at, u.display_name, u.account_type, u.avatar_id, ${RATING_COLS('u')}
+         FROM help_replies r JOIN users u ON u.id = r.user_id
+        WHERE r.post_id = ?1 AND r.status IN ${COMMITTED} AND u.suspended_at IS NULL ORDER BY r.committed_at`).bind(id)
+  ]);
 
   let messages = [];
   if (replies.length) {
@@ -527,14 +574,32 @@ async function getHelp(ctx, id) {
     ).bind(...replies.map(r => r.id)).all());
   }
 
+  const participant = post.isMine || replies.some(r => r.user_id === user.id);
+  post.committed = participant ? team.map(t => ({
+    name: post.isMine || t.user_id === user.id ? t.display_name : shortName(t.display_name, t.account_type),
+    isMe: t.user_id === user.id, status: t.status, committedAt: t.committed_at,
+    ...(post.isMine ? { id: t.user_id, rating: ratingOf(t), avatarUrl: mediaUrl(t.avatar_id), accountType: t.account_type } : {})
+  })) : [];
+
   post.replies = replies.map(r => ({
     id: r.id, status: r.status, text: r.text, createdAt: r.created_at, isMine: r.user_id === user.id,
-    user: { id: r.user_id, name: r.display_name, accountType: r.account_type, headline: r.headline, location: r.location, verified: r.verification_status === 'verified', avatarUrl: mediaUrl(r.avatar_id) },
+    committedAt: r.committed_at, endedAt: r.ended_at, endedBy: r.ended_by === user.id ? 'me' : (r.ended_by ? 'them' : null),
+    canMessage: !['declined', 'withdrawn'].includes(r.status) && !post.hidden,
+    canRate: r.status === 'completed' && r.my_stars == null,
+    myStars: r.my_stars, theirStars: r.their_stars,
+    user: { id: r.user_id, name: r.display_name, accountType: r.account_type, headline: r.headline, location: r.location,
+            verified: r.verification_status === 'verified', avatarUrl: mediaUrl(r.avatar_id), rating: ratingOf(r) },
     messages: messages.filter(m => m.reply_id === r.id).map(m => ({
       id: m.id, text: m.text, createdAt: m.created_at, isMine: m.user_id === user.id, from: m.display_name
     }))
   }));
   return json({ post });
+}
+
+function helpersNeededValue(v) {
+  const n = Number(v === undefined || v === null || v === '' ? 1 : v);
+  if (!Number.isInteger(n) || n < 1 || n > 20) throw new HttpError(400, 'Number of helpers must be between 1 and 20.');
+  return n;
 }
 
 async function createHelp(ctx) {
@@ -545,8 +610,8 @@ async function createHelp(ctx) {
   const category = oneOf(b.category, CATEGORIES, 'Category');
   const categoryNote = category === 'Other' ? text(b.categoryNote, 40, 'Category description', true) : '';
   await ctx.env.DB.prepare(
-    `INSERT INTO help_posts (id, author_id, type, category, category_note, scale, title, detail, location, region, pay_kind, pay_label, urgency, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)`
+    `INSERT INTO help_posts (id, author_id, type, category, category_note, scale, title, detail, location, region, pay_kind, pay_label, urgency, helpers_needed, status, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)`
   ).bind(
     id, user.id,
     oneOf(b.type, ['ask', 'offer'], 'Post type'),
@@ -559,20 +624,84 @@ async function createHelp(ctx) {
     oneOf(b.payKind, PAY_KINDS, 'Compensation'),
     text(b.payLabel, 60, 'Amount'),
     oneOf(b.urgency, URGENCIES, 'Timing'),
+    helpersNeededValue(b.helpersNeeded),
     now, now
   ).run();
   return json({ post: helpRow(await loadPost(ctx, id, user), user.id) }, 201);
 }
 
-async function updateHelp(ctx, id) {
-  const user = await requireUser(ctx);
-  const b = await readJson(ctx.request);
+// Re-derive a post's status from its commitments (resolved stays resolved).
+function recomputeStmt(db, postId) {
+  return db.prepare(`UPDATE help_posts SET updated_at = ?2, status = CASE
+      WHEN status = 'resolved' THEN 'resolved'
+      WHEN (SELECT COUNT(*) FROM help_replies r WHERE r.post_id = ?1 AND r.status = 'committed') > 0 THEN 'in-progress'
+      ELSE 'open' END WHERE id = ?1`).bind(postId, Date.now());
+}
+
+// Usage analytics for key milestones, logged server-side so they're recorded even if the tab closes.
+function eventStmt(db, userId, feature) {
+  return db.prepare('INSERT INTO activity_events (session_id, user_id, feature, created_at) VALUES (?, ?, ?, ?)')
+    .bind('server', userId, feature, Date.now());
+}
+
+async function loadOwnPost(ctx, id, user) {
   const post = await ctx.env.DB.prepare('SELECT * FROM help_posts WHERE id = ?').bind(id).first();
   if (!post) throw new HttpError(404, 'That post isn’t available.');
   if (post.author_id !== user.id) throw new HttpError(403, 'Only the person who posted this can change it.');
-  const status = oneOf(b.status, ['open', 'in-progress', 'resolved'], 'Status');
-  await ctx.env.DB.prepare('UPDATE help_posts SET status=?, updated_at=? WHERE id=?').bind(status, Date.now(), id).run();
-  return json({ post: helpRow(await loadPost(ctx, id, user), user.id) });
+  return post;
+}
+
+// PATCH: the poster can change how many helpers they need, never below the number already committed.
+async function updateHelp(ctx, id) {
+  const user = await requireUser(ctx);
+  const b = await readJson(ctx.request);
+  const post = await loadOwnPost(ctx, id, user);
+  if (post.status === 'resolved') throw new HttpError(400, 'This post is already complete.');
+  const n = helpersNeededValue(b.helpersNeeded);
+  const res = await ctx.env.DB.prepare(
+    `UPDATE help_posts SET helpers_needed = ?1, updated_at = ?3 WHERE id = ?2
+       AND ?1 >= (SELECT COUNT(*) FROM help_replies r WHERE r.post_id = ?2 AND r.status = 'committed')`
+  ).bind(n, id, Date.now()).run();
+  if (!res.meta.changes) throw new HttpError(409, 'You can’t go below the number of people who already committed. Release someone first.');
+  return getHelp(ctx, id);
+}
+
+// The poster marks the task done: every committed reply becomes completed, and both sides are asked to rate.
+async function completeHelp(ctx, id) {
+  const user = await requireUser(ctx);
+  const db = ctx.env.DB;
+  const post = await loadOwnPost(ctx, id, user);
+  if (post.status === 'resolved') throw new HttpError(400, 'This post is already complete.');
+  const { results: committed } = await db.prepare("SELECT id, user_id FROM help_replies WHERE post_id = ? AND status = 'committed'").bind(id).all();
+  const now = Date.now();
+  await db.batch([
+    db.prepare("UPDATE help_replies SET status = 'completed', ended_at = ? WHERE post_id = ? AND status = 'committed'").bind(now, id),
+    db.prepare("UPDATE help_posts SET status = 'resolved', updated_at = ? WHERE id = ?").bind(now, id),
+    ...committed.map(c => notifyStmt(db, c.user_id, 'completed', { actor: user.id, post: id, reply: c.id })),
+    eventStmt(db, user.id, 'complete')
+  ]);
+  return getHelp(ctx, id);
+}
+
+// One message from the poster to everyone committed, delivered into each one-to-one conversation.
+async function postUpdate(ctx, id) {
+  const user = await requireActive(ctx);
+  const db = ctx.env.DB;
+  const post = await loadOwnPost(ctx, id, user);
+  if (post.hidden_at) throw new HttpError(400, 'This post was hidden by moderators.');
+  const msg = text((await readJson(ctx.request)).text, 2000, 'Update', true);
+  const { results: team } = await db.prepare(
+    `SELECT r.id, r.user_id FROM help_replies r WHERE r.post_id = ?1 AND r.status IN ${COMMITTED}
+       AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker_id = ?2 AND b.blocked_id = r.user_id) OR (b.blocker_id = r.user_id AND b.blocked_id = ?2))`
+  ).bind(id, user.id).all();
+  if (!team.length) throw new HttpError(400, 'No one has committed yet.');
+  const now = Date.now();
+  await db.batch(team.flatMap(t => [
+    db.prepare('INSERT INTO help_messages (id, reply_id, user_id, text, created_at) VALUES (?, ?, ?, ?, ?)').bind(crypto.randomUUID(), t.id, user.id, msg, now),
+    db.prepare("DELETE FROM notifications WHERE user_id = ? AND type = 'message' AND reply_id = ? AND read_at IS NULL").bind(t.user_id, t.id),
+    notifyStmt(db, t.user_id, 'message', { actor: user.id, post: id, reply: t.id })
+  ]));
+  return json({ ok: true, sent: team.length });
 }
 
 async function deleteHelp(ctx, id) {
@@ -582,6 +711,8 @@ async function deleteHelp(ctx, id) {
   if (!post) throw new HttpError(404, 'That post isn’t available.');
   if (post.author_id !== user.id) throw new HttpError(403, 'Only the person who posted this can delete it.');
   await db.batch([
+    // Ratings outlive the post; they just lose the link to it.
+    db.prepare('UPDATE ratings SET reply_id = NULL WHERE reply_id IN (SELECT id FROM help_replies WHERE post_id=?)').bind(id),
     db.prepare('DELETE FROM help_messages WHERE reply_id IN (SELECT id FROM help_replies WHERE post_id=?)').bind(id),
     db.prepare('DELETE FROM help_replies WHERE post_id=?').bind(id),
     db.prepare('DELETE FROM help_posts WHERE id=?').bind(id)
@@ -595,14 +726,14 @@ async function createReply(ctx, postId) {
   const post = await ctx.env.DB.prepare('SELECT author_id, status, hidden_at FROM help_posts WHERE id = ?').bind(postId).first();
   if (!post || post.hidden_at) throw new HttpError(404, 'That post isn’t available.');
   if (post.author_id === user.id) throw new HttpError(400, 'You can’t reply to your own post.');
-  if (post.status === 'resolved') throw new HttpError(400, 'This post has been resolved.');
+  if (post.status === 'resolved') throw new HttpError(400, 'This task is already complete.');
   if (await isBlocked(ctx.env, user.id, post.author_id)) throw new HttpError(403, 'You can’t reply to this post.');
   const replyText = text(b.text, 2000, 'Reply', true);
   const replyId = crypto.randomUUID();
   try {
     await ctx.env.DB.batch([
       ctx.env.DB.prepare('INSERT INTO help_replies (id, post_id, user_id, text, status, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-        .bind(replyId, postId, user.id, replyText, 'pending', Date.now()),
+        .bind(replyId, postId, user.id, replyText, 'talking', Date.now()),
       notifyStmt(ctx.env.DB, post.author_id, 'reply', { actor: user.id, post: postId, reply: replyId })
     ]);
   } catch (e) {
@@ -614,29 +745,75 @@ async function createReply(ctx, postId) {
 
 async function loadReplyWithPost(ctx, replyId) {
   const r = await ctx.env.DB.prepare(
-    `SELECT r.*, p.author_id AS post_author_id, p.status AS post_status, p.hidden_at AS post_hidden_at
+    `SELECT r.*, p.author_id AS post_author_id, p.status AS post_status, p.hidden_at AS post_hidden_at, p.type AS post_type,
+            p.helpers_needed, p.title AS post_title
        FROM help_replies r JOIN help_posts p ON p.id = r.post_id WHERE r.id = ?`
   ).bind(replyId).first();
   if (!r) throw new HttpError(404, 'That reply isn’t available.');
   return r;
 }
+// The helper is the replier on an "ask" and the poster on an "offer".
+function helperIdOf(r) { return r.post_type === 'ask' ? r.user_id : r.post_author_id; }
+function otherPartyOf(r, userId) { return r.user_id === userId ? r.post_author_id : r.user_id; }
+function requireParticipant(r, user) {
+  if (r.user_id !== user.id && r.post_author_id !== user.id) throw new HttpError(403, 'You’re not part of this conversation.');
+}
 
-async function updateReply(ctx, replyId) {
-  const user = await requireUser(ctx);
-  const b = await readJson(ctx.request);
-  const r = await loadReplyWithPost(ctx, replyId);
-  if (r.post_author_id !== user.id) throw new HttpError(403, 'Only the person who posted can accept or decline replies.');
-  const status = oneOf(b.status, ['accepted', 'declined'], 'Status');
-  if (status === 'accepted' && await isBlocked(ctx.env, user.id, r.user_id)) throw new HttpError(403, 'You can’t accept this reply.');
+async function commitReply(ctx, replyId) {
+  const user = await requireActive(ctx);
   const db = ctx.env.DB;
-  const stmts = [db.prepare('UPDATE help_replies SET status=? WHERE id=?').bind(status, replyId)];
-  if (status === 'accepted' && r.post_status === 'open') {
-    stmts.push(db.prepare("UPDATE help_posts SET status='in-progress', updated_at=? WHERE id=?").bind(Date.now(), r.post_id));
-  }
-  if (status === 'accepted' && r.status !== 'accepted') {
-    stmts.push(notifyStmt(db, r.user_id, 'accepted', { actor: user.id, post: r.post_id, reply: replyId }));
-  }
-  await db.batch(stmts);
+  const r = await loadReplyWithPost(ctx, replyId);
+  requireParticipant(r, user);
+  if (helperIdOf(r) !== user.id) throw new HttpError(403, 'Only the helper can commit to this task.');
+  if (r.post_hidden_at) throw new HttpError(400, 'This post was hidden by moderators.');
+  if (r.post_status === 'resolved') throw new HttpError(400, 'This task is already complete.');
+  if (r.status !== 'talking') throw new HttpError(409, r.status === 'committed' ? 'You’ve already committed.' : 'This conversation has ended.');
+  if (await isBlocked(ctx.env, r.user_id, r.post_author_id)) throw new HttpError(403, 'You can’t commit to this task.');
+  // Count and claim in one statement so two people can't take the last spot at the same time.
+  const now = Date.now();
+  const [res] = await db.batch([
+    db.prepare(`UPDATE help_replies SET status = 'committed', committed_at = ?3 WHERE id = ?1 AND status = 'talking'
+                  AND (SELECT COUNT(*) FROM help_replies x WHERE x.post_id = ?2 AND x.status = 'committed')
+                    < (SELECT helpers_needed FROM help_posts WHERE id = ?2 AND status <> 'resolved')`).bind(replyId, r.post_id, now),
+    recomputeStmt(db, r.post_id)
+  ]);
+  if (!res.meta.changes) throw new HttpError(409, 'This task is full. You can still message them.');
+  await db.batch([
+    notifyStmt(db, otherPartyOf(r, user.id), 'committed', { actor: user.id, post: r.post_id, reply: replyId }),
+    eventStmt(db, user.id, 'commit')
+  ]);
+  return getHelp(ctx, r.post_id);
+}
+
+// The helper backs out, the poster releases a helper, or the requester on an offer cancels.
+async function withdrawReply(ctx, replyId) {
+  const user = await requireUser(ctx);
+  const db = ctx.env.DB;
+  const r = await loadReplyWithPost(ctx, replyId);
+  requireParticipant(r, user);
+  if (!['talking', 'committed'].includes(r.status)) throw new HttpError(409, 'This conversation has already ended.');
+  if (r.post_status === 'resolved') throw new HttpError(400, 'This task is already complete.');
+  const res = await db.prepare("UPDATE help_replies SET status = 'withdrawn', ended_at = ?, ended_by = ? WHERE id = ? AND status IN ('talking','committed')")
+    .bind(Date.now(), user.id, replyId).run();
+  if (!res.meta.changes) throw new HttpError(409, 'This conversation has already ended.');
+  await db.batch([
+    recomputeStmt(db, r.post_id),
+    notifyStmt(db, otherPartyOf(r, user.id), 'withdrawn', { actor: user.id, post: r.post_id, reply: replyId,
+      detail: r.status === 'committed' ? (helperIdOf(r) === user.id ? 'backed_out' : 'released') : 'ended' })
+  ]);
+  return getHelp(ctx, r.post_id);
+}
+
+async function declineReply(ctx, replyId) {
+  const user = await requireUser(ctx);
+  const db = ctx.env.DB;
+  const r = await loadReplyWithPost(ctx, replyId);
+  if (r.post_author_id !== user.id) throw new HttpError(403, 'Only the person who posted can decline a reply.');
+  if (r.status !== 'talking') throw new HttpError(409, r.status === 'committed' ? 'Release this helper instead.' : 'This conversation has already ended.');
+  await db.batch([
+    db.prepare("UPDATE help_replies SET status = 'declined', ended_at = ?, ended_by = ? WHERE id = ? AND status = 'talking'").bind(Date.now(), user.id, replyId),
+    notifyStmt(db, r.user_id, 'declined', { actor: user.id, post: r.post_id, reply: replyId })
+  ]);
   return getHelp(ctx, r.post_id);
 }
 
@@ -644,10 +821,10 @@ async function createMessage(ctx, replyId) {
   const user = await requireActive(ctx);
   const b = await readJson(ctx.request);
   const r = await loadReplyWithPost(ctx, replyId);
-  if (r.user_id !== user.id && r.post_author_id !== user.id) throw new HttpError(403, 'You’re not part of this conversation.');
-  if (r.post_status === 'resolved') throw new HttpError(400, 'This post has been resolved.');
+  requireParticipant(r, user);
+  if (['declined', 'withdrawn'].includes(r.status)) throw new HttpError(400, 'This conversation has ended.');
   if (r.post_hidden_at) throw new HttpError(400, 'This post was hidden by moderators.');
-  const other = r.user_id === user.id ? r.post_author_id : r.user_id;
+  const other = otherPartyOf(r, user.id);
   if (await isBlocked(ctx.env, user.id, other)) throw new HttpError(403, 'You can’t message this member.');
   // One unread "new messages" notice per conversation, refreshed with each message.
   await ctx.env.DB.batch([
@@ -659,6 +836,44 @@ async function createMessage(ctx, replyId) {
   return getHelp(ctx, r.post_id);
 }
 
+/* ---------- ratings ---------- */
+// Pairwise: after completion, the poster and each helper may rate each other once.
+
+async function createRating(ctx, replyId) {
+  const user = await requireActive(ctx);
+  const db = ctx.env.DB;
+  const b = await readJson(ctx.request);
+  const r = await loadReplyWithPost(ctx, replyId);
+  requireParticipant(r, user);
+  if (r.status !== 'completed') throw new HttpError(400, 'You can rate each other once the task is marked complete.');
+  const stars = Number(b.stars);
+  if (!Number.isInteger(stars) || stars < 1 || stars > 5) throw new HttpError(400, 'Choose 1 to 5 stars.');
+  const comment = text(b.comment, 280, 'Comment');
+  const ratee = otherPartyOf(r, user.id);
+  try {
+    await db.batch([
+      db.prepare('INSERT INTO ratings (id, reply_id, rater_id, ratee_id, stars, comment, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        .bind(crypto.randomUUID(), replyId, user.id, ratee, stars, comment, Date.now()),
+      notifyStmt(db, ratee, 'rated', { actor: user.id, post: r.post_id, reply: replyId, detail: String(stars) }),
+      eventStmt(db, user.id, 'rating')
+    ]);
+  } catch (e) {
+    if (/UNIQUE/i.test(String(e && e.message))) throw new HttpError(409, 'You’ve already rated this.');
+    throw e;
+  }
+  return getHelp(ctx, r.post_id);
+}
+
+// Visible ratings about a member, newest first (for profiles).
+async function ratingsAbout(db, userId, limit = 10) {
+  const { results } = await db.prepare(
+    `SELECT g.id, g.stars, g.comment, g.created_at, u.display_name, u.account_type
+       FROM ratings g JOIN users u ON u.id = g.rater_id
+      WHERE g.ratee_id = ? AND g.hidden_at IS NULL AND u.suspended_at IS NULL
+      ORDER BY g.created_at DESC LIMIT ?`).bind(userId, limit).all();
+  return results.map(g => ({ id: g.id, stars: g.stars, comment: g.comment, createdAt: g.created_at, from: shortName(g.display_name, g.account_type) }));
+}
+
 /* ---------- reports & blocks ---------- */
 
 async function createReport(ctx) {
@@ -668,7 +883,7 @@ async function createReport(ctx) {
   const key = 'report:' + user.id;
   if (await countAttempts(env, key, now - 24 * HOUR) >= MAX_REPORTS_PER_DAY) throw new HttpError(429, 'You’ve sent a lot of reports today. Please try again tomorrow.');
   const b = await readJson(ctx.request);
-  const type = oneOf(b.targetType, ['post', 'reply', 'user'], 'Report type');
+  const type = oneOf(b.targetType, ['post', 'reply', 'user', 'rating'], 'Report type');
   const reason = oneOf(b.reason, REPORT_REASONS, 'Reason');
   const details = text(b.details, 1000, 'Details');
   const targetId = text(b.targetId, 64, 'Target', true);
@@ -686,6 +901,10 @@ async function createReport(ctx) {
       'SELECT text FROM help_messages WHERE reply_id = ? AND user_id = ? ORDER BY created_at DESC LIMIT 10'
     ).bind(targetId, targetUser).all();
     snapshot = (r.user_id === targetUser ? `Reply: ${r.text}\n` : '') + msgs.reverse().map(m => `Message: ${m.text}`).join('\n');
+  } else if (type === 'rating') {
+    const g = await env.DB.prepare('SELECT rater_id, stars, comment FROM ratings WHERE id = ?').bind(targetId).first();
+    if (!g) throw new HttpError(404, 'That rating isn’t available.');
+    targetUser = g.rater_id; snapshot = `${g.stars} stars\n\n${g.comment}`;
   } else {
     const u = await env.DB.prepare('SELECT id, display_name, headline, bio FROM users WHERE id = ?').bind(targetId).first();
     if (!u) throw new HttpError(404, 'That member isn’t available.');
@@ -790,7 +1009,7 @@ async function adminListReports(ctx) {
 async function adminResolveReport(ctx, id) {
   const admin = await requireAdmin(ctx);
   const b = await readJson(ctx.request);
-  const action = oneOf(b.action, ['dismiss', 'hide-post', 'suspend-user', 'hide-and-suspend'], 'Action');
+  const action = oneOf(b.action, ['dismiss', 'hide-post', 'suspend-user', 'hide-and-suspend', 'hide-rating'], 'Action');
   const note = text(b.note, 500, 'Note');
   const db = ctx.env.DB;
   const r = await db.prepare('SELECT * FROM reports WHERE id = ?').bind(id).first();
@@ -801,6 +1020,10 @@ async function adminResolveReport(ctx, id) {
     stmts.push(db.prepare('UPDATE help_posts SET hidden_at = COALESCE(hidden_at, ?) WHERE id = ?').bind(Date.now(), r.target_id));
     const post = await db.prepare('SELECT author_id FROM help_posts WHERE id = ?').bind(r.target_id).first();
     if (post) stmts.push(notifyStmt(db, post.author_id, 'post_hidden', { post: r.target_id }));
+  }
+  if (action === 'hide-rating') {
+    if (r.target_type !== 'rating') throw new HttpError(400, 'Only rating reports can hide a rating.');
+    stmts.push(db.prepare('UPDATE ratings SET hidden_at = COALESCE(hidden_at, ?) WHERE id = ?').bind(Date.now(), r.target_id));
   }
   if (action === 'suspend-user' || action === 'hide-and-suspend') {
     const target = await db.prepare('SELECT is_admin FROM users WHERE id = ?').bind(r.target_user_id).first();
@@ -887,6 +1110,19 @@ async function adminUserAction(ctx, id) {
     : [db.prepare('UPDATE users SET suspended_at = NULL WHERE id = ?').bind(id)];
   stmts.push(audit(db, admin, 'user:' + action, 'user:' + id, note));
   await db.batch(stmts);
+  return json({ ok: true });
+}
+
+// Hidden ratings are excluded from averages and profiles.
+async function adminRatingAction(ctx, id) {
+  const admin = await requireAdmin(ctx);
+  const b = await readJson(ctx.request);
+  const action = oneOf(b.action, ['hide', 'unhide'], 'Action');
+  const db = ctx.env.DB;
+  const res = await db.prepare(action === 'hide' ? 'UPDATE ratings SET hidden_at = COALESCE(hidden_at, ?1) WHERE id = ?2' : 'UPDATE ratings SET hidden_at = NULL WHERE id = ?2 AND ?1 IS NOT NULL')
+    .bind(Date.now(), id).run();
+  if (!res.meta.changes) throw new HttpError(404, 'Rating not found.');
+  await audit(db, admin, 'rating:' + action, 'rating:' + id, text(b.note, 500, 'Note')).run();
   return json({ ok: true });
 }
 
@@ -1447,7 +1683,8 @@ function publicUser(u) {
     location: u.location, region: u.region, bio: u.bio, website: u.website, causes: list(u.causes), createdAt: u.created_at,
     verified: u.verification_status === 'verified',
     avatarUrl: mediaUrl(u.avatar_id), bannerUrl: mediaUrl(u.banner_id), bannerPreset: u.banner_preset || 'harbor',
-    pronouns: u.pronouns || '', languages: list(u.languages), skills: list(u.skills)
+    pronouns: u.pronouns || '', languages: list(u.languages), skills: list(u.skills),
+    ...(u.rating_count !== undefined ? { rating: { avg: u.rating_avg == null ? null : Number(u.rating_avg), count: u.rating_count } } : {})
   };
 }
 function privateUser(u) {
