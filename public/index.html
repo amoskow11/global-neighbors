@@ -514,6 +514,16 @@
   .how-list li{ margin-bottom:.3rem; }
   @media (max-width:560px){ .type-choice{ grid-template-columns:1fr; } .type-card{ min-height:0; } }
 
+  .when-chip{ display:inline-flex; align-items:center; gap:.3rem; font-size:.74rem; font-weight:700; padding:.22rem .58rem; border-radius:100px; background:var(--primary-soft); color:var(--primary-strong); }
+  .when-chip .icon{ width:13px; height:13px; }
+  .when-chip.past{ background:var(--surface-2); color:var(--text-muted); text-decoration:line-through; }
+  .arrange-row .filter-select{ min-width:9rem; }
+  .arrange-row .toolbar-label{ margin-left:.2rem; }
+  .board-section{ font-family:'Public Sans',sans-serif; font-size:.95rem; font-weight:700; color:var(--text); margin:1.3rem 0 .7rem; display:flex; align-items:center; gap:.5rem; }
+  .board-section:first-of-type{ margin-top:.4rem; }
+  .chip .icon{ width:13px; height:13px; vertical-align:-2px; }
+  .type-locked{ margin-left:auto; font-size:.76rem; font-weight:600; color:var(--text-muted); }
+
   /* ---------- Notifications, feedback, guest invite ---------- */
   .topbar-right{ position:relative; display:flex; align-items:center; gap:.7rem; }
   .bell{ position:relative; display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; }
@@ -624,6 +634,7 @@
     lock: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>',
     shield: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"></path></svg>',
     bell: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"></path><path d="M10 20.5a2 2 0 0 0 4 0"></path></svg>',
+    calendar: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>',
     camera: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>',
     arrow: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg>'
   };
@@ -1204,6 +1215,10 @@
     p.helpersNeeded = spots[0]; p.committedCount = spots[1];
     p.status = spots[1] ? 'in-progress' : 'open'; p.full = spots[1] >= spots[0]; p.spotsLeft = Math.max(0, spots[0] - spots[1]);
     p.committed = []; p.ratingsDue = 0;
+    var nextDow = function(dow){ var d = new Date(); d.setDate(d.getDate() + ((dow - d.getDay() + 7) % 7 || 7)); return localDay(d); };
+    var when = { 'sample-h1':[nextDow(4),'14:00'], 'sample-h4':[nextDow(6),'10:00'], 'sample-h8':[nextDow(6),'08:00'],
+                 'sample-h12':[todayKey(1),'06:30'], 'sample-h9':[todayKey(),''], 'sample-h6':[todayKey(3),'15:30'] }[p.id];
+    p.whenDate = when ? when[0] : null; p.whenTime = when && when[1] ? when[1] : null; p.editedAt = null;
     p.author.rating = p.author.accountType==='org' ? { avg:4.9, count:23 } : { avg:null, count:0 };
   });
 
@@ -1234,6 +1249,7 @@
     imageEdit:null, pickKind:'avatar', pendingDraft:null, gateReason:'', postCat:'Groceries & errands',
     postType:null, postStep:'details', postDraft:null, postHelpers:1,
     helpOpenOnly:false, rateDraft:{}, commitTarget:null, editHelpers:null,
+    postEditId:null, postEditLocked:false, postEditMin:1, helpArrange:'newest', helpWhen:'any', helpNear:false,
     admin:{ overview:null, reports:null, verifications:null, users:null, userQuery:'', reportFilter:'open', resetLink:null,
             activity:null, activityDays:30, activityUser:null, activityUserId:null, activitySort:'time', feedback:null, feedbackFilter:'new' }
   };
@@ -1714,6 +1730,63 @@
       : pay.label || (pay.kind==='funding' ? 'Needs funding' : 'Stipend');
     return '<span class="pay-tag ' + esc(pay.kind) + '">' + esc(label) + '</span>';
   }
+  /* ---------- dates, locations, and arranging the board ---------- */
+  function todayKey(offsetDays){ var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() + (offsetDays || 0)); return localDay(d); }
+  function dayDiff(key){ var p = key.split('-'), d = new Date(+p[0], +p[1]-1, +p[2]), t = new Date(); t.setHours(0,0,0,0); return Math.round((d - t) / 86400000); }
+  function whenLabel(p){
+    if(!p.whenDate) return '';
+    var diff = dayDiff(p.whenDate), parts = p.whenDate.split('-');
+    var day = diff===0 ? 'Today' : diff===1 ? 'Tomorrow' : new Date(+parts[0], +parts[1]-1, +parts[2]).toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
+    var time = '';
+    if(p.whenTime){ var hm = p.whenTime.split(':'); time = ' · ' + new Date(2000, 0, 1, +hm[0], +hm[1]).toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' }); }
+    return day + time;
+  }
+  function whenChip(p){ return p.whenDate ? '<span class="when-chip' + (dayDiff(p.whenDate) < 0 ? ' past' : '') + '">' + ICONS.calendar + esc(whenLabel(p)) + '</span>' : ''; }
+  function cityOf(loc){ return String(loc || '').split(',')[0].trim().toLowerCase(); }
+  var URGENCY_ORDER = ['Urgent','Hiring now','This week','This month','Ongoing','Flexible'];
+  function byWhen(a, b){
+    var ak = a.whenDate ? a.whenDate + ' ' + (a.whenTime || '99:99') : '9999', bk = b.whenDate ? b.whenDate + ' ' + (b.whenTime || '99:99') : '9999';
+    return ak < bk ? -1 : ak > bk ? 1 : b.createdAt - a.createdAt;
+  }
+  function byNewest(a, b){ return b.createdAt - a.createdAt; }
+  // Splits the (already filtered) list into labelled sections for the chosen arrangement.
+  function arrangePosts(list){
+    var mode = state.helpArrange, groups = [], add = function(key, label, posts, sorter){ if(posts.length) groups.push({ key:key, label:label, posts:posts.slice().sort(sorter || byNewest) }); };
+    if(mode==='urgency'){
+      URGENCY_ORDER.forEach(function(u){ add(u, u, list.filter(function(p){ return p.urgency===u; }), byWhen); });
+    } else if(mode==='date'){
+      var b = { past:[], today:[], tomorrow:[], week:[], later:[], none:[] };
+      list.forEach(function(p){
+        if(!p.whenDate) return b.none.push(p);
+        var d = dayDiff(p.whenDate);
+        (d < 0 ? b.past : d===0 ? b.today : d===1 ? b.tomorrow : d <= 7 ? b.week : b.later).push(p);
+      });
+      add('today','Today',b.today,byWhen); add('tomorrow','Tomorrow',b.tomorrow,byWhen); add('week','Next 7 days',b.week,byWhen);
+      add('later','Later',b.later,byWhen); add('none','No set date',b.none); add('past','Date has passed',b.past,byWhen);
+    } else if(mode==='location'){
+      var me = state.user, myCity = me ? cityOf(me.location) : '', myRegion = me ? me.region : '';
+      if(myCity || myRegion){
+        var near = [], region = [], remote = [], other = [];
+        list.forEach(function(p){
+          if(myCity && cityOf(p.location)===myCity) near.push(p);
+          else if(p.scale==='Remote') remote.push(p);
+          else if(myRegion && p.region===myRegion) region.push(p);
+          else other.push(p);
+        });
+        add('near', 'Near you' + (myCity ? ' · ' + me.location.split(',')[0].trim() : ''), near);
+        add('region', 'Elsewhere in ' + regionLabel(myRegion), region);
+        add('remote', 'Remote · anywhere', remote);
+        add('other', 'Other regions', other);
+      } else {
+        REGIONS.forEach(function(r){ add(r, regionLabel(r), list.filter(function(p){ return p.region===r && p.scale!=='Remote'; })); });
+        add('remote', 'Remote · anywhere', list.filter(function(p){ return p.scale==='Remote'; }));
+      }
+    } else {
+      add('all', '', list);
+    }
+    return groups;
+  }
+
   // One vocabulary everywhere: an "ask" needs help, an "offer" is someone offering it.
   var TYPE_WORDS = {
     ask:   { pill:'Needs help',    cta:'I can help',   helperNoun:'helper', peopleQ:'How many people do you need?', previewLead:'You’re asking for help with:' },
@@ -1772,11 +1845,11 @@
     else cta = '<button class="btn btn-primary btn-sm" data-action="view-help" data-id="' + esc(p.id) + '">' + TYPE_WORDS[p.type].cta + '</button>';
     return '<div class="card help-card">'
       + '<div class="help-top">' + typePill(p) + (p.sample ? '<span class="sample-pill">Sample</span>' : '') + (p.urgency==='Urgent' ? '<span class="urgent-pill">Urgent</span>' : '') + statusPill(p)
-      +   '<span class="res-date">' + fmtDate(p.createdAt) + '</span></div>'
+      +   '<span class="res-date">' + fmtDate(p.createdAt) + (p.editedAt ? ' · edited' : '') + '</span></div>'
       + '<h3 style="font-size:1rem; font-weight:600;">' + esc(p.title) + '</h3>'
       + '<div class="author-line">' + avatarHtml(p.author, 'xs') + '<div class="res-org">' + nameLink(p.author) + ' · ' + esc(p.location) + '</div></div>'
       + '<div class="help-snippet">' + esc(p.detail) + '</div>'
-      + '<div class="tag-row" style="margin-bottom:0;">' + spotsChip(p) + '<span class="tag">' + esc(categoryLabel(p)) + '</span>' + payTag(p.pay) + '<span class="tag muted">' + esc(scaleLabel(p.scale)) + '</span></div>'
+      + '<div class="tag-row" style="margin-bottom:0;">' + whenChip(p) + spotsChip(p) + '<span class="tag">' + esc(categoryLabel(p)) + '</span>' + payTag(p.pay) + '<span class="tag muted">' + esc(scaleLabel(p.scale)) + '</span></div>'
       + '<div class="help-foot"><span class="reply-count">' + (p.isMine ? repliesLabel(p.replyCount) : '') + '</span><div class="card-actions">' + cta + '</div></div>'
       + '</div>';
   }
@@ -1792,7 +1865,9 @@
         && (state.helpRegion==='All' || p.region===state.helpRegion)
         && (state.helpCat==='All' || p.category===state.helpCat)
         && (state.helpPay==='all' || payKind===state.helpPay)
-        && (!state.helpOpenOnly || (p.status!=='resolved' && !p.full));
+        && (!state.helpOpenOnly || (p.status!=='resolved' && !p.full))
+        && (state.helpWhen==='any' || (p.whenDate && (function(d){ return state.helpWhen==='today' ? d===0 : state.helpWhen==='week' ? d>=0 && d<=6 : d>=0 && d<=30; })(dayDiff(p.whenDate))))
+        && (!state.helpNear || !state.user || (cityOf(p.location)===cityOf(state.user.location)) || p.scale==='Remote');
     });
 
     var seg = !state.user ? '' : '<div class="seg" role="tablist">' + [
@@ -1809,10 +1884,18 @@
     var filters = state.helpView!=='browse' ? '' :
         '<div class="toolbar"><input class="search-input" type="text" placeholder="Search posts: groceries, water, tutoring, Nairobi…" value="' + esc(state.helpQuery) + '" data-search="helpQuery" aria-label="Search help posts">'
       +   '<select class="filter-select" data-role="help-cat" aria-label="Category">' + groupedCategoryOpts(state.helpCat, true) + '</select></div>'
+      + '<div class="toolbar arrange-row">'
+      +   '<label class="toolbar-label" for="help-arrange">Arrange by</label><select id="help-arrange" class="filter-select" data-role="help-arrange">'
+      +     opts(['newest','urgency','date','location'], state.helpArrange, function(v){ return { newest:'Newest first', urgency:'Urgency', date:'Date', location:'Location' }[v]; }) + '</select>'
+      +   '<label class="toolbar-label" for="help-when">When</label><select id="help-when" class="filter-select" data-role="help-when">'
+      +     opts(['any','today','week','month'], state.helpWhen, function(v){ return { any:'Any time', today:'Today', week:'Next 7 days', month:'Next 30 days' }[v]; }) + '</select>'
+      + '</div>'
       + '<div class="toolbar">' + chips('helpType', [['all','Everything'],['ask','Needs help'],['offer','Offering help']])
       +   '<button class="chip' + (state.helpOpenOnly ? ' active' : '') + '" data-action="toggle-open-only" aria-pressed="' + !!state.helpOpenOnly + '">Still needs helpers</button>'
       +   '<span style="width:.6rem;"></span>' + chips('helpPay', [['all','Any'],['volunteer','Volunteer'],['paid','Paid & stipend'],['funding','Needs funding']]) + '</div>'
-      + '<div class="toolbar"><span class="toolbar-label">Where</span>' + chips('helpRegion', [['All','Everywhere']].concat(REGIONS.map(function(r){ return [r, regionLabel(r)]; }))) + '</div>';
+      + '<div class="toolbar"><span class="toolbar-label">Where</span>'
+      +   (state.user ? '<button class="chip' + (state.helpNear ? ' active' : '') + '" data-action="toggle-near" aria-pressed="' + !!state.helpNear + '">' + ICONS.pin + ' Near me</button>' : '')
+      +   chips('helpRegion', [['All','Everywhere']].concat(REGIONS.map(function(r){ return [r, regionLabel(r)]; }))) + '</div>';
 
     // Nudge members toward ratings they still owe.
     var due = state.posts.filter(function(p){ return p.ratingsDue; });
@@ -1836,7 +1919,12 @@
       +   '<button class="btn btn-primary" data-action="open-modal" data-modal="post-help">+ New post</button>'
       + '</div>'
       + rateBanner + seg + filters
-      + (list.length && !state.postsLoading ? '<div class="grid">' + list.map(helpCard).join('') + '</div>' : '<div class="empty">' + empty + '</div>');
+      + (list.length && !state.postsLoading
+          ? arrangePosts(list).map(function(g){
+              return (g.label ? '<h3 class="board-section">' + esc(g.label) + ' <span class="count-pill">' + g.posts.length + '</span></h3>' : '')
+                + '<div class="grid">' + g.posts.map(helpCard).join('') + '</div>';
+            }).join('')
+          : '<div class="empty">' + (state.helpWhen!=='any' && state.posts.length && !state.postsLoading ? 'No posts with a date in that range. Many posts don’t set a date; try “Any time”.' : empty) + '</div>');
   }
 
   /* ---------- conversations: talking → committed → completed (or withdrawn / declined) ---------- */
@@ -1966,10 +2054,10 @@
       +   '<div><div class="help-top" style="margin-bottom:.6rem;">' + typePill(p) + (p.urgency==='Urgent' ? '<span class="urgent-pill">Urgent</span>' : '') + statusPill(p) + '</div>'
       +   '<p class="post-lead">' + esc(p.isMine ? (p.type==='ask' ? 'You’re asking for help with:' : 'You’re offering:') : p.author.name + (p.type==='ask' ? ' needs help with:' : ' is offering:')) + '</p>'
       +   '<h2>' + esc(p.title) + '</h2></div>'
-      +   (p.isMine ? '<div class="card-actions"><button class="btn btn-ghost btn-sm" data-action="delete-post"' + dis + '>Delete</button></div>' : '')
+      +   (p.isMine ? '<div class="card-actions"><button class="btn btn-secondary btn-sm" data-action="edit-post"' + dis + '>Edit post</button><button class="btn btn-ghost btn-sm" data-action="delete-post"' + dis + '>Delete</button></div>' : '')
       + '</div>'
-      + '<div class="meta-row" style="margin-bottom:.8rem;"><span>' + ICONS.pin + esc(p.location) + '</span><span>' + ICONS.globe + esc(scaleLabel(p.scale)) + '</span><span>Posted ' + fmtDate(p.createdAt) + '</span></div>'
-      + '<div class="tag-row">' + spotsChip(p) + '<span class="tag">' + esc(categoryLabel(p)) + '</span>' + payTag(p.pay) + '<span class="tag muted">' + esc(p.urgency) + '</span></div>'
+      + '<div class="meta-row" style="margin-bottom:.8rem;"><span>' + ICONS.pin + esc(p.location) + '</span><span>' + ICONS.globe + esc(scaleLabel(p.scale)) + '</span><span>Posted ' + fmtDate(p.createdAt) + (p.editedAt ? ' · Edited ' + fmtDate(p.editedAt) : '') + '</span></div>'
+      + '<div class="tag-row">' + whenChip(p) + spotsChip(p) + '<span class="tag">' + esc(categoryLabel(p)) + '</span>' + payTag(p.pay) + '<span class="tag muted">' + esc(p.urgency) + '</span></div>'
       + (p.hidden ? '<div class="form-error">Moderators hid this post after a report, so other members can’t see it. If you think this is a mistake, email ' + esc(contactEmail()) + '.</div>' : '');
 
     var mine = (p.replies || []).filter(function(r){ return r.isMine; })[0];
@@ -2040,7 +2128,7 @@
   /* ---------- new post: choose ask/offer → details → preview ---------- */
   function renderPostModal(){
     var u = state.user || { displayName:'Guest', location:'', region:'Greater Boston' }, dis = state.busy ? ' disabled' : '';
-    var t = state.postType, W = t ? TYPE_WORDS[t] : null, d = state.postDraft || {};
+    var t = state.postType, W = t ? TYPE_WORDS[t] : null, d = state.postDraft || {}, editing = !!state.postEditId;
     var shell = function(inner){
       return '<div class="modal-backdrop" data-action="close-modal"><div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">' + inner + '</div></div>';
     };
@@ -2053,30 +2141,34 @@
         + '<div class="modal-actions"><button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button></div>');
     }
     var chosen = '<div class="type-chosen type-' + t + '">' + (t==='ask' ? 'You’re asking for help' : 'You’re offering help')
-      + ' <button type="button" class="link-btn" data-action="post-type-change">Change</button></div>';
+      + (editing && state.postEditLocked
+          ? ' <span class="type-locked" title="People have already replied, so this can’t be switched">Can’t change after replies</span>'
+          : ' <button type="button" class="link-btn" data-action="post-type-change">Change</button>') + '</div>';
     if(state.postStep==='preview'){
-      return shell('<h3 id="help-modal-title">Check your post</h3>' + chosen
+      return shell('<h3 id="help-modal-title">' + (editing ? 'Check your changes' : 'Check your post') + '</h3>' + chosen
         + (state.formError ? '<div class="form-error" role="alert">' + esc(state.formError) + '</div>' : '')
         + '<div class="preview-box"><p class="post-lead">' + W.previewLead + '</p><h4>' + esc(d.title) + '</h4>'
         +   '<p class="preview-detail">' + esc(d.detail) + '</p>'
         +   '<dl class="kv"><dt>' + (t==='ask' ? 'People needed' : 'People you can help') + '</dt><dd>' + d.helpersNeeded + '</dd>'
         +   '<dt>Category</dt><dd>' + esc(d.category==='Other' ? d.categoryNote : d.category) + '</dd>'
         +   '<dt>Where</dt><dd>' + esc(d.location) + ' · ' + esc(scaleLabel(d.scale)) + '</dd>'
+        +   (d.whenDate ? '<dt>When</dt><dd>' + esc(whenLabel(d)) + '</dd>' : '')
         +   '<dt>Timing</dt><dd>' + esc(d.urgency) + '</dd>'
         +   '<dt>Compensation</dt><dd>' + esc({ volunteer:'Volunteer', paid:'Paid', stipend:'Stipend / expenses', funding:'Needs funding or donations' }[d.payKind] + (d.payLabel ? ' · ' + d.payLabel : '')) + '</dd></dl>'
         + '</div>'
-        + '<p class="posting-as" style="margin-top:.8rem;">' + (state.user ? 'Signed-in members will see this.' : 'You’re a guest: we’ll keep this while you create a free account to publish it.') + '</p>'
+        + '<p class="posting-as" style="margin-top:.8rem;">' + (editing ? 'Anyone you’re talking with about this post will be told it changed.' : state.user ? 'Signed-in members will see this.' : 'You’re a guest: we’ll keep this while you create a free account to publish it.') + '</p>'
         + '<div class="modal-actions"><button type="button" class="btn btn-ghost" data-action="post-edit">← Edit</button>'
-        +   '<button type="button" class="btn btn-primary" data-action="publish-post"' + dis + '>' + (state.busy ? 'Publishing…' : state.user ? 'Publish' : 'Continue') + '</button></div>');
+        +   '<button type="button" class="btn btn-primary" data-action="publish-post"' + dis + '>' + (state.busy ? (editing ? 'Saving…' : 'Publishing…') : editing ? 'Save changes' : state.user ? 'Publish' : 'Continue') + '</button></div>');
     }
-    return shell('<h3 id="help-modal-title">' + (t==='ask' ? 'Ask for help' : 'Offer help') + '</h3>' + chosen
+    return shell('<h3 id="help-modal-title">' + (editing ? 'Edit your post' : t==='ask' ? 'Ask for help' : 'Offer help') + '</h3>' + chosen
       + (state.formError ? '<div class="form-error" role="alert">' + esc(state.formError) + '</div>' : '')
       + '<form data-action="preview-help" novalidate>'
       +   '<div class="field"><label for="hp-title">' + (t==='ask' ? 'What do you need help with?' : 'What can you help with?') + '</label><input id="hp-title" type="text" maxlength="120" required placeholder="' + (t==='ask' ? 'e.g. A ride to my doctor’s appointment on Tuesday' : 'e.g. Math tutoring for middle schoolers') + '"></div>'
       +   '<div class="field"><label for="hp-detail">Details</label><textarea id="hp-detail" maxlength="3000" required placeholder="' + (t==='ask' ? 'When, where, and anything a helper should know. Don’t include your street address.' : 'When you’re available, where, and anything people should know. Don’t include your street address.') + '"></textarea></div>'
       +   '<div class="field-row">'
       +     '<div class="field"><label for="hp-cat">Category</label><select id="hp-cat" data-role="post-cat">' + groupedCategoryOpts(state.postCat) + '</select></div>'
-      +     '<div class="field"><span class="field-label">' + W.peopleQ + '</span>' + stepperHtml('hp-helpers', state.postHelpers, 1) + '</div>'
+      +     '<div class="field"><span class="field-label">' + W.peopleQ + '</span>' + stepperHtml('hp-helpers', state.postHelpers, editing ? state.postEditMin : 1)
+      +       (editing && state.postEditMin > 1 ? '<p class="hint">' + state.postEditMin + ' people already committed.</p>' : '') + '</div>'
       +   '</div>'
       +   (state.postCat==='Other' ? '<div class="field"><label for="hp-catnote">Your topic</label><input id="hp-catnote" maxlength="40" required placeholder="e.g. Wedding photography, Beekeeping, Bike repair"><p class="hint">Shown as the post’s category. Don’t see a category that fits? <button type="button" class="link-btn" data-action="open-feedback">Suggest one</button></p></div>' : '')
       +   '<div class="field-row">'
@@ -2085,7 +2177,11 @@
       +   '</div>'
       +   '<div class="field-row">'
       +     '<div class="field"><label for="hp-scale">Reach</label><select id="hp-scale">' + opts(SCALES, 'Neighborhood', scaleLabel) + '</select></div>'
-      +     '<div class="field"><label for="hp-urgency">Timing</label><select id="hp-urgency">' + opts(URGENCIES) + '</select></div>'
+      +     '<div class="field"><label for="hp-urgency">How urgent?</label><select id="hp-urgency">' + opts(URGENCIES) + '</select></div>'
+      +   '</div>'
+      +   '<div class="field-row">'
+      +     '<div class="field"><label for="hp-date">' + (t==='ask' ? 'When do you need it?' : 'When are you available?') + ' <span class="hint">(optional)</span></label><input id="hp-date" type="date" min="' + (editing ? '' : todayKey()) + '"></div>'
+      +     '<div class="field"><label for="hp-time">Time <span class="hint">(optional)</span></label><input id="hp-time" type="time"></div>'
       +   '</div>'
       +   '<div class="field-row">'
       +     '<div class="field"><label for="hp-pay">Compensation</label><select id="hp-pay"><option value="volunteer">Volunteer</option><option value="paid">Paid job</option><option value="stipend">Stipend / expenses</option><option value="funding">Needs funding or donations</option></select></div>'
@@ -2096,19 +2192,32 @@
       + '</form>');
   }
   var POST_FIELDS = { title:'hp-title', detail:'hp-detail', category:'hp-cat', categoryNote:'hp-catnote', location:'hp-loc', region:'hp-region',
-                      scale:'hp-scale', urgency:'hp-urgency', payKind:'hp-pay', payLabel:'hp-paylabel', helpersNeeded:'hp-helpers' };
+                      scale:'hp-scale', urgency:'hp-urgency', payKind:'hp-pay', payLabel:'hp-paylabel', helpersNeeded:'hp-helpers',
+                      whenDate:'hp-date', whenTime:'hp-time' };
   function readPostForm(){
     var d = {};
     Object.keys(POST_FIELDS).forEach(function(k){ var el = document.getElementById(POST_FIELDS[k]); d[k] = el ? el.value.trim() : ''; });
     d.helpersNeeded = Math.min(20, Math.max(1, parseInt(d.helpersNeeded, 10) || 1));
+    if(!d.whenDate) d.whenTime = '';
     d.type = state.postType;
     return d;
   }
   function fillPostForm(d){
     Object.keys(POST_FIELDS).forEach(function(k){ var el = document.getElementById(POST_FIELDS[k]); if(el && d[k] != null) el.value = d[k]; });
   }
+  // Reopen the post form prefilled with an existing post.
+  function openEditModal(p){
+    state.modal = 'post-help'; state.postEditId = p.id; state.postType = p.type; state.postStep = 'details'; state.formError = '';
+    state.postEditLocked = p.replies.length > 0 || p.status==='resolved';
+    state.postEditMin = Math.max(1, (p.committed || []).filter(function(t){ return t.status==='committed'; }).length);
+    state.postCat = p.category; state.postHelpers = p.helpersNeeded;
+    state.postDraft = { type:p.type, title:p.title, detail:p.detail, category:p.category, categoryNote:p.categoryNote, location:p.location,
+      region:p.region, scale:p.scale, urgency:p.urgency, payKind:p.pay.kind, payLabel:p.pay.label, helpersNeeded:p.helpersNeeded,
+      whenDate:p.whenDate || '', whenTime:p.whenTime || '' };
+    render(); fillPostForm(state.postDraft);
+  }
   function openPostModal(){
-    state.modal = 'post-help'; state.postType = null; state.postStep = 'details'; state.postDraft = null;
+    state.modal = 'post-help'; state.postType = null; state.postStep = 'details'; state.postDraft = null; state.postEditId = null;
     state.postCat = 'Groceries & errands'; state.postHelpers = 1; state.formError = '';
   }
 
@@ -2479,6 +2588,7 @@
       case 'withdrawn': return n.detail==='released' ? who + ' released you from ' + t : n.detail==='backed_out' ? who + ' backed out of ' + t + '. The spot is open again.' : who + ' ended your conversation about ' + t;
       case 'declined': return who + ' declined your reply on ' + t;
       case 'completed': return who + ' marked ' + t + ' complete. Rate your experience!';
+      case 'post_edited': return who + ' updated ' + t;
       case 'rated': return who + ' rated you ' + esc(n.detail) + ' ★ for ' + t;
       case 'message': return who + ' sent you a message about ' + t;
       case 'verification': return n.detail==='approved' ? 'Your organization is now <b>verified</b> ✓' : 'Your verification request needs changes. Open My profile for details.';
@@ -3069,6 +3179,21 @@
       state.postType = null; state.formError = ''; render(); return;
     }
     if(action==='post-edit'){ state.postStep = 'details'; state.formError = ''; render(); fillPostForm(state.postDraft); return; }
+    if(action==='edit-post'){ openEditModal(state.helpDetail); return; }
+    if(action==='toggle-near'){
+      if(!state.user.location){ toast('Add your neighborhood or city in My profile to use “Near me”.'); return; }
+      state.helpNear = !state.helpNear; render(); return;
+    }
+    if(action==='publish-post' && state.postEditId){
+      var ed = state.postDraft, editId = state.postEditId;
+      state.formError = '';
+      run(api('PATCH', 'help/' + editId, ed).then(function(d){
+        var talking = d.post.replies.filter(function(r){ return r.status==='talking' || r.status==='committed'; }).length;
+        state.modal = null; state.postEditId = null; state.postDraft = null; state.helpDetail = d.post;
+        toast(talking ? 'Post updated. ' + talking + (talking===1 ? ' person was' : ' people were') + ' notified.' : 'Post updated.');
+      }), function(err){ state.formError = err.message; });
+      return;
+    }
     if(action==='publish-post'){
       var pd = state.postDraft;
       if(!state.user){
@@ -3192,6 +3317,8 @@
     var role = e.target.getAttribute('data-role');
     if(role==='signup-type'){ state.signupType = e.target.value; render(); }
     if(role==='help-cat'){ state.helpCat = e.target.value; render(); }
+    if(role==='help-arrange'){ state.helpArrange = e.target.value; render(); }
+    if(role==='help-when'){ state.helpWhen = e.target.value; render(); }
     if(role==='stepper'){
       var sv = Math.min(20, Math.max(+e.target.min || 1, parseInt(e.target.value, 10) || 1));
       if(e.target.id==='hp-helpers') state.postHelpers = sv; else state.editHelpers = sv;
@@ -3272,6 +3399,7 @@
       if(!d.detail) missing.push('details');
       if(!d.location) missing.push('a location');
       if(d.category==='Other' && !d.categoryNote) missing.push('your topic');
+      if(d.whenTime && !d.whenDate) missing.push('a date to go with the time');
       if(missing.length){ state.formError = 'Please add ' + missing.join(', ') + '.'; state.postDraft = d; render(); fillPostForm(d); return; }
       state.postDraft = d; state.postStep = 'preview'; state.formError = ''; render(); return;
     }

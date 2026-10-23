@@ -517,6 +517,7 @@ function helpRow(r, viewerId) {
     location: r.location, region: r.region, pay: { kind: r.pay_kind, label: r.pay_label },
     urgency: r.urgency, status: r.status, createdAt: r.created_at, hidden: !!r.hidden_at,
     helpersNeeded: needed, committedCount: committed,
+    whenDate: r.when_date || null, whenTime: r.when_time || null, editedAt: r.edited_at || null,
     spotsLeft: r.status === 'resolved' ? 0 : Math.max(0, needed - committed),
     full: r.status !== 'resolved' && committed >= needed,
     replyCount: r.reply_count, myReplyStatus: r.my_reply_status || null, ratingsDue: r.ratings_due || 0,
@@ -609,9 +610,10 @@ async function createHelp(ctx) {
   const id = crypto.randomUUID();
   const category = oneOf(b.category, CATEGORIES, 'Category');
   const categoryNote = category === 'Other' ? text(b.categoryNote, 40, 'Category description', true) : '';
+  const when = whenValues(b, { allowPast: false });
   await ctx.env.DB.prepare(
-    `INSERT INTO help_posts (id, author_id, type, category, category_note, scale, title, detail, location, region, pay_kind, pay_label, urgency, helpers_needed, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)`
+    `INSERT INTO help_posts (id, author_id, type, category, category_note, scale, title, detail, location, region, pay_kind, pay_label, urgency, helpers_needed, when_date, when_time, status, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)`
   ).bind(
     id, user.id,
     oneOf(b.type, ['ask', 'offer'], 'Post type'),
@@ -625,6 +627,7 @@ async function createHelp(ctx) {
     text(b.payLabel, 60, 'Amount'),
     oneOf(b.urgency, URGENCIES, 'Timing'),
     helpersNeededValue(b.helpersNeeded),
+    when.date, when.time,
     now, now
   ).run();
   return json({ post: helpRow(await loadPost(ctx, id, user), user.id) }, 201);
@@ -651,18 +654,93 @@ async function loadOwnPost(ctx, id, user) {
   return post;
 }
 
-// PATCH: the poster can change how many helpers they need, never below the number already committed.
+// Optional date ("YYYY-MM-DD") and time ("HH:MM") a task happens or is needed by, in the poster's local terms.
+function whenValues(b, { allowPast }) {
+  const date = b.whenDate == null || b.whenDate === '' ? null : String(b.whenDate);
+  const time = b.whenTime == null || b.whenTime === '' ? null : String(b.whenTime);
+  if (date) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+    const d = m && new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+    if (!d || d.getUTCMonth() !== +m[2] - 1 || d.getUTCDate() !== +m[3]) throw new HttpError(400, 'Please choose a valid date.');
+    // Allow a day of slack for time zones; nothing more than two years out.
+    if (!allowPast && d.getTime() < Date.now() - 2 * DAY) throw new HttpError(400, 'That date has already passed.');
+    if (d.getTime() > Date.now() + 730 * DAY) throw new HttpError(400, 'Please choose a date within the next two years.');
+  }
+  if (time) {
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new HttpError(400, 'Please choose a valid time.');
+    if (!date) throw new HttpError(400, 'Add a date to go with the time.');
+  }
+  return { date, time };
+}
+
+// The poster can change anything about their post. Two guards protect people already involved:
+// ask ↔ offer only before anyone has replied (it flips who the helper is), and the number of
+// helpers never below the number already committed. Participants are told about content edits.
 async function updateHelp(ctx, id) {
-  const user = await requireUser(ctx);
+  const user = await requireActive(ctx);
+  const db = ctx.env.DB;
   const b = await readJson(ctx.request);
   const post = await loadOwnPost(ctx, id, user);
-  if (post.status === 'resolved') throw new HttpError(400, 'This post is already complete.');
-  const n = helpersNeededValue(b.helpersNeeded);
-  const res = await ctx.env.DB.prepare(
-    `UPDATE help_posts SET helpers_needed = ?1, updated_at = ?3 WHERE id = ?2
-       AND ?1 >= (SELECT COUNT(*) FROM help_replies r WHERE r.post_id = ?2 AND r.status = 'committed')`
-  ).bind(n, id, Date.now()).run();
+  const resolved = post.status === 'resolved';
+  const sets = [], vals = [];
+  // Only real changes count: resaving the form unchanged doesn't mark the post edited or notify anyone.
+  const set = (col, v) => {
+    if (!['edited_at', 'updated_at'].includes(col) && (post[col] ?? null) === (v ?? null)) return;
+    sets.push(`${col} = ?`); vals.push(v);
+  };
+
+  if (b.title !== undefined) set('title', text(b.title, 120, 'Title', true));
+  if (b.detail !== undefined) set('detail', text(b.detail, 3000, 'Details', true));
+  if (b.location !== undefined) set('location', text(b.location, 100, 'Location', true));
+  if (b.region !== undefined) set('region', oneOf(b.region, REGIONS, 'Region'));
+  if (b.scale !== undefined) set('scale', oneOf(b.scale, SCALES, 'Reach'));
+  if (b.urgency !== undefined) set('urgency', oneOf(b.urgency, URGENCIES, 'Timing'));
+  if (b.payKind !== undefined) set('pay_kind', oneOf(b.payKind, PAY_KINDS, 'Compensation'));
+  if (b.payLabel !== undefined) set('pay_label', text(b.payLabel, 60, 'Amount'));
+  if (b.category !== undefined || b.categoryNote !== undefined) {
+    const category = b.category !== undefined ? oneOf(b.category, CATEGORIES, 'Category') : post.category;
+    set('category', category);
+    set('category_note', category === 'Other' ? text(b.categoryNote !== undefined ? b.categoryNote : post.category_note, 40, 'Category description', true) : '');
+  }
+  if (b.whenDate !== undefined || b.whenTime !== undefined) {
+    const w = whenValues({ whenDate: b.whenDate !== undefined ? b.whenDate : post.when_date, whenTime: b.whenTime !== undefined ? b.whenTime : post.when_time },
+                        { allowPast: b.whenDate === undefined || b.whenDate === post.when_date });
+    set('when_date', w.date); set('when_time', w.time);
+  }
+  if (b.type !== undefined && b.type !== post.type) {
+    const type = oneOf(b.type, ['ask', 'offer'], 'Post type');
+    if (resolved) throw new HttpError(400, 'This task is already complete.');
+    const replies = await db.prepare('SELECT COUNT(*) AS n FROM help_replies WHERE post_id = ?').bind(id).first();
+    if (replies.n) throw new HttpError(409, 'You can’t switch between asking and offering once people have replied. Create a new post instead.');
+    set('type', type);
+  }
+  const contentEdited = sets.length > 0;
+  let needed = null;
+  if (b.helpersNeeded !== undefined && Number(b.helpersNeeded) !== post.helpers_needed) {
+    if (resolved) throw new HttpError(400, 'This task is already complete.');
+    needed = helpersNeededValue(b.helpersNeeded);
+    set('helpers_needed', needed);
+  }
+  if (!sets.length) return getHelp(ctx, id);
+
+  const now = Date.now();
+  if (contentEdited) set('edited_at', now);
+  set('updated_at', now);
+  // The helper count can never drop below the number committed; checked in the same statement.
+  const guard = needed !== null ? " AND ? >= (SELECT COUNT(*) FROM help_replies r WHERE r.post_id = help_posts.id AND r.status = 'committed')" : '';
+  const res = await db.prepare(`UPDATE help_posts SET ${sets.join(', ')} WHERE id = ?${guard}`)
+    .bind(...vals, id, ...(needed !== null ? [needed] : [])).run();
   if (!res.meta.changes) throw new HttpError(409, 'You can’t go below the number of people who already committed. Release someone first.');
+
+  if (contentEdited) {
+    const { results: people } = await db.prepare("SELECT id, user_id FROM help_replies WHERE post_id = ? AND status IN ('talking','committed')").bind(id).all();
+    if (people.length) {
+      await db.batch(people.flatMap(p => [
+        db.prepare("DELETE FROM notifications WHERE user_id = ? AND type = 'post_edited' AND post_id = ? AND read_at IS NULL").bind(p.user_id, id),
+        notifyStmt(db, p.user_id, 'post_edited', { actor: user.id, post: id, reply: p.id })
+      ]));
+    }
+  }
   return getHelp(ctx, id);
 }
 
