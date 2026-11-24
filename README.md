@@ -20,6 +20,7 @@ Live site: https://global-neighbors.pages.dev · Sample-data demo: https://globa
 - **Categories:** 26 help categories in six groups, plus "Other" with the poster's own topic, which is shown as the post's category and is searchable.
 - **Guest → member:** guests see real aggregate counts (open posts, members, posts this week; never content), a one-time invitation after opening two posts or about 90 seconds, and a shorter sign-up (location optional). The Activity dashboard tracks invitations shown and sign-up clicks.
 - **Usage analytics (admin):** an Activity dashboard in the Admin panel with sessions, active members, time spent, most-used features, guest-to-member conversions, device mix, daily charts, and a per-member drill-down. Tracking is first-party and content-free: it records active time (only while the tab is visible and in use), device type, and which features are used, never what anyone types. Admin accounts are excluded, and data is deleted after 180 days or with the account.
+- **Landing page:** `/start` is a marketing page with two value propositions, A (stop duplicated work) and B (neighbors helping neighbors). **Version B is live for everyone; the A/B split is off.** Only the hero headline, lead, and example differ. Results are in Admin → Landing page.
 - **Organization verification:** orgs submit legal name, registration number, and role; an admin checks public records and approves, which adds a ✓ Verified badge (renaming the org clears it).
 - **Email:** confirmation and password-reset links via Resend, switched on by configuration. Until it's configured, admins can issue one-time reset links.
 - **Policies:** `/privacy`, `/terms`, and `/safety` pages. Sign-up requires confirming 18+ and accepting the Terms.
@@ -32,6 +33,7 @@ Live site: https://global-neighbors.pages.dev · Sample-data demo: https://globa
 ```
 public/               static site (served by Cloudflare Pages)
   index.html          the app (single-file HTML/CSS/JS)
+  start.html          marketing landing page (versions A and B)
   demo.html           original clickable prototype with sample data only
   privacy.html, terms.html, safety.html, credits.html, legal.css
   orgs/logos/, orgs/banners/   reference-directory logos and banner photos
@@ -76,7 +78,18 @@ wrangler.toml         Pages + D1 binding config
 | GET · POST | `/api/notifications` · `/api/notifications/read` `{ids[]}\|{all:true}` | members only |
 | POST | `/api/feedback` | `{kind, message, contactEmail?, page}`; guests allowed (10/hour per IP) |
 | GET · POST | `/api/admin/feedback?status=` · `/api/admin/feedback/:id` `{status}` | admins only |
+| POST | `/api/landing` | `{vid, experiment, event?, source?, device}`; anonymous, one visitor row and one row per event |
+| GET | `/api/admin/landing` | A/B results; admins only |
 | GET | `/api/stats` | public aggregate counts for guests (cached 5 min) |
+
+## Landing page and A/B test
+
+- **Mode:** `solo-b` shows everyone B. To run the test, set `EXP = 'vp1'` and `ONLY = ''` in `public/start.html` and `LANDING_ACTIVE = 'vp1'` in the API. The modes are counted separately (`/api/admin/landing?experiment=`).
+- **Links:** share `/start`, or `/start?src=flyer` to compare channels. `/start?v=a` and `/start?v=b` preview a version without counting.
+- **Assignment:** the browser makes a random 32-digit hex id and keeps it; an even first digit is A, odd is B. The server derives the version from the id, so a client can't report the wrong one. Signed-in members, bots, and browsers sending GPC/DNT aren't counted.
+- **Goals:** primary is any `cta:*` click, per visitor. Secondary is an account created in the same browser within 30 days. Sign-up events store the day only and no account id.
+- **Sample size:** 200 visitors per version detects a click rate doubling from 10% to 20% (80% power, 5% significance, two-sided). A smaller lift needs more: 10% to 15% takes about 690 each. In test mode, the dashboard gives no verdict before the target and warns if the split is uneven.
+- **Another test:** add a new key to `LANDING_EXPERIMENTS` and use it in both places, so visitors are re-randomized.
 
 ## Admins
 
@@ -112,7 +125,7 @@ With the dev server running **without** `.dev.vars` (email off):
 bash tests/run.sh
 ```
 
-This runs `api_test.sh`, `trust_test.sh`, `media_test.sh`, `activity_test.sh`, `writeup_test.sh`, `commit_test.sh`, and `edit_test.sh`. To exercise the email flows, start the server with `RESEND_API_KEY=dev-log` in `.dev.vars` and run `bash tests/trust_test.sh http://127.0.0.1:8788 devlog <path-to-dev-server-log>`. Test accounts all use `@example.com` addresses.
+This runs `api_test.sh`, `trust_test.sh`, `media_test.sh`, `activity_test.sh`, `writeup_test.sh`, `commit_test.sh`, `edit_test.sh`, and `landing_test.sh`. To exercise the email flows, start the server with `RESEND_API_KEY=dev-log` in `.dev.vars` and run `bash tests/trust_test.sh http://127.0.0.1:8788 devlog <path-to-dev-server-log>`. Test accounts all use `@example.com` addresses.
 
 ## Deployment
 

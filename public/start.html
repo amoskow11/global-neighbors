@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en" data-v="B">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Join Global Neighbors</title>
+<meta name="description" content="Ask for help, offer it, and find nonprofits and NGOs working on the same cause. Free to join.">
+<link rel="canonical" href="/start">
+<script>
+/* Picks the version before anything is drawn, so the headline never flickers.
+   ONLY = 'B' shows everyone version B. To run the A/B test, set ONLY to '' and EXP to 'vp1', and change
+   LANDING_ACTIVE in the API to match; the version then comes from the first digit of a random id.
+   ?v=a or ?v=b previews a version without counting the visit. */
+(function(){
+  var EXP = 'solo-b', ONLY = 'B', KEY = 'gn_lp', q = new URLSearchParams(location.search), force = (q.get('v') || '').toUpperCase(), id = null;
+  var optOut = navigator.globalPrivacyControl === true || navigator.doNotTrack === '1';
+  function fresh(){ var a = new Uint8Array(16); crypto.getRandomValues(a); return Array.prototype.map.call(a, function(b){ return ('0' + b.toString(16)).slice(-2); }).join(''); }
+  if(force !== 'A' && force !== 'B') force = '';
+  if(!force && !optOut){ try{ var kept = (localStorage.getItem(KEY) || '').split(':'); if(kept[0] === EXP) id = kept[1]; }catch(e){} }
+  if(!id || !/^[a-f0-9]{32}$/.test(id)){
+    id = fresh();
+    if(!force && !optOut){ try{ localStorage.setItem(KEY, EXP + ':' + id); }catch(e){} }
+  }
+  var v = force || ONLY || (parseInt(id.charAt(0), 16) % 2 === 0 ? 'A' : 'B');
+  document.documentElement.setAttribute('data-v', v);
+  window.GNLP = { id:id, exp:EXP, counted:!force && !optOut, source:(q.get('src') || '').toLowerCase() };
+})();
+</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: thesis plus one worked example up top, benefits as a ruled two-column list, promise on a deep band, one closing ask.
+   Text starts at 18px and buttons at 52px tall because older adults are a main audience. */
+:root{
+  --bg:#FAFBFC; --surface:#FFFFFF; --sunk:#EDF2F5; --line:#D5DFE6; --text:#132A46; --muted:#4D5E75;
+  --teal:#14617D; --cta:#B24E0C; --cta-hover:#96410A; --on-cta:#FFFFFF; --warm:#FCEADA; --warm-text:#8A3B07; --cool:#DDEDF2; --cool-text:#0F4C5C;
+  --band:#0F4C5C; --band-text:#F2F8FA; --band-muted:#C3DCE4; --band-line:#2E6B7B;
+  --display:'Newsreader',Georgia,'Times New Roman',serif; --body:'Public Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0B1826; --surface:#122238; --sunk:#16304A; --line:#2A4A6E; --text:#EAF1F7; --muted:#A9BBCE;
+    --teal:#7CC9E4; --cta:#F0934E; --cta-hover:#F7A668; --on-cta:#231205; --warm:#3B2413; --warm-text:#FFC79A; --cool:#173947; --cool-text:#A9DDF0;
+    --band:#0D3440; --band-text:#F2F8FA; --band-muted:#B4D3DD; --band-line:#2A5F6E;
+    color-scheme:dark;
+  }
+}
+*{ box-sizing:border-box; }
+body{ margin:0; background:var(--bg); color:var(--text); font:400 1.125rem/1.6 var(--body); -webkit-font-smoothing:antialiased; }
+h1,h2,h3{ font-family:var(--display); font-weight:600; line-height:1.12; text-wrap:balance; margin:0; }
+h2{ font-size:clamp(1.9rem,4vw,2.7rem); }
+p,ul{ margin:0; }
+a{ color:var(--teal); text-underline-offset:.18em; }
+a:focus-visible{ outline:3px solid var(--teal); outline-offset:3px; border-radius:6px; }
+.wrap{ max-width:1120px; margin:0 auto; padding-left:max(20px, env(safe-area-inset-left)); padding-right:max(20px, env(safe-area-inset-right)); }
+html[data-v="A"] .only-b, html[data-v="B"] .only-a{ display:none; }
+
+.top .wrap{ display:flex; justify-content:space-between; align-items:center; gap:1rem; padding-block:1.1rem; }
+.wordmark{ display:flex; align-items:center; gap:.65rem; font:600 1.25rem var(--display); color:var(--text); text-decoration:none; }
+.wordmark i{ width:11px; height:11px; border-radius:50%; background:#E2711D; box-shadow:0 0 0 4px var(--warm); }
+.top nav a{ display:inline-block; padding:.5rem .2rem; font-weight:600; }
+
+.hero .wrap{ display:grid; grid-template-columns:1.12fr .88fr; gap:clamp(2rem,5vw,4.5rem); align-items:center; padding-block:clamp(1.8rem,5vw,4rem) clamp(3rem,7vw,5.5rem); }
+.hero h1{ font-size:clamp(2.6rem,6vw,4.5rem); letter-spacing:-.015em; }
+.hero .lead{ font-size:1.22rem; max-width:34em; margin-top:1.3rem; color:var(--muted); }
+.actions{ display:flex; flex-wrap:wrap; gap:.9rem; margin-top:2rem; }
+.btn{ display:inline-flex; align-items:center; justify-content:center; min-height:52px; padding:.7rem 1.5rem; border-radius:10px; font-weight:700; font-size:1.06rem; line-height:1.25; text-decoration:none; text-align:center; }
+.btn-main{ background:var(--cta); color:var(--on-cta); } .btn-main:hover{ background:var(--cta-hover); }
+.btn-line{ color:var(--text); box-shadow:inset 0 0 0 2px var(--line); } .btn-line:hover{ box-shadow:inset 0 0 0 2px var(--teal); }
+.reassure{ margin-top:1.1rem; font-size:1rem; color:var(--muted); }
+
+figure{ margin:0; min-width:0; }
+.example{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:1.4rem; }
+figcaption{ font-size:.95rem; color:var(--muted); margin-top:.8rem; }
+.week{ width:100%; border-collapse:separate; border-spacing:5px; table-layout:fixed; font-size:.95rem; }
+.week th{ font-weight:600; text-align:left; color:var(--muted); padding:.3rem 0 0; }
+.week thead th{ text-align:center; padding:0; }
+.week td{ height:46px; text-align:center; border-radius:7px; background:var(--sunk); font-weight:600; padding:.2rem; }
+.week .twice{ background:var(--warm); color:var(--warm-text); } .week .once{ background:var(--cool); color:var(--cool-text); }
+.week .together th{ color:var(--text); padding-top:.9rem; }
+.verdict{ margin:.5rem 5px 0; font-size:1rem; }
+.post-kind{ display:inline-block; background:var(--warm); color:var(--warm-text); border-radius:6px; padding:.15rem .6rem; font-size:.92rem; font-weight:600; }
+.post h3{ font-size:1.6rem; margin:.7rem 0 .4rem; }
+.post .meta{ color:var(--muted); font-size:1rem; }
+.reply{ margin-top:1.1rem; background:var(--cool); color:var(--cool-text); border-radius:4px 14px 14px 14px; padding:.8rem 1rem; font-size:1.02rem; }
+.filled{ margin-top:1rem; padding-top:1rem; border-top:1px solid var(--line); font-weight:600; font-size:1rem; }
+
+.benefits{ padding-block:clamp(3rem,7vw,5.5rem); background:var(--surface); border-block:1px solid var(--line); }
+.grid{ display:grid; grid-template-columns:1fr 1fr; column-gap:clamp(2rem,5vw,4.5rem); margin-top:1.6rem; }
+.who{ padding-block:2rem; border-top:1px solid var(--line); display:flex; flex-direction:column; min-width:0; }
+.who h3{ font-size:1.65rem; }
+.who .gain{ margin-top:.45rem; font-size:1.14rem; }
+.who ul{ padding-left:1.15rem; margin:.9rem 0 1.1rem; color:var(--muted); } .who li{ margin-bottom:.4rem; } .who li::marker{ color:var(--teal); }
+.who a{ margin-top:auto; align-self:flex-start; font-weight:700; padding:.5rem 0; }
+
+.promise{ background:var(--band); color:var(--band-text); padding-block:clamp(3.2rem,7vw,5.5rem); }
+.promise .intro{ max-width:38em; margin-top:1.1rem; font-size:1.18rem; color:var(--band-muted); }
+.swaps{ width:100%; border-collapse:collapse; margin:2.2rem 0; }
+.swaps th,.swaps td{ text-align:left; vertical-align:top; padding:1rem 1.5rem 1rem 0; border-top:1px solid var(--band-line); }
+.swaps thead th{ border-top:0; padding-bottom:.6rem; font-size:1rem; font-weight:600; color:var(--band-muted); }
+.swaps tbody th{ width:38%; font-weight:600; }
+.promise .btn{ background:#FFFFFF; color:#0F4C5C; } .promise .btn:hover{ background:#E3F0F4; }
+.promise a:focus-visible{ outline-color:#FFFFFF; }
+.promise .note{ margin-top:1.4rem; font-size:.95rem; color:var(--band-muted); max-width:46em; }
+
+.faq{ padding-block:clamp(3rem,7vw,5.5rem); }
+.faq dl{ display:grid; grid-template-columns:1fr 1fr; gap:1.8rem clamp(2rem,5vw,4.5rem); margin:1.8rem 0 0; }
+.faq dt{ font-weight:700; } .faq dd{ margin:.3rem 0 0; color:var(--muted); }
+.final{ border-top:1px solid var(--line); background:var(--surface); padding-block:clamp(3rem,7vw,5rem); }
+.final p{ margin-top:.7rem; max-width:36em; color:var(--muted); }
+footer{ padding-block:2rem 3rem; font-size:.95rem; color:var(--muted); }
+footer nav{ display:flex; flex-wrap:wrap; gap:.4rem 1.4rem; margin-bottom:1rem; } footer a{ color:inherit; } footer p{ max-width:52em; }
+
+@media (max-width:820px){
+  .hero .wrap,.grid,.faq dl{ grid-template-columns:1fr; }
+  .actions .btn{ flex:1 1 100%; }
+  .swaps,.swaps tbody,.swaps tr,.swaps th,.swaps td{ display:block; width:auto !important; }
+  .swaps thead{ display:none; }
+  .swaps td{ border-top:0; padding:0 0 1.1rem; } .swaps tbody th{ padding-bottom:.3rem; }
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="wordmark" href="/start"><i></i>Global Neighbors</a>
+  <nav><a href="/#/login">Log in</a></nav>
+</div></header>
+
+<main>
+<section class="hero"><div class="wrap">
+  <div>
+    <!-- Only the value proposition (headline, lead, example) differs between versions. Buttons and everything below are identical. -->
+    <div class="only-a">
+      <h1>Stop doing the same good work twice.</h1>
+      <p class="lead">Global Neighbors shows nonprofits and NGOs who else is helping the same people in the same place, so they can split the work and waste less. Neighbors ask for help and offer it here too.</p>
+    </div>
+    <div class="only-b">
+      <h1>Need a hand, or have one to give? Start here.</h1>
+      <p class="lead">Global Neighbors connects older adults, families, and anyone who needs help with neighbors, volunteers, nonprofits, and NGOs who can give it. Ask for something small or something big.</p>
+    </div>
+    <div class="actions">
+      <a class="btn btn-main" href="/#/join" data-cta="cta:hero-person">Create a free account</a>
+      <a class="btn btn-line" href="/#/join-org" data-cta="cta:hero-org">Join as an organization</a>
+    </div>
+    <p class="reassure">It takes about 30 seconds. Not ready? <a href="/#/guest" data-cta="guest">Look around as a guest</a>.</p>
+  </div>
+
+  <figure class="only-a">
+    <div class="example">
+      <table class="week">
+        <thead><tr><th scope="col">Tue</th><th scope="col">Wed</th><th scope="col">Thu</th></tr></thead>
+        <tbody>
+          <tr><th colspan="3" scope="rowgroup">Food pantry</th></tr>
+          <tr><td class="twice">Groceries</td><td></td><td></td></tr>
+          <tr><th colspan="3" scope="rowgroup">Community group, same street</th></tr>
+          <tr><td class="twice">Groceries</td><td></td><td></td></tr>
+          <tr class="together"><th colspan="3" scope="rowgroup">After they find each other</th></tr>
+          <tr><td class="once">Groceries</td><td></td><td class="once">Groceries</td></tr>
+        </tbody>
+      </table>
+      <p class="verdict">Same two deliveries. Now they reach people on two days.</p>
+    </div>
+    <figcaption>An example of one week for two groups serving the same street.</figcaption>
+  </figure>
+
+  <figure class="only-b">
+    <div class="example post">
+      <span class="post-kind">Needs help</span>
+      <h3>Ride to an eye appointment</h3>
+      <p class="meta">Thursday at 10:00 AM. Transportation &amp; rides.</p>
+      <p class="reply">I’m free Thursday morning and I have a car. I can wait and bring you home, too.</p>
+      <p class="filled">1 of 1 helper. You’re all set.</p>
+    </div>
+    <figcaption>An example post and reply.</figcaption>
+  </figure>
+</div></section>
+
+<section class="benefits" id="benefits"><div class="wrap">
+  <h2>What you get</h2>
+  <div class="grid">
+    <article class="who">
+      <h3>Older adults</h3>
+      <p class="gain">Everyday help without feeling like a burden.</p>
+      <ul>
+        <li>Ask for rides, groceries, heavy lifting, help with a phone, or company.</li>
+        <li>Message a helper and see their ratings. You can decline anyone.</li>
+        <li>Your email is never shown, and you share your address only when you’re ready.</li>
+      </ul>
+      <a href="/#/join" data-cta="cta:elder">Ask for a hand</a>
+    </article>
+    <article class="who">
+      <h3>People who need help</h3>
+      <p class="gain">Ask once and let help come to you.</p>
+      <ul>
+        <li>One post reaches neighbors, volunteers, and organizations.</li>
+        <li>Say what you need, when, and how many people it takes.</li>
+        <li>Conversations stay private between you and the person who replied.</li>
+      </ul>
+      <a href="/#/join" data-cta="cta:need">Post what you need</a>
+    </article>
+    <article class="who">
+      <h3>People offering help</h3>
+      <p class="gain">Spend your time where it’s still needed.</p>
+      <ul>
+        <li>Find requests near you, by date, or by how urgent they are.</li>
+        <li>See how many helpers a task still needs before you commit.</li>
+        <li>Volunteer or find paid tasks, and build a rating people can trust.</li>
+      </ul>
+      <a href="/#/join" data-cta="cta:offer">Offer your help</a>
+    </article>
+    <article class="who">
+      <h3>Nonprofits and NGOs</h3>
+      <p class="gain">Find partners first, then share the load.</p>
+      <ul>
+        <li>Search organizations by cause and region to see who already serves your community.</li>
+        <li>Post one request for up to 20 helpers and track who has committed.</li>
+        <li>Earn a Verified badge once your registration is checked.</li>
+      </ul>
+      <a href="/#/join-org" data-cta="cta:org">Register your organization</a>
+    </article>
+  </div>
+</div></section>
+
+<section class="promise" id="promise"><div class="wrap">
+  <h2>Our promise: less work done twice, more help delivered.</h2>
+  <p class="intro">When two organizations serve the same people without knowing it, money, supplies, and volunteer hours get spent twice. We help nonprofits and NGOs find each other, so what they have goes further.</p>
+  <table class="swaps">
+    <thead><tr><th scope="col">Work that gets duplicated</th><th scope="col">What you can do here instead</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Finding out who already serves an area</th><td>Search a directory of 74 nonprofits and NGOs by cause and region, plus the groups that have joined.</td></tr>
+      <tr><th scope="row">Recruiting volunteers separately</th><td>Share one post. Everyone can see how many spots are left.</td></tr>
+      <tr><th scope="row">Answering a request someone else is handling</th><td>See when a request is full and move on to one that’s still open.</td></tr>
+      <tr><th scope="row">Buying what another group has extra of</th><td>Post what you can share, so another group can request it.</td></tr>
+    </tbody>
+  </table>
+  <a class="btn" href="/#/join-org" data-cta="cta:promise">Find your partners</a>
+  <p class="note">Directory listings come from public information. A listing doesn’t mean the organization has joined or is affiliated with Global Neighbors.</p>
+</div></section>
+
+<section class="faq"><div class="wrap">
+  <h2>Good to know</h2>
+  <dl>
+    <div><dt>What does it cost?</dt><dd>Joining, posting, and messaging are free.</dd></div>
+    <div><dt>Do I have to be in Boston?</dt><dd>No. We started in Greater Boston, and you can post from anywhere in the world.</dd></div>
+    <div><dt>How do I stay safe?</dt><dd>You can block or report anyone, and only members can see posts. Read our <a href="/safety">safety tips</a> before you meet someone.</dd></div>
+    <div><dt>Is this for emergencies?</dt><dd>No. If you’re in danger, call your local emergency number first (911 in the U.S.).</dd></div>
+  </dl>
+</div></section>
+
+<section class="final" id="final"><div class="wrap">
+  <h2>Bring your need, your time, or your organization.</h2>
+  <p>Create a free account and see who’s nearby. You must be 18 or older.</p>
+  <div class="actions">
+    <a class="btn btn-main" href="/#/join" data-cta="cta:final-person">Create a free account</a>
+    <a class="btn btn-line" href="/#/join-org" data-cta="cta:final-org">Join as an organization</a>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <nav aria-label="Policies"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/safety">Safety tips</a></nav>
+  <p>Global Neighbors is in early access. We count visits and button clicks on this page anonymously. <a href="/privacy#welcome-page">How this works</a></p>
+</div></footer>
+
+<script>
+(function(){
+  var lp = window.GNLP, sent = {};
+  if(!lp || !lp.counted) return;
+  function send(event){
+    if(event && sent[event]) return;
+    if(event) sent[event] = true;
+    var body = { vid:lp.id, experiment:lp.exp, source:lp.source, device:matchMedia('(max-width: 720px)').matches ? 'mobile' : 'desktop' };
+    if(event) body.event = event;
+    fetch('/api/landing', { method:'POST', credentials:'same-origin', keepalive:true, headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(body) }).catch(function(){});
+  }
+  // Wait until the page is really on screen, so background tabs and preloads don't count.
+  function start(){
+    send();
+    if('IntersectionObserver' in window){
+      new IntersectionObserver(function(es, o){ if(es.some(function(e){ return e.isIntersecting; })){ o.disconnect(); send('scroll'); } }).observe(document.getElementById('final'));
+    }
+  }
+  if(document.visibilityState === 'visible') start();
+  else document.addEventListener('visibilitychange', function f(){ if(document.visibilityState === 'visible'){ document.removeEventListener('visibilitychange', f); start(); } });
+  function onClick(e){ var a = e.target.closest && e.target.closest('[data-cta]'); if(a && (e.type === 'click' || e.button === 1)) send(a.getAttribute('data-cta')); }
+  document.addEventListener('click', onClick);
+  document.addEventListener('auxclick', onClick);
+})();
+</script>
+</body>
+</html>

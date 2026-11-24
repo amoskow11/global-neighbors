@@ -35,6 +35,14 @@ const MAX_FEEDBACK_PER_IP_PER_HOUR = 10;
 const ACTIVITY_RETENTION_MS = 180 * DAY;
 const MAX_ACTIVE_MS_PER_PING = 70 * 1000;
 const MAX_NEW_SESSIONS_PER_IP_PER_HOUR = 120;
+// Landing page (/start). 'only' shows everyone one version; null splits visitors between A and B.
+// LANDING_ACTIVE must match EXP in public/start.html. Use a new key for a fresh test.
+const LANDING_EXPERIMENTS = { 'solo-b': { only: 'B' }, vp1: { only: null } };
+const LANDING_ACTIVE = 'solo-b';
+const LANDING_EVENTS = ['cta:hero-person', 'cta:hero-org', 'cta:elder', 'cta:need', 'cta:offer', 'cta:org', 'cta:promise', 'cta:final-person', 'cta:final-org', 'guest', 'scroll'];
+const LANDING_TARGET_PER_VARIANT = 200;             // set before the test starts; see README for the math
+const MAX_LANDING_VISITORS_PER_IP_PER_HOUR = 300;   // campus networks share one address
+const BOT_UA = /bot|crawl|spider|slurp|preview|headless|lighthouse|facebookexternalhit|whatsapp/i;
 
 const REGIONS = ['Greater Boston', 'North America', 'Latin America', 'Africa', 'South Asia', 'Global'];
 const CATEGORIES = [
@@ -81,6 +89,7 @@ export async function onRequest(context) {
 
     if (seg[0] === 'media' && seg.length === 2 && method === 'GET') return await serveMedia(ctx, seg[1]);
     if (route === 'activity' && method === 'POST') return await recordActivity(ctx);
+    if (route === 'landing' && method === 'POST') return await recordLanding(ctx);
     if (route === 'stats' && method === 'GET') return await publicStats(ctx);
     if (route === 'feedback' && method === 'POST') return await createFeedback(ctx);
     if (route === 'notifications' && method === 'GET') return await listNotifications(ctx);
@@ -151,6 +160,7 @@ export async function onRequest(context) {
       if (seg[1] === 'posts' && seg.length === 3 && method === 'POST') return await adminPostAction(ctx, seg[2]);
       if (seg[1] === 'ratings' && seg.length === 3 && method === 'POST') return await adminRatingAction(ctx, seg[2]);
       if (route === 'admin/activity' && method === 'GET') return await adminActivity(ctx);
+      if (route === 'admin/landing' && method === 'GET') return await adminLanding(ctx);
       if (route === 'admin/feedback' && method === 'GET') return await adminListFeedback(ctx);
       if (seg[1] === 'feedback' && seg.length === 3 && method === 'POST') return await adminUpdateFeedback(ctx, seg[2]);
       if (seg[1] === 'activity' && seg[2] === 'users' && seg.length === 4 && method === 'GET') return await adminActivityUser(ctx, seg[3]);
@@ -197,6 +207,8 @@ async function signup(ctx) {
   ]);
   const cookie = await createSession(env, id, ctx.url);
   const user = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(id).first();
+  // Counting a landing-page conversion must never get in the way of signing up.
+  try { await recordLandingSignup(env, body.landingId, accountType, now); } catch (e) { console.error('landing signup not counted', e); }
   let verificationSent = false;
   if (emailEnabled(env)) {
     try { await emailVerificationLink(ctx, user); verificationSent = true; } catch (e) { console.error('verification email failed', e); }
@@ -1411,6 +1423,130 @@ async function publicStats(ctx) {
   return new Response(JSON.stringify({
     members: row.members, orgs: row.orgs, openPosts: row.open_posts, postsThisWeek: row.posts_this_week, repliesThisWeek: row.replies_this_week
   }), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=300' } });
+}
+
+/* ---------- landing page A/B test ---------- */
+
+function landingVariant(experiment, id) {
+  return LANDING_EXPERIMENTS[experiment].only || (parseInt(id[0], 16) % 2 === 0 ? 'A' : 'B');
+}
+
+// Called by /start when it's first seen and when someone clicks. Members and bots aren't counted:
+// the test is about people who haven't joined yet.
+async function recordLanding(ctx) {
+  const { env, request } = ctx;
+  const b = await readJson(request);
+  const id = String(b.vid || '');
+  if (!/^[a-f0-9]{32}$/.test(id)) throw new HttpError(400, 'Invalid visitor.');
+  const event = b.event === undefined ? null : String(b.event);
+  if (event !== null && !LANDING_EVENTS.includes(event)) throw new HttpError(400, 'Unknown event.');
+  const exp = String(b.experiment || '');
+  if (!Object.hasOwn(LANDING_EXPERIMENTS, exp)) return json({ ok: true, counted: false });   // a page cached from an earlier test
+  if (BOT_UA.test(request.headers.get('User-Agent') || '')) return json({ ok: true, counted: false });
+  if (await currentUser(ctx)) return json({ ok: true, counted: false });
+
+  const now = Date.now();
+  const stmts = [];
+  const known = await env.DB.prepare('SELECT 1 FROM landing_visitors WHERE experiment = ? AND id = ?').bind(exp, id).first();
+  if (!known) {
+    const ipKey = 'landing-ip:' + clientIp(request);
+    if (await countAttempts(env, ipKey, now - HOUR) >= MAX_LANDING_VISITORS_PER_IP_PER_HOUR) return json({ ok: true, counted: false });
+    const source = /^[a-z0-9_-]{1,24}$/.test(String(b.source || '')) ? b.source : '';
+    stmts.push(env.DB.prepare('INSERT OR IGNORE INTO landing_visitors (experiment, id, variant, source, device, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .bind(exp, id, landingVariant(exp, id), source, b.device === 'mobile' ? 'mobile' : 'desktop', now));
+    stmts.push(env.DB.prepare('INSERT INTO login_attempts (key, created_at) VALUES (?, ?)').bind(ipKey, now));
+    stmts.push(env.DB.prepare('DELETE FROM login_attempts WHERE key = ? AND created_at < ?').bind(ipKey, now - DAY));
+    if (Math.random() < 0.02) {
+      stmts.push(env.DB.prepare('DELETE FROM landing_events WHERE created_at < ?').bind(now - ACTIVITY_RETENTION_MS));
+      stmts.push(env.DB.prepare('DELETE FROM landing_visitors WHERE created_at < ?').bind(now - ACTIVITY_RETENTION_MS));
+    }
+  }
+  if (event) {
+    stmts.push(env.DB.prepare('INSERT OR IGNORE INTO landing_events (experiment, visitor_id, event, created_at) VALUES (?, ?, ?, ?)')
+      .bind(exp, id, event, now));
+  }
+  if (stmts.length) await env.DB.batch(stmts);
+  return json({ ok: true, counted: true, variant: landingVariant(exp, id) });
+}
+
+async function recordLandingSignup(env, id, accountType, now) {
+  if (typeof id !== 'string' || !/^[a-f0-9]{32}$/.test(id)) return;
+  await env.DB.prepare(`INSERT OR IGNORE INTO landing_events (experiment, visitor_id, event, created_at)
+                        SELECT experiment, id, ?1, ?2 FROM landing_visitors WHERE id = ?3 AND created_at > ?4`)
+    .bind('signup:' + accountType, now - (now % DAY), id, now - 30 * DAY).run();
+}
+
+async function adminLanding(ctx) {
+  await requireAdmin(ctx);
+  const db = ctx.env.DB;
+  const asked = ctx.url.searchParams.get('experiment') || LANDING_ACTIVE;
+  const exp = Object.hasOwn(LANDING_EXPERIMENTS, asked) ? asked : LANDING_ACTIVE;
+  // Each visitor counts once per goal, however many times they click.
+  const [arms, places, sources, span] = await db.batch([
+    db.prepare(`SELECT v.variant, COUNT(*) AS visitors,
+                  SUM(CASE WHEN v.device = 'mobile' THEN 1 ELSE 0 END) AS mobile,
+                  SUM(EXISTS (SELECT 1 FROM landing_events e WHERE e.experiment = v.experiment AND e.visitor_id = v.id AND e.event LIKE 'cta:%')) AS cta,
+                  SUM(EXISTS (SELECT 1 FROM landing_events e WHERE e.experiment = v.experiment AND e.visitor_id = v.id AND e.event LIKE 'signup:%')) AS signups,
+                  SUM(EXISTS (SELECT 1 FROM landing_events e WHERE e.experiment = v.experiment AND e.visitor_id = v.id AND e.event = 'signup:org')) AS org_signups,
+                  SUM(EXISTS (SELECT 1 FROM landing_events e WHERE e.experiment = v.experiment AND e.visitor_id = v.id AND e.event = 'guest')) AS guests,
+                  SUM(EXISTS (SELECT 1 FROM landing_events e WHERE e.experiment = v.experiment AND e.visitor_id = v.id AND e.event = 'scroll')) AS scrolled
+                FROM landing_visitors v WHERE v.experiment = ?1 GROUP BY v.variant`).bind(exp),
+    db.prepare(`SELECT e.event, SUM(v.variant = 'A') AS a, SUM(v.variant = 'B') AS b
+                FROM landing_events e JOIN landing_visitors v ON v.experiment = e.experiment AND v.id = e.visitor_id
+                WHERE e.experiment = ?1 AND e.event LIKE 'cta:%' GROUP BY e.event`).bind(exp),
+    db.prepare(`SELECT v.source, COUNT(*) AS visitors,
+                  SUM(EXISTS (SELECT 1 FROM landing_events e WHERE e.experiment = v.experiment AND e.visitor_id = v.id AND e.event LIKE 'cta:%')) AS cta,
+                  SUM(EXISTS (SELECT 1 FROM landing_events e WHERE e.experiment = v.experiment AND e.visitor_id = v.id AND e.event LIKE 'signup:%')) AS signups
+                FROM landing_visitors v WHERE v.experiment = ?1 GROUP BY v.source ORDER BY visitors DESC LIMIT 30`).bind(exp),
+    db.prepare('SELECT MIN(created_at) AS first, MAX(created_at) AS last FROM landing_visitors WHERE experiment = ?').bind(exp)
+  ]);
+  const arm = v => {
+    const r = arms.results.find(x => x.variant === v) || {};
+    const n = r.visitors || 0, cta = r.cta || 0, signups = r.signups || 0;
+    return {
+      visitors: n, mobile: r.mobile || 0, guests: r.guests || 0, scrolled: r.scrolled || 0, orgSignups: r.org_signups || 0,
+      cta: { count: cta, rate: n ? cta / n : 0, ci: wilson(cta, n) },
+      signup: { count: signups, rate: n ? signups / n : 0, ci: wilson(signups, n) }
+    };
+  };
+  const A = arm('A'), B = arm('B');
+  return json({
+    experiment: exp, only: LANDING_EXPERIMENTS[exp].only, target: LANDING_TARGET_PER_VARIANT,
+    startedAt: span.results[0].first, lastVisitAt: span.results[0].last,
+    a: A, b: B, test: LANDING_EXPERIMENTS[exp].only ? null : landingVerdict(A, B),
+    places: places.results.map(p => ({ event: p.event, a: p.a, b: p.b })),
+    sources: sources.results.map(x => ({ source: x.source, visitors: x.visitors, cta: x.cta, signups: x.signups }))
+  });
+}
+
+// 95% Wilson score interval, which stays sensible at small counts.
+function wilson(k, n) {
+  if (!n) return [0, 0];
+  const z = 1.96, p = k / n, d = 1 + z * z / n;
+  const mid = (p + z * z / (2 * n)) / d, half = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d;
+  return [Math.max(0, mid - half), Math.min(1, mid + half)];
+}
+
+function normalCdf(x) {   // Abramowitz & Stegun 26.2.17
+  const t = 1 / (1 + 0.2316419 * Math.abs(x)), d = Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI);
+  const tail = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+  return x >= 0 ? 1 - tail : tail;
+}
+
+// Two-proportion z-test on the primary goal (CTA click). No verdict until both versions reach the
+// sample size chosen in advance; checking early and stopping on a good day finds winners that aren't real.
+function landingVerdict(A, B) {
+  const n = A.visitors + B.visitors;
+  // Visitors should split about evenly. A lopsided split means tracking or assignment is broken.
+  const imbalance = n ? Math.abs(A.visitors - B.visitors) / Math.sqrt(n) : 0;
+  const splitOk = 2 * (1 - normalCdf(imbalance)) >= 0.001;
+  const pool = n ? (A.cta.count + B.cta.count) / n : 0;
+  const se = A.visitors && B.visitors ? Math.sqrt(pool * (1 - pool) * (1 / A.visitors + 1 / B.visitors)) : 0;
+  const z = se ? (B.cta.rate - A.cta.rate) / se : 0;
+  const pValue = se ? Math.min(1, 2 * (1 - normalCdf(Math.abs(z)))) : 1;
+  const ready = Math.min(A.visitors, B.visitors) >= LANDING_TARGET_PER_VARIANT;
+  const status = !splitOk ? 'broken' : !ready ? 'collecting' : pValue < 0.05 ? (z > 0 ? 'B' : 'A') : 'none';
+  return { status, diff: B.cta.rate - A.cta.rate, z, pValue, splitOk };
 }
 
 /* ---------- usage analytics ---------- */
