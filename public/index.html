@@ -1257,7 +1257,7 @@
     authNotice:'', resetToken:null, agreeTerms:false,
     report:null,               // { type, id, label } while the report dialog is open
     blocks:null, myVerification:undefined,
-    adminView:'activity',
+    adminView:'traction',
     guest:false, memberId:null, memberReturnTab:'help', memberProfile:null,
     imageEdit:null, pickKind:'avatar', pendingDraft:null, gateReason:'', postCat:'Groceries & errands',
     postType:null, postStep:'details', postDraft:null, postHelpers:1,
@@ -1377,7 +1377,9 @@
   }
   function enterApp(user){
     state.user = user; state.view = 'app'; state.tab = 'help'; state.helpView = 'browse';
-    state.blocks = null; state.myVerification = undefined; state.adminView = 'activity';
+    if(traction) traction.stop();
+    traction = null;
+    state.blocks = null; state.myVerification = undefined; state.adminView = 'traction';
     state.admin = { overview:null, reports:null, verifications:null, users:null, userQuery:'', reportFilter:'open', resetLink:null,
                     activity:null, activityDays:30, activityUser:null, activityUserId:null, activitySort:'time', feedback:null, feedbackFilter:'new', landing:null };
     state.selectedHelpId = null; state.selectedOrgId = null; state.formError = ''; state.guest = false;
@@ -2351,6 +2353,7 @@
       +   '<div class="field"><label for="pw-new">New password</label><input id="pw-new" type="password" autocomplete="new-password" minlength="10" required></div>'
       +   '<button class="btn btn-secondary btn-sm" type="submit"' + dis + '>Update password</button>'
       +   '<p class="hint">Updating your password signs you out everywhere else.</p></form>'
+      + '<div class="side-card"><div class="section-label">Suggestions</div><label class="check" style="margin:0;"><input type="checkbox" data-role="suggestions"' + (u.suggestions===false ? '' : ' checked') + '><span>Tell me when a post looks like a good fit, or needs a follow-up, and send me occasional notes from the team</span></label></div>'
       + renderBlocksCard()
       + '<form class="side-card" data-action="delete-account"><div class="section-label" style="color:var(--danger);">Delete account</div>'
       +   '<p class="hint" style="margin-bottom:.7rem;">This permanently removes your profile, posts, replies, and messages.</p>'
@@ -2422,14 +2425,14 @@
   function renderAdmin(){
     var o = state.admin.overview;
     var seg = '<div class="seg" role="tablist">' + [
-      ['activity','Activity', null], ['landing','Landing page', null], ['feedback','Feedback', o && o.newFeedback], ['reports','Reports', o && o.openReports], ['verifications','Verifications', o && o.pendingVerifications], ['users','Members', o && o.users]
+      ['traction','Traction', null], ['activity','Activity', null], ['landing','Landing page', null], ['feedback','Feedback', o && o.newFeedback], ['reports','Reports', o && o.openReports], ['verifications','Verifications', o && o.pendingVerifications], ['users','Members', o && o.users]
     ].map(function(t){
       return '<button role="tab" aria-selected="' + (state.adminView===t[0]) + '" class="' + (state.adminView===t[0]?'active':'') + '" data-action="admin-view" data-view="' + t[0] + '">'
         + t[1] + (t[2]!=null ? ' <span class="count-pill">' + t[2] + '</span>' : '') + '</button>';
     }).join('') + '</div>';
     var emailNote = (o && !o.emailEnabled)
       ? '<div class="banner">Email isn’t connected yet, so members can’t reset their own passwords. If someone emails you for help, check that the request comes from the address on their account, then use <b>Members → Reset link</b>.</div>' : '';
-    var body = state.adminView==='activity' ? adminActivity() : state.adminView==='landing' ? adminLanding() : state.adminView==='feedback' ? adminFeedback() : state.adminView==='reports' ? adminReports() : state.adminView==='verifications' ? adminVerifications() : adminUsers();
+    var body = state.adminView==='traction' ? (traction ? traction.render() : '<div class="empty">Loading…</div>') : state.adminView==='activity' ? adminActivity() : state.adminView==='landing' ? adminLanding() : state.adminView==='feedback' ? adminFeedback() : state.adminView==='reports' ? adminReports() : state.adminView==='verifications' ? adminVerifications() : adminUsers();
     return '<div class="page-head"><div><h2>Admin</h2><p>Review reports, verify organizations, and manage members. Every action is logged.</p></div></div>'
       + emailNote + seg + body;
   }
@@ -2526,13 +2529,31 @@
     }).join('');
   }
 
+  // The Traction dashboard is a separate file that only admins download.
+  var traction = null;
+  function loadTraction(){
+    if(traction){ traction.load(); return; }
+    if(!document.querySelector('link[href="/traction.css"]')){ var css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/traction.css'; document.head.appendChild(css); }
+    var need = window.GNTraction ? [] : ['/traction-assets.js', '/traction-coach.js', '/traction-outreach.js', '/traction.js'];
+    (function next(){
+      var src = need.shift();
+      if(!src){
+        traction = window.GNTraction({ state:state, esc:esc, api:api, run:run, render:render, toast:toast, val:val, statTile:statTile, barChart:barChart, dataTable:dataTable, rateRow:rateRow, localDay:localDay,
+          orgCount:function(){ return REAL_ORGS.length; }, orgs:allOrgs, regionOf:regionOf, causesFor:function(c){ return HELP_CATS[c] || []; },
+          adminView:function(v){ state.adminView = v; loadAdmin(); render(); } });
+        traction.load(); return;
+      }
+      var s = document.createElement('script'); s.src = src; s.onload = next; s.onerror = function(){ toast('Can’t load the dashboard. Check your connection and refresh.'); }; document.head.appendChild(s);
+    })();
+  }
   function loadAdmin(){
     var a = state.admin;
     api('GET', 'admin/overview').then(function(d){ a.overview = d; render(); }, function(err){ toast(err.message); });
     var done = function(key){ return function(d){ a[key] = d[key]; render(); }; };
     var fail = function(key){ return function(err){ a[key] = []; toast(err.message); render(); }; };
     var q = '?days=' + a.activityDays + '&tz=' + new Date().getTimezoneOffset();
-    if(state.adminView==='activity'){
+    if(state.adminView==='traction') loadTraction();
+    else if(state.adminView==='activity'){
       if(a.activityUserId){ a.activityUser = null; api('GET', 'admin/activity/users/' + a.activityUserId + q).then(function(d){ a.activityUser = d; render(); }, function(err){ toast(err.message); a.activityUserId = null; a.activityUser = null; render(); }); }
       else { a.activityUser = null; a.activity = null; api('GET', 'admin/activity' + q).then(function(d){ a.activity = d; render(); }, function(err){ a.activity = { days:a.activityDays, summary:{ sessions:0, guestSessions:0, activeMembers:0, activeMs:0, conversions:0, mobileSessions:0, members:0, newMembers:0 }, daily:[], features:[], members:[] }; toast(err.message); render(); }); }
     }
@@ -2623,6 +2644,9 @@
       case 'message': return who + ' sent you a message about ' + t;
       case 'verification': return n.detail==='approved' ? 'Your organization is now <b>verified</b> ✓' : 'Your verification request needs changes. Open My profile for details.';
       case 'post_hidden': return 'A moderator hid your post ' + t + '. Email ' + esc(contactEmail()) + ' if you think this is a mistake.';
+      case 'nudge': return n.detail==='match_ask' ? 'You might be able to help with ' + t : n.detail==='match_offer' ? 'A neighbor is offering something that may help you: ' + t
+        : n.detail==='commit' ? 'Can you help with ' + t + '? Commit, or let them know.' : 'Did ' + t + ' get done? Mark it complete so you can rate each other.';
+      case 'outreach': return 'From the Global Neighbors team: ' + esc(n.detail.slice(n.detail.indexOf('|') + 1));
       case 'feedback': return 'New feedback (' + esc({ idea:'idea', problem:'problem', category:'category request', other:'other' }[n.detail] || n.detail) + ') from ' + (n.actor ? who : 'a guest');
     }
     return 'New activity';
@@ -3101,13 +3125,14 @@
     root.innerHTML = state.view==='landing' ? renderLanding() : state.view==='auth' ? renderAuth() : renderApp();
     Object.keys(keep).forEach(function(id){
       var el = document.getElementById(id);
-      if(el && el.getAttribute('data-search')===null && el.type!=='range') el.value = keep[id];
+      if(el && el.getAttribute('data-search')===null && !el.hasAttribute('data-studio') && el.type!=='range') el.value = keep[id];
     });
     if(focusId){
       var again = document.getElementById(focusId);
       if(again){ again.focus(); if(sel && sel[0]!=null){ try{ again.setSelectionRange(sel[0], sel[1]); }catch(err){} } }
     }
     if(state.modal==='image-edit') drawCrop();
+    if(traction && state.tab==='admin' && state.adminView==='traction') traction.after();
   }
 
   /* ============ EVENTS ============ */
@@ -3142,6 +3167,16 @@
       if(!n){ render(); return; }
       if(n.type==='verification'){ state.tab='profile'; render(); loadProfileExtras(); }
       else if(n.type==='feedback'){ state.tab='admin'; state.adminView='feedback'; state.admin.feedbackFilter='new'; loadAdmin(); }
+      else if(n.type==='outreach'){
+        var about = n.detail.split('|')[0];
+        if(about==='champion'){
+          var invite = location.origin + '/start?src=member-invite';
+          if(navigator.clipboard) navigator.clipboard.writeText(invite).then(function(){ toast('Invite link copied. Paste it in a message to a neighbor.'); }, function(){ toast('Your invite link: ' + invite); }); else toast('Your invite link: ' + invite);
+          render();
+        }
+        else if(about==='profile'){ state.tab='profile'; render(); loadProfileExtras(); }
+        else { state.tab='help'; state.helpView = about==='waiting' || about==='thanks' ? 'mine' : 'browse'; render(); }
+      }
       else if(n.postId){ openHelp(n.postId); }
       else render();
       return;
@@ -3348,6 +3383,7 @@
       }));
       return;
     }
+    if(traction && action.indexOf('tx-')===0){ traction.click(action, el); return; }
     if(action==='admin-view'){ state.adminView = el.getAttribute('data-view'); state.admin.resetLink=null; state.admin.activityUserId=null; loadAdmin(); return; }
     if(action==='copy-landing'){
       var lk = document.getElementById('lp-link');
@@ -3402,6 +3438,7 @@
     if(e.target.getAttribute('data-role')==='crop' && state.imageEdit){
       state.imageEdit[e.target.getAttribute('data-field')] = parseFloat(e.target.value); drawCrop(); return;
     }
+    if(traction) traction.input(e.target, false);
     var field = e.target.getAttribute('data-search');
     if(field){
       if(!state[field] && e.target.value) track('search');   // once per new search, never the text
@@ -3415,7 +3452,9 @@
 
   document.addEventListener('change', function(e){
     if(e.target.id==='file-pick'){ loadPickedFile(e.target.files && e.target.files[0]); return; }
+    if(traction) traction.input(e.target, true);
     var role = e.target.getAttribute('data-role');
+    if(role==='suggestions'){ run(api('PATCH', 'me', { suggestions:e.target.checked }).then(function(d){ state.user = d.user; toast(d.user.suggestions ? 'Suggestions are on.' : 'Suggestions are off.'); })); return; }
     if(role==='signup-type'){ state.signupType = e.target.value; render(); }
     if(role==='help-cat'){ state.helpCat = e.target.value; render(); }
     if(role==='help-arrange'){ state.helpArrange = e.target.value; render(); }
@@ -3436,6 +3475,7 @@
     e.preventDefault();
     if(state.busy) return;
     function formError(err){ state.formError = err.message; }
+    if(traction && action.indexOf('tx-')===0){ traction.submit(action); return; }
 
     if(action==='signup'){
       state.formError='';
@@ -3573,6 +3613,7 @@
   });
 
   document.addEventListener('keydown', function(e){
+    if(traction && traction.key(e)) return;
     if(e.key==='Escape' && state.modal){ state.modal=null; state.imageEdit=null; render(); }
     else if(e.key==='Escape' && notif.open){ notif.open = false; render(); }
   });

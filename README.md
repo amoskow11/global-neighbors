@@ -28,6 +28,19 @@ Live site: https://global-neighbors.pages.dev · Sample-data demo: https://globa
 - **Guest mode:** "Look around as a guest" opens the app with clearly labeled sample posts and the real directory, with no account needed. Guests can draft a post or reply but must sign up to publish, and a drafted post is restored after sign-up.
 - **Directory:** member organizations (verified or self-described) plus a read-only reference directory of 74 real nonprofits and NGOs across Greater Boston, the U.S., and the world, filterable by region, cause, and source. Each post suggests organizations matched by cause and region. Reference organizations show their official logos (for identification) and openly licensed, cause-matched banner photos from Wikimedia Commons. See `/credits`.
 
+
+## Traction dashboard
+
+Admin → **Traction** opens on **Today**: a greeting, the top suggestions, how recently members visited, and what was done. Then it follows four steps: frame a unique benefit, build marketing assets, display results, and find what people want. **Present** shows the same story on four screens (use the arrow keys) with no member details.
+
+- **Traction coach** (`public/traction-coach.js`) turns live numbers into ranked suggestions and adds fresh ideas daily, some seasonal. It uses rules, not an AI service. It sits on every Traction screen. Done and Later are saved in `coach_log` with the number the idea should move.
+- **Outreach** (`public/traction-outreach.js`) has two sections. *Current members* puts each member in one group (`memberSegments` in the API) with a ready message. The admin picks people, confirms, and sends an in-app note, or opens an email draft in their own mail app. Limits: one message per person per week, the same message once in 30 days, and nobody who turned suggestions off. Email addresses aren’t in the list. One is returned, and logged, only when a draft is opened. *Possible new users* is a prospect list with stages, follow-up dates, messages, and a tracked `invite-` link each, plus directory organizations that fit what neighbors ask for.
+- **Posts that need a push** lists posts with no reply, stalled conversations, and commitments nobody confirmed, with the members who fit and why. Suggestions are in-app notices: the admin chooses who gets one, each member gets at most one invitation a week, blocks are respected, and members can turn them off in My profile. `rescueQueue` in the API has the matching rules.
+- **Assets** are drawn in the browser (`public/traction-assets.js`, including the QR encoder) and downloaded as PNG. Each has its own `/start?src=` tag, saved in `campaigns`.
+- **Counting:** admin accounts are left out, and a reply, commitment, or completed task counts only when neither side is an admin.
+- `public/traction.js`, `traction.css`, and `traction-assets.js` load only when an admin opens the tab. Benefit claims come from the November 2026 competitive analysis, so check them before reusing them later.
+- Migration 0009 adds `sprints`, `campaigns`, `nudges`, and `users.no_nudges`. Migration 0010 adds `outreach`, `leads`, and `coach_log`.
+
 ## Architecture
 
 ```

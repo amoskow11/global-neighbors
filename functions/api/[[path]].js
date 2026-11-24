@@ -55,6 +55,35 @@ const CATEGORIES = [
   'Arts, music & culture', 'Sports & recreation', 'Community events & organizing', 'Environment & cleanup',
   'Small business & entrepreneurship', 'Other'
 ];
+// Which causes each category belongs to (same list as HELP_CATS in index.html), for matching organizations.
+const CAT_CAUSES = {
+  'Groceries & errands':['Elder Care','Food Security'],
+  'Elder care & companionship':['Elder Care'],
+  'Clean water & sanitation':['Water & Sanitation'],
+  'Food & meals':['Food Security'],
+  'Housing & repairs':['Housing','Disability & Access'],
+  'Health & medical':['Global Health','Community Health'],
+  'Education & tutoring':['Education','Youth Development'],
+  'Transportation & rides':['Elder Care','Disability & Access'],
+  'Jobs & livelihoods':['Workforce Development','Economic Development'],
+  'Legal & paperwork':['Legal Aid','Immigrant & Refugee Services'],
+  'Disaster & emergency':['Disaster Response'],
+  'Energy & solar':['Environment','Economic Development'],
+  'Tech & skills':['Workforce Development','Volunteer Mobilization'],
+  'Childcare & family':['Youth Development','Community Health'],
+  'Pets & animals':['Volunteer Mobilization'],
+  'Emotional support & wellbeing':['Community Health','Elder Care'],
+  'Moving & heavy lifting':['Housing','Disability & Access'],
+  'Translation & interpretation':['Immigrant & Refugee Services','Legal Aid'],
+  'Clothing & household items':['Housing','Youth Development'],
+  'Mentoring & career advice':['Workforce Development','Youth Development'],
+  'Arts, music & culture':['Education','Youth Development'],
+  'Sports & recreation':['Youth Development','Community Health'],
+  'Community events & organizing':['Volunteer Mobilization'],
+  'Environment & cleanup':['Environment','Volunteer Mobilization'],
+  'Small business & entrepreneurship':['Economic Development','Workforce Development'],
+  'Other':[]
+};
 const CAUSES = [
   'Community Health', 'Disability & Access', 'Disaster Response', 'Economic Development', 'Education',
   'Elder Care', 'Environment', 'Food Security', 'Global Health', 'Housing', 'Immigrant & Refugee Services',
@@ -161,6 +190,17 @@ export async function onRequest(context) {
       if (seg[1] === 'ratings' && seg.length === 3 && method === 'POST') return await adminRatingAction(ctx, seg[2]);
       if (route === 'admin/activity' && method === 'GET') return await adminActivity(ctx);
       if (route === 'admin/landing' && method === 'GET') return await adminLanding(ctx);
+      if (route === 'admin/traction' && method === 'GET') return await adminTraction(ctx);
+      if (route === 'admin/sprint' && method === 'POST') return await adminSaveSprint(ctx);
+      if (route === 'admin/nudges' && method === 'POST') return await adminNudge(ctx);
+      if (route === 'admin/campaigns' && method === 'POST') return await adminCreateCampaign(ctx);
+      if (seg[1] === 'campaigns' && seg.length === 3 && method === 'POST') return await adminCampaignAction(ctx, seg[2]);
+      if (route === 'admin/outreach' && method === 'GET') return await adminOutreach(ctx);
+      if (route === 'admin/outreach' && method === 'POST') return await adminSendOutreach(ctx);
+      if (route === 'admin/leads' && method === 'POST') return await adminCreateLead(ctx);
+      if (seg[1] === 'leads' && seg.length === 3 && (method === 'POST' || method === 'DELETE')) return await adminLead(ctx, seg[2]);
+      if (route === 'admin/coach' && method === 'POST') return await adminCoach(ctx);
+      if (seg[1] === 'coach' && seg.length === 3 && method === 'DELETE') return await adminCoachUndo(ctx, seg[2]);
       if (route === 'admin/feedback' && method === 'GET') return await adminListFeedback(ctx);
       if (seg[1] === 'feedback' && seg.length === 3 && method === 'POST') return await adminUpdateFeedback(ctx, seg[2]);
       if (seg[1] === 'activity' && seg[2] === 'users' && seg.length === 4 && method === 'GET') return await adminActivityUser(ctx, seg[3]);
@@ -347,15 +387,16 @@ async function updateMe(ctx) {
     pronouns: body.pronouns !== undefined ? text(body.pronouns, 40, 'Pronouns') : user.pronouns,
     languages: body.languages !== undefined ? JSON.stringify(tagList(body.languages, 6, 30, 'Languages')) : user.languages,
     skills: body.skills !== undefined ? JSON.stringify(tagList(body.skills, 10, 40, 'Ways you can help')) : user.skills,
+    no_nudges: body.suggestions !== undefined ? (body.suggestions ? 0 : 1) : user.no_nudges,
     banner_preset: body.bannerPreset !== undefined ? oneOf(body.bannerPreset, BANNER_PRESETS, 'Banner') : user.banner_preset
   };
   // A verified badge belongs to a specific name; renaming sends the org back through review.
   const status = (user.verification_status === 'verified' && f.display_name !== user.display_name) ? 'none' : user.verification_status;
   const now = Date.now();
   await ctx.env.DB.prepare(`UPDATE users SET display_name=?, headline=?, location=?, region=?, bio=?, website=?, causes=?,
-                              pronouns=?, languages=?, skills=?, banner_preset=?, verification_status=?, updated_at=? WHERE id=?`)
+                              pronouns=?, languages=?, skills=?, banner_preset=?, no_nudges=?, verification_status=?, updated_at=? WHERE id=?`)
     .bind(f.display_name, f.headline, f.location, f.region, f.bio, f.website, f.causes,
-          f.pronouns, f.languages, f.skills, f.banner_preset, status, now, user.id).run();
+          f.pronouns, f.languages, f.skills, f.banner_preset, f.no_nudges, status, now, user.id).run();
   const fresh = await ctx.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(user.id).first();
   return json({ user: privateUser(fresh), verificationReset: status !== user.verification_status });
 }
@@ -1519,6 +1560,444 @@ async function adminLanding(ctx) {
   });
 }
 
+/* ---------- traction dashboard ---------- */
+//
+// Everything here counts members only. Admin accounts are left out, and a reply, commitment, or
+// completed task counts only when neither side is an admin, so the team can't inflate its own numbers.
+
+const M2M = `help_replies r JOIN help_posts p ON p.id = r.post_id JOIN users a ON a.id = p.author_id AND a.is_admin = 0
+               JOIN users b ON b.id = r.user_id AND b.is_admin = 0`;
+const WINDOW_SQL = `SELECT
+  (SELECT COUNT(*) FROM landing_visitors WHERE created_at >= ?1 AND created_at < ?2) AS visits,
+  (SELECT COUNT(DISTINCT visitor_id) FROM landing_events WHERE event LIKE 'cta:%' AND created_at >= ?1 AND created_at < ?2) AS clicks,
+  (SELECT COUNT(*) FROM users WHERE is_admin = 0 AND created_at >= ?1 AND created_at < ?2) AS signups,
+  (SELECT COUNT(*) FROM users WHERE is_admin = 0 AND account_type = 'org' AND created_at >= ?1 AND created_at < ?2) AS orgs,
+  (SELECT COUNT(DISTINCT s.user_id) FROM activity_sessions s JOIN users u ON u.id = s.user_id AND u.is_admin = 0 WHERE s.started_at >= ?1 AND s.started_at < ?2) AS active,
+  (SELECT COUNT(*) FROM help_posts p JOIN users u ON u.id = p.author_id AND u.is_admin = 0 WHERE p.created_at >= ?1 AND p.created_at < ?2) AS posts,
+  (SELECT COUNT(*) FROM ${M2M} WHERE r.created_at >= ?1 AND r.created_at < ?2) AS replies,
+  (SELECT COUNT(*) FROM ${M2M} WHERE r.committed_at >= ?1 AND r.committed_at < ?2) AS commitments,
+  (SELECT COUNT(*) FROM ${M2M} WHERE r.status = 'completed' AND r.ended_at >= ?1 AND r.ended_at < ?2) AS completed`;
+
+async function adminTraction(ctx) {
+  await requireAdmin(ctx);
+  const db = ctx.env.DB, now = Date.now();
+  const sprint = sprintRow(await db.prepare("SELECT * FROM sprints WHERE id = 'current'").first());
+  // The sprint so far, against the same stretch of time right before it.
+  const from = sprint ? sprint.startsAt : now - 14 * DAY;
+  const to = Math.max(from + 1, Math.min(now, sprint ? sprint.endsAt : now));
+  const win = (f, t) => db.prepare(WINDOW_SQL).bind(f, t);
+  const weekly = (col, src, where = '1') => db.prepare(
+    `SELECT CAST((?1 - ${col}) / ${7 * DAY} AS INTEGER) AS w, COUNT(*) AS n FROM ${src} WHERE ${where} AND ${col} > ?1 - ${84 * DAY} AND ${col} <= ?1 GROUP BY w`).bind(now);
+  const CONNECTED = (cond) => `(SELECT b.id FROM ${M2M} WHERE ${cond} UNION SELECT a.id FROM ${M2M} WHERE ${cond})`;
+  const [all, cur, prev, funnel, wSign, wActive, wPosts, wReplies, wDone, sources, campaigns, demand, notes, clicks, feedback, founder, nudgeRows, queue] = await Promise.all([
+    win(0, now + 1).first(), win(from, to).first(), win(from - (to - from), from).first(),
+    db.prepare(`SELECT COUNT(*) AS members,
+        SUM(u.id IN (SELECT author_id FROM help_posts UNION SELECT user_id FROM help_replies)) AS acted,
+        SUM(u.id IN ${CONNECTED('1')}) AS connected,
+        SUM(u.id IN ${CONNECTED('r.status IN ' + COMMITTED)}) AS committed,
+        SUM(u.id IN ${CONNECTED("r.status = 'completed'")}) AS helped
+      FROM users u WHERE u.is_admin = 0`).first(),
+    weekly('created_at', 'users', 'is_admin = 0').all(),
+    db.prepare(`SELECT CAST((?1 - s.started_at) / ${7 * DAY} AS INTEGER) AS w, COUNT(DISTINCT s.user_id) AS n FROM activity_sessions s
+                  JOIN users u ON u.id = s.user_id AND u.is_admin = 0 WHERE s.started_at > ?1 - ${84 * DAY} GROUP BY w`).bind(now).all(),
+    weekly('p.created_at', 'help_posts p JOIN users u ON u.id = p.author_id', 'u.is_admin = 0').all(),
+    weekly('r.created_at', M2M).all(),
+    weekly('r.ended_at', M2M, "r.status = 'completed'").all(),
+    db.prepare(`SELECT v.source, COUNT(*) AS visits, MAX(v.created_at) AS last,
+        SUM(EXISTS (SELECT 1 FROM landing_events e WHERE e.experiment = v.experiment AND e.visitor_id = v.id AND e.event LIKE 'cta:%')) AS clicks,
+        SUM(EXISTS (SELECT 1 FROM landing_events e WHERE e.experiment = v.experiment AND e.visitor_id = v.id AND e.event LIKE 'signup:%')) AS signups
+      FROM landing_visitors v GROUP BY v.source`).all(),
+    db.prepare('SELECT * FROM campaigns ORDER BY created_at DESC LIMIT 200').all(),
+    db.prepare(`SELECT p.category, SUM(p.type = 'ask') AS asks, SUM(p.type = 'offer') AS offers,
+        SUM(p.type = 'ask' AND p.status = 'open') AS open_asks, SUM(p.type = 'offer' AND p.status = 'open') AS open_offers
+      FROM help_posts p JOIN users u ON u.id = p.author_id AND u.is_admin = 0 WHERE p.hidden_at IS NULL GROUP BY p.category`).all(),
+    db.prepare("SELECT DISTINCT category_note AS note FROM help_posts WHERE category_note <> '' AND hidden_at IS NULL ORDER BY created_at DESC LIMIT 20").all(),
+    db.prepare("SELECT event, COUNT(*) AS n FROM landing_events WHERE event LIKE 'cta:%' GROUP BY event").all(),
+    db.prepare('SELECT kind, COUNT(*) AS n, SUM(status = \'new\') AS fresh FROM feedback GROUP BY kind').all(),
+    db.prepare(`SELECT (SELECT COUNT(*) FROM help_replies) - (SELECT COUNT(*) FROM ${M2M}) AS replies,
+                       (SELECT COUNT(*) FROM help_posts p JOIN users u ON u.id = p.author_id WHERE u.is_admin = 1) AS posts`).first(),
+    db.prepare(`SELECT n.kind, COUNT(*) AS sent, SUM(t.read_at IS NOT NULL) AS seen,
+        SUM(CASE n.kind
+          WHEN 'match' THEN EXISTS (SELECT 1 FROM help_replies r WHERE r.post_id = n.post_id AND r.user_id = n.user_id AND r.created_at > n.created_at)
+          WHEN 'commit' THEN EXISTS (SELECT 1 FROM help_replies r JOIN help_posts p ON p.id = r.post_id WHERE r.post_id = n.post_id AND r.committed_at > n.created_at
+                                       AND n.user_id = CASE p.type WHEN 'ask' THEN r.user_id ELSE p.author_id END)
+          ELSE EXISTS (SELECT 1 FROM help_replies r WHERE r.post_id = n.post_id AND r.status = 'completed' AND r.ended_at > n.created_at) END) AS acted
+      FROM nudges n LEFT JOIN notifications t ON t.id = n.id GROUP BY n.kind`).all(),
+    rescueQueue(db, now)
+  ]);
+
+  const weeks = Array.from({ length: 12 }, (_, i) => ({ start: now - (12 - i) * 7 * DAY, signups: 0, active: 0, posts: 0, replies: 0, completed: 0 }));
+  for (const [key, q] of [['signups', wSign], ['active', wActive], ['posts', wPosts], ['replies', wReplies], ['completed', wDone]]) {
+    for (const r of q.results) if (r.w >= 0 && r.w < 12) weeks[11 - r.w][key] = r.n;
+  }
+  const bySource = Object.fromEntries(sources.results.map(s => [s.source, s]));
+  const rate = (k, n) => ({ count: k, rate: n ? k / n : 0, ci: wilson(k, n) });
+  const score = tag => { const s = bySource[tag] || {}; const n = s.visits || 0; return { visits: n, lastVisit: s.last || null, click: rate(s.clicks || 0, n), signup: rate(s.signups || 0, n) }; };
+  const list = campaigns.results.map(c => ({ ...campaignRow(c), ...score(c.tag) }));
+  const tags = new Set(list.map(c => c.tag));
+  const benefits = {};
+  for (const c of list) {
+    const b = benefits[c.benefit] || (benefits[c.benefit] = { visits: 0, clicks: 0, signups: 0, assets: 0 });
+    b.assets++; b.visits += c.visits; b.clicks += c.click.count; b.signups += c.signup.count;
+  }
+  return json({
+    now, sprint, window: { from, to },
+    totals: all, current: cur, previous: prev,
+    funnel: { members: funnel.members || 0, acted: funnel.acted || 0, connected: funnel.connected || 0, committed: funnel.committed || 0, helped: funnel.helped || 0 },
+    weeks, campaigns: list,
+    untracked: sources.results.filter(s => !tags.has(s.source) && !/^invite-[0-9a-f]{8}$/.test(s.source)).map(s => ({ source: s.source, ...score(s.source) })).sort((x, y) => y.visits - x.visits).slice(0, 20),
+    benefits: Object.entries(benefits).map(([benefit, b]) => ({ benefit, assets: b.assets, visits: b.visits, click: rate(b.clicks, b.visits), signup: rate(b.signups, b.visits) })).sort((x, y) => y.visits - x.visits),
+    demand: demand.results.map(d => ({ category: d.category, asks: d.asks, offers: d.offers, openAsks: d.open_asks, openOffers: d.open_offers })),
+    topics: notes.results.map(n => n.note),
+    landingClicks: clicks.results.map(c => ({ event: c.event, n: c.n })),
+    feedback: feedback.results.map(f => ({ kind: f.kind, n: f.n, fresh: f.fresh })),
+    excluded: { replies: founder.replies, posts: founder.posts },
+    nudges: nudgeRows.results.map(n => ({ kind: n.kind, sent: n.sent, seen: n.seen || 0, acted: n.acted || 0 })),
+    queue
+  });
+}
+
+/* ----- rescue queue: stalled posts, and the people most likely to unstick each one ----- */
+
+// Help that can happen over a call or message. Everything else needs someone close by.
+const REMOTE_OK = new Set(['Education & tutoring', 'Jobs & livelihoods', 'Legal & paperwork', 'Tech & skills', 'Emotional support & wellbeing', 'Translation & interpretation', 'Mentoring & career advice', 'Small business & entrepreneurship']);
+const PLACE_NOISE = new Set(['ma', 'mass', 'massachusetts', 'usa', 'us', 'city', 'town', 'of', 'the', 'ny']);
+function placeKey(loc) {
+  const t = String(loc || '').toLowerCase().replace(/\bnyc\b/g, 'new york').replace(/[^\p{L}\s]/gu, ' ').split(/\s+/).filter(w => w && !PLACE_NOISE.has(w));
+  return t.join(' ');
+}
+// A place safe to show or print. Anything with a number could be a street address, so it's dropped.
+function placeLabel(loc) { const s = String(loc || '').trim(); return /\d/.test(s) || s.length > 40 ? '' : s; }
+function samePlace(a, b) { return !!a && !!b && (a === b || (' ' + a + ' ').includes(' ' + b + ' ') || (' ' + b + ' ').includes(' ' + a + ' ')); }
+function words(s) { return String(s || '').toLowerCase().split(/[^a-z]+/).filter(w => w.length > 3); }
+
+async function rescueQueue(db, now) {
+  const today = new Date(now - 12 * HOUR).toISOString().slice(0, 10);   // a date is past only once it's over everywhere
+  const [posts, replies, members, blocks, sent, heard] = await Promise.all([
+    db.prepare(`SELECT p.id, p.author_id, p.type, p.category, p.category_note, p.title, p.location, p.region, p.status, p.urgency, p.scale, p.when_date, p.helpers_needed, p.created_at,
+                       u.display_name AS author_name, u.account_type AS author_type, u.no_nudges
+                  FROM help_posts p JOIN users u ON u.id = p.author_id AND u.is_admin = 0 AND u.suspended_at IS NULL
+                 WHERE p.hidden_at IS NULL ORDER BY p.created_at DESC LIMIT 400`).all(),
+    db.prepare('SELECT id, post_id, user_id, status, created_at, committed_at FROM help_replies ORDER BY created_at DESC LIMIT 2000').all(),
+    db.prepare(`SELECT u.id, u.display_name, u.account_type, u.location, u.region, u.causes, u.skills, u.no_nudges,
+                  (SELECT MAX(last_seen_at) FROM activity_sessions s WHERE s.user_id = u.id) AS last_seen
+                FROM users u WHERE u.is_admin = 0 AND u.suspended_at IS NULL ORDER BY u.created_at DESC LIMIT 2000`).all(),
+    db.prepare('SELECT blocker_id AS x, blocked_id AS y FROM blocks').all(),
+    db.prepare('SELECT kind, post_id, user_id, created_at FROM nudges').all(),
+    db.prepare('SELECT DISTINCT user_id FROM outreach WHERE created_at > ?').bind(now - 7 * DAY).all()
+  ]);
+  const blocked = new Set(blocks.results.flatMap(b => [b.x + b.y, b.y + b.x]));
+  const nudged = new Set(sent.results.map(n => n.kind + n.post_id + n.user_id));
+  const recent = new Set([...sent.results.filter(n => n.kind === 'match' && n.created_at > now - 7 * DAY), ...heard.results].map(n => n.user_id));
+  const byId = Object.fromEntries(members.results.map(m => [m.id, m]));
+  const repliesBy = {};
+  for (const r of replies.results) (repliesBy[r.post_id] = repliesBy[r.post_id] || []).push(r);
+  const list = v => { try { const a = JSON.parse(v || '[]'); return Array.isArray(a) ? a : []; } catch { return []; } };
+  const openPosts = posts.results.filter(p => p.status !== 'resolved' && !(p.when_date && p.when_date < today));
+  const openBy = {}, offered = new Set();
+  for (const q of openPosts) if (q.status === 'open') (openBy[q.author_id] = openBy[q.author_id] || []).push(q);
+  for (const q of posts.results) if (q.type === 'offer') offered.add(q.author_id);
+  const days = ms => Math.max(0, Math.floor((now - ms) / DAY));
+  const who = m => ({ id: m.id, name: shortName(m.display_name, m.account_type), accountType: m.account_type });
+  const out = [];
+
+  for (const p of posts.results) {
+    if (p.status === 'resolved') continue;
+    const rs = repliesBy[p.id] || [];
+    const base = { postId: p.id, type: p.type, title: p.title, category: p.category === 'Other' && p.category_note ? p.category_note : p.category, place: placeLabel(p.location), region: p.region, urgency: p.urgency, whenDate: p.when_date || null, poster: shortName(p.author_name, p.author_type) };
+    const done = rs.filter(r => r.status === 'committed' && (p.when_date ? p.when_date < today : r.committed_at < now - 3 * DAY));
+    if (done.length) {
+      out.push({ ...base, kind: 'finish', days: days(Math.min(...done.map(r => r.committed_at))),
+        people: p.no_nudges ? [] : [{ id: p.author_id, name: base.poster, accountType: p.author_type, reasons: ['Only the poster can mark it complete'], sent: nudged.has('finish' + p.id + p.author_id) }] });
+      continue;
+    }
+    if (p.when_date && p.when_date < today) continue;
+    const talking = rs.filter(r => r.status === 'talking' && r.created_at < now - 2 * DAY);
+    const full = rs.filter(r => r.status === 'committed').length >= (p.helpers_needed || 1);
+    if (talking.length && !full) {
+      const helpers = [...new Set(talking.map(r => p.type === 'ask' ? r.user_id : p.author_id))].map(id => byId[id]).filter(m => m && !m.no_nudges);
+      out.push({ ...base, kind: 'commit', days: days(Math.min(...talking.map(r => r.created_at))),
+        people: helpers.map(m => ({ ...who(m), reasons: ['In a conversation that hasn’t led to a commitment'], sent: nudged.has('commit' + p.id + m.id) })) });
+      continue;
+    }
+    if (rs.some(r => ['talking', 'committed', 'completed'].includes(r.status))) continue;
+    const key = placeKey(p.location), causes = CAT_CAUSES[p.category] || [];
+    const catWords = words(p.category === 'Other' ? p.category_note : p.category);
+    const scored = [];
+    for (const m of members.results) {
+      if (m.id === p.author_id || m.no_nudges || blocked.has(m.id + p.author_id) || rs.some(r => r.user_id === m.id)) continue;
+      let score = 0, fit = 0; const reasons = [];
+      const near = samePlace(placeKey(m.location), key), region = m.region === p.region;
+      // Greater Boston is small enough to travel across; the other regions span countries.
+      if (!REMOTE_OK.has(p.category) && p.scale !== 'Remote' && !near && !(region && p.region === 'Greater Boston')) continue;
+      const mirror = p.category !== 'Other' && (openBy[m.id] || []).find(q => q.type !== p.type && q.category === p.category);
+      if (mirror) { fit += 6; reasons.push((mirror.type === 'offer' ? 'Offering this: “' : 'Asking for this: “') + mirror.title + '”'); }
+      const tags = list(m.skills).filter(s => words(s).some(w => catWords.some(c => c.startsWith(w.slice(0, 5)))));
+      if (p.type === 'ask' && tags.length) { fit += 4; reasons.push('Can help with ' + tags.slice(0, 2).join(', ')); }
+      const shared = list(m.causes).filter(c => causes.includes(c));
+      if (shared.length && (near || region)) { fit += m.account_type === 'org' ? 4 : 2; reasons.push('Works on ' + shared[0]); }
+      if (p.type === 'ask' && !mirror && offered.has(m.id)) { fit += 1; reasons.push('Has offered help before'); }
+      if (near) { score += 4; reasons.push('Also in ' + (placeLabel(p.location) || 'the same place')); }
+      else if (region) { score += 2; reasons.push('Same region'); }
+      else if (fit >= 4) reasons.push('In a different region, so this would be remote');
+      if (m.last_seen > now - 30 * DAY) { score += 1; reasons.push('Active this month'); }
+      // A request can go to anyone nearby. An offer goes only to people with a sign they could use it.
+      if (fit + score < 4 || (p.type === 'ask' ? !near && !fit : !fit)) continue;
+      scored.push({ ...who(m), score: fit + score, reasons, sent: nudged.has('match' + p.id + m.id), resting: recent.has(m.id) });
+    }
+    scored.sort((x, y) => y.score - x.score);
+    out.push({ ...base, kind: 'match', days: days(p.created_at), people: scored.slice(0, 5) });
+  }
+  const rank = { finish: 0, commit: 1, match: 2 };
+  return out.sort((x, y) => rank[x.kind] - rank[y.kind] || (y.type === 'ask') - (x.type === 'ask') || (y.people.length > 0) - (x.people.length > 0) || y.days - x.days).slice(0, 60);
+}
+
+async function adminNudge(ctx) {
+  const admin = await requireAdmin(ctx);
+  const db = ctx.env.DB, b = await readJson(ctx.request), now = Date.now();
+  const kind = oneOf(b.kind, ['match', 'commit', 'finish'], 'Kind');
+  const ids = [...new Set((Array.isArray(b.userIds) ? b.userIds : []).map(String))].slice(0, 5);
+  if (!ids.length) throw new HttpError(400, 'Choose at least one person.');
+  // Recomputed here, so a message can only go to someone the queue would suggest right now.
+  const item = (await rescueQueue(db, now)).find(q => q.postId === String(b.postId) && q.kind === kind);
+  if (!item) throw new HttpError(409, 'This post has moved on. Refresh to see what’s left.');
+  const ok = item.people.filter(p => ids.includes(p.id) && !p.sent && !p.resting);
+  if (!ok.length) throw new HttpError(409, 'Everyone you chose has already heard about this, or got a suggestion in the last 7 days.');
+  const stmts = [];
+  for (const p of ok) {
+    const id = crypto.randomUUID();
+    stmts.push(db.prepare('INSERT INTO nudges (id, kind, post_id, user_id, sent_by, created_at) VALUES (?, ?, ?, ?, ?, ?)').bind(id, kind, item.postId, p.id, admin.id, now));
+    stmts.push(db.prepare("INSERT INTO notifications (id, user_id, type, actor_id, post_id, reply_id, detail, created_at) VALUES (?, ?, 'nudge', NULL, ?, NULL, ?, ?)")
+      .bind(id, p.id, item.postId, kind === 'match' ? 'match_' + item.type : kind, now));
+  }
+  stmts.push(audit(db, admin, 'nudge_' + kind, item.postId, ok.length + (ok.length === 1 ? ' member' : ' members')));
+  await db.batch(stmts);
+  return json({ ok: true, sent: ok.length }, 201);
+}
+
+/* ---------- outreach: current members ---------- */
+//
+// Each member lands in one group, so nobody hears from us twice about different things.
+// People who turned suggestions off are never listed, and everyone gets
+// at most one message a week and the same kind of message once in 30 days.
+
+const SEGMENTS = ['waiting', 'thanks', 'welcome', 'drifting', 'dormant', 'firstpost', 'profile', 'champion'];
+const OUTREACH_REST_MS = 7 * DAY;
+const MAX_OUTREACH_AT_ONCE = 25;
+
+async function memberSegments(db, now) {
+  const today = new Date(now - 12 * HOUR).toISOString().slice(0, 10);
+  const { results } = await db.prepare(`SELECT u.id, u.display_name, u.account_type, u.created_at, u.skills, u.no_nudges,
+      (SELECT MAX(last_seen_at) FROM activity_sessions s WHERE s.user_id = u.id) AS last_seen,
+      EXISTS (SELECT 1 FROM help_posts p WHERE p.author_id = u.id) OR EXISTS (SELECT 1 FROM help_replies r WHERE r.user_id = u.id) AS acted,
+      (SELECT MIN(p.created_at) FROM help_posts p WHERE p.author_id = u.id AND p.status = 'open' AND p.hidden_at IS NULL AND p.created_at < ?1 - ${2 * DAY}
+         AND (p.when_date IS NULL OR p.when_date >= ?2) AND NOT EXISTS (SELECT 1 FROM help_replies r WHERE r.post_id = p.id AND r.status IN ('talking','committed','completed'))) AS waiting_since,
+      (SELECT COUNT(*) FROM help_replies r JOIN help_posts p ON p.id = r.post_id WHERE r.status = 'completed' AND r.ended_at > ?1 - ${30 * DAY} AND (r.user_id = u.id OR p.author_id = u.id)) AS helped,
+      MAX(COALESCE((SELECT MAX(created_at) FROM outreach o WHERE o.user_id = u.id), 0), COALESCE((SELECT MAX(created_at) FROM nudges n WHERE n.user_id = u.id), 0)) AS last_contact,
+      (SELECT GROUP_CONCAT(DISTINCT segment) FROM outreach o WHERE o.user_id = u.id AND o.created_at > ?1 - ${30 * DAY}) AS had
+    FROM users u WHERE u.is_admin = 0 AND u.suspended_at IS NULL ORDER BY u.created_at DESC LIMIT 2000`).bind(now, today).all();
+  const seg = Object.fromEntries(SEGMENTS.map(s => [s, []]));
+  const pulse = { week: 0, fortnight: 0, month: 0, older: 0, never: 0 };
+  let optedOut = 0;
+  const ago = ms => { const d = Math.floor((now - ms) / DAY); return d < 1 ? 'today' : d === 1 ? 'yesterday' : d + ' days ago'; };
+  for (const u of results) {
+    const age = u.last_seen ? (now - u.last_seen) / DAY : Infinity, joined = (now - u.created_at) / DAY;
+    pulse[!u.last_seen ? 'never' : age <= 7 ? 'week' : age <= 14 ? 'fortnight' : age <= 30 ? 'month' : 'older']++;
+    if (u.no_nudges) { optedOut++; continue; }
+    const key = u.helped ? 'thanks' : u.waiting_since ? 'waiting' : joined <= 14 && !u.acted ? 'welcome'
+      : age > 45 ? 'dormant' : age > 14 ? 'drifting' : !u.acted ? 'firstpost' : (u.skills || '[]') === '[]' ? 'profile' : 'champion';
+    const seen = u.last_seen ? 'Last here ' + ago(u.last_seen) : 'No visits recorded';
+    seg[key].push({ id: u.id, name: shortName(u.display_name, u.account_type), accountType: u.account_type,
+      note: key === 'waiting' ? 'Waiting ' + Math.floor((now - u.waiting_since) / DAY) + ' days for a reply. ' + seen : key === 'welcome' ? 'Joined ' + ago(u.created_at) + '. ' + seen : seen,
+      resting: u.last_contact > now - OUTREACH_REST_MS || (',' + (u.had || '') + ',').includes(',' + key + ',') });
+  }
+  return { segments: seg, pulse, optedOut };
+}
+
+function firstName(name, accountType) { return accountType === 'org' ? name : String(name || '').trim().split(/\s+/)[0]; }
+
+async function adminOutreach(ctx) {
+  await requireAdmin(ctx);
+  const db = ctx.env.DB, now = Date.now();
+  const [members, results, leads, coach, totals] = await Promise.all([
+    memberSegments(db, now),
+    db.prepare(`SELECT o.segment, o.channel, COUNT(*) AS sent, SUM(n.read_at IS NOT NULL) AS seen,
+        SUM(EXISTS (SELECT 1 FROM activity_sessions s WHERE s.user_id = o.user_id AND s.started_at > o.created_at AND s.started_at < o.created_at + ${14 * DAY})) AS returned,
+        SUM(EXISTS (SELECT 1 FROM help_posts p WHERE p.author_id = o.user_id AND p.created_at > o.created_at AND p.created_at < o.created_at + ${14 * DAY})
+         OR EXISTS (SELECT 1 FROM help_replies r WHERE r.user_id = o.user_id AND r.created_at > o.created_at AND r.created_at < o.created_at + ${14 * DAY})) AS acted
+      FROM outreach o LEFT JOIN notifications n ON n.id = o.id GROUP BY o.segment, o.channel ORDER BY sent DESC`).all(),
+    db.prepare(`SELECT l.*, (SELECT COUNT(*) FROM landing_visitors v WHERE v.source = l.tag) AS visits,
+        (SELECT COUNT(*) FROM landing_visitors v WHERE v.source = l.tag AND EXISTS (SELECT 1 FROM landing_events e WHERE e.experiment = v.experiment AND e.visitor_id = v.id AND e.event LIKE 'signup:%')) AS joins
+      FROM leads l ORDER BY l.updated_at DESC LIMIT 500`).all(),
+    db.prepare('SELECT * FROM coach_log ORDER BY created_at DESC LIMIT 200').all(),
+    db.prepare(WINDOW_SQL).bind(0, now + 1).first()
+  ]);
+  return json({
+    ...members,
+    results: results.results.map(r => ({ segment: r.segment, channel: r.channel, sent: r.sent, seen: r.seen || 0, returned: r.returned || 0, acted: r.acted || 0 })),
+    leads: leads.results.map(leadRow),
+    coach: coach.results.map(c => ({ id: c.id, key: c.key, title: c.title, status: c.status, metric: c.metric, baseline: c.baseline, value: totals[c.metric] === undefined ? null : totals[c.metric], until: c.until, at: c.created_at }))
+  });
+}
+
+async function adminSendOutreach(ctx) {
+  const admin = await requireAdmin(ctx);
+  const b = await readJson(ctx.request), db = ctx.env.DB, now = Date.now();
+  const segment = oneOf(b.segment, SEGMENTS, 'Group'), channel = oneOf(b.channel, ['app', 'email'], 'Channel');
+  const ids = [...new Set((Array.isArray(b.userIds) ? b.userIds : []).map(String))];
+  if (!ids.length) throw new HttpError(400, 'Choose at least one person.');
+  if (ids.length > (channel === 'email' ? 1 : MAX_OUTREACH_AT_ONCE)) throw new HttpError(400, channel === 'email' ? 'Email one person at a time.' : `Choose up to ${MAX_OUTREACH_AT_ONCE} people at a time.`);
+  const message = channel === 'app' ? text(b.message, 240, 'Message', true) : '';
+  // Recomputed here, so a message only reaches someone who is in the group right now and hasn't heard from us this week.
+  const list = (await memberSegments(db, now)).segments[segment].filter(p => ids.includes(p.id) && !p.resting);
+  if (!list.length) throw new HttpError(409, 'Everyone you chose has left this group or already heard from you. Refresh to see who’s left.');
+  const { results: users } = await db.prepare(`SELECT id, display_name, account_type, email FROM users WHERE id IN (${list.map(() => '?').join(',')})`).bind(...list.map(p => p.id)).all();
+  const stmts = [];
+  for (const u of users) {
+    const id = crypto.randomUUID();
+    stmts.push(db.prepare('INSERT INTO outreach (id, user_id, segment, channel, sent_by, created_at) VALUES (?, ?, ?, ?, ?, ?)').bind(id, u.id, segment, channel, admin.id, now));
+    if (channel === 'app') stmts.push(db.prepare("INSERT INTO notifications (id, user_id, type, actor_id, post_id, reply_id, detail, created_at) VALUES (?, ?, 'outreach', NULL, NULL, NULL, ?, ?)")
+      .bind(id, u.id, segment + '|' + message.split('{name}').join(firstName(u.display_name, u.account_type)), now));
+  }
+  stmts.push(audit(db, admin, 'outreach_' + channel, segment, users.length + (users.length === 1 ? ' member' : ' members')));
+  await db.batch(stmts);
+  // The address is released one person at a time, only when a draft is opened, and that's logged.
+  return json({ ok: true, sent: users.length, ...(channel === 'email' ? { email: users[0].email, firstName: firstName(users[0].display_name, users[0].account_type) } : {}) }, 201);
+}
+
+/* ---------- outreach: possible new users ---------- */
+
+const LEAD_KINDS = ['nonprofit', 'senior', 'student', 'faith', 'library', 'business', 'government', 'person', 'other'];
+const LEAD_STATUS = ['idea', 'contacted', 'talking', 'joined', 'notnow'];
+function leadRow(l) {
+  return { id: l.id, name: l.name, kind: l.kind, audience: l.audience, place: l.place, contact: l.contact, notes: l.notes, status: l.status,
+           followUp: l.follow_up, tag: l.tag, createdAt: l.created_at, contactedAt: l.contacted_at, visits: l.visits || 0, joins: l.joins || 0 };
+}
+function leadFields(b, old) {
+  const has = k => b[k] !== undefined;
+  const followUp = has('followUp') ? String(b.followUp || '') : old.follow_up;
+  if (followUp && !/^20\d\d-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(followUp)) throw new HttpError(400, 'Choose a valid follow-up date.');
+  return {
+    name: has('name') ? text(b.name, 100, 'Name', true) : old.name, kind: has('kind') ? oneOf(b.kind, LEAD_KINDS, 'Type') : old.kind,
+    audience: has('audience') ? oneOf(b.audience, CAMPAIGN_AUDIENCES, 'Audience') : old.audience, place: has('place') ? text(b.place, 60, 'Place') : old.place,
+    contact: has('contact') ? text(b.contact, 160, 'Contact') : old.contact, notes: has('notes') ? text(b.notes, 500, 'Notes') : old.notes,
+    status: has('status') ? oneOf(b.status, LEAD_STATUS, 'Stage') : old.status, follow_up: followUp
+  };
+}
+async function adminCreateLead(ctx) {
+  const admin = await requireAdmin(ctx);
+  const b = await readJson(ctx.request), db = ctx.env.DB, now = Date.now();
+  if (typeof b.name !== 'string' || !b.name.trim()) throw new HttpError(400, 'Name is required.');
+  const f = leadFields({ status: 'idea', ...b }, { kind: 'other', audience: 'org', place: '', contact: '', notes: '', follow_up: '' });
+  if (await db.prepare('SELECT 1 FROM leads WHERE name = ? COLLATE NOCASE').bind(f.name).first()) throw new HttpError(409, 'They’re already on your list.');
+  const id = crypto.randomUUID(), tag = 'invite-' + id.replace(/-/g, '').slice(0, 8);
+  await db.batch([
+    db.prepare(`INSERT INTO leads (id, name, kind, audience, place, contact, notes, status, follow_up, tag, created_by, created_at, contacted_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .bind(id, f.name, f.kind, f.audience, f.place, f.contact, f.notes, f.status, f.follow_up, tag, admin.id, now, f.status === 'idea' ? null : now, now),
+    audit(db, admin, 'lead_created', id, '')
+  ]);
+  return json({ lead: leadRow(await db.prepare('SELECT * FROM leads WHERE id = ?').bind(id).first()) }, 201);
+}
+async function adminLead(ctx, id) {
+  const admin = await requireAdmin(ctx);
+  const db = ctx.env.DB, old = await db.prepare('SELECT * FROM leads WHERE id = ?').bind(id).first();
+  if (!old) throw new HttpError(404, 'They’re no longer on your list.');
+  if (ctx.method === 'DELETE') {
+    await db.batch([db.prepare('DELETE FROM leads WHERE id = ?').bind(id), audit(db, admin, 'lead_removed', id, '')]);
+    return json({ ok: true });
+  }
+  const f = leadFields(await readJson(ctx.request), old), now = Date.now();
+  await db.prepare('UPDATE leads SET name=?, kind=?, audience=?, place=?, contact=?, notes=?, status=?, follow_up=?, contacted_at=?, updated_at=? WHERE id=?')
+    .bind(f.name, f.kind, f.audience, f.place, f.contact, f.notes, f.status, f.follow_up, old.contacted_at || (f.status === 'idea' ? null : now), now, id).run();
+  return json({ lead: leadRow(await db.prepare('SELECT * FROM leads WHERE id = ?').bind(id).first()) });
+}
+
+/* ---------- traction coach ---------- */
+
+// Remembers what was done or put off. The number each idea should move is saved, so the dashboard can show what happened next.
+async function adminCoach(ctx) {
+  const admin = await requireAdmin(ctx);
+  const b = await readJson(ctx.request), db = ctx.env.DB, now = Date.now();
+  const key = String(b.key || '');
+  if (!/^[a-z0-9:_-]{2,60}$/.test(key)) throw new HttpError(400, 'Unknown suggestion.');
+  const status = oneOf(b.status, ['done', 'later'], 'Choice');
+  const title = text(b.title, 120, 'Title', true);
+  const metric = ['visits', 'clicks', 'signups', 'orgs', 'active', 'posts', 'replies', 'commitments', 'completed'].includes(b.metric) ? b.metric : '';
+  const totals = metric ? await db.prepare(WINDOW_SQL).bind(0, now + 1).first() : {};
+  const days = status === 'later' ? 2 : b.evergreen ? 30 : 7;
+  const row = { id: crypto.randomUUID(), key, title, status, metric, baseline: totals[metric] || 0, until: now + days * DAY, at: now };
+  await db.prepare('INSERT INTO coach_log (id, key, title, status, metric, baseline, until, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    .bind(row.id, key, title, status, metric, row.baseline, row.until, admin.id, now).run();
+  return json({ entry: { ...row, value: metric ? row.baseline : null } }, 201);
+}
+async function adminCoachUndo(ctx, id) {
+  await requireAdmin(ctx);
+  await ctx.env.DB.prepare('DELETE FROM coach_log WHERE id = ?').bind(id).run();
+  return json({ ok: true });
+}
+
+const SPRINT_GOALS = ['visits', 'signups', 'orgs', 'posts', 'replies', 'commitments', 'completed'];
+function sprintRow(r) {
+  if (!r) return null;
+  let goals = {}; try { goals = JSON.parse(r.goals) || {}; } catch {}
+  return { name: r.name, startsAt: r.starts_at, endsAt: r.ends_at, goals };
+}
+async function adminSaveSprint(ctx) {
+  const admin = await requireAdmin(ctx);
+  const b = await readJson(ctx.request), db = ctx.env.DB;
+  const name = text(b.name, 60, 'Sprint name', true);
+  const starts = Math.round(Number(b.startsAt)), ends = Math.round(Number(b.endsAt));
+  if (!(starts > 1.6e12) || !(ends > starts) || ends - starts > 120 * DAY) throw new HttpError(400, 'Choose an end date after the start date, at most 120 days apart.');
+  const goals = {};
+  for (const k of SPRINT_GOALS) {
+    const v = Math.round(Number(b.goals && b.goals[k]));
+    if (v > 0) { if (v > 1e6) throw new HttpError(400, 'That goal is too large.'); goals[k] = v; }
+  }
+  if (!Object.keys(goals).length) throw new HttpError(400, 'Set at least one goal.');
+  await db.batch([
+    db.prepare(`INSERT INTO sprints (id, name, starts_at, ends_at, goals, updated_by, updated_at) VALUES ('current', ?1, ?2, ?3, ?4, ?5, ?6)
+                ON CONFLICT(id) DO UPDATE SET name=?1, starts_at=?2, ends_at=?3, goals=?4, updated_by=?5, updated_at=?6`)
+      .bind(name, starts, ends, JSON.stringify(goals), admin.id, Date.now()),
+    audit(db, admin, 'sprint_saved', 'current', name)
+  ]);
+  return json({ sprint: { name, startsAt: starts, endsAt: ends, goals } });
+}
+
+const CAMPAIGN_AUDIENCES = ['elder', 'need', 'offer', 'org'];
+const CAMPAIGN_BENEFITS = ['named-yes', 'private', 'spots', 'ratings', 'partners', 'no-duplicate', 'custom'];
+const CAMPAIGN_CHANNELS = ['flyer', 'instagram', 'story', 'slide', 'email', 'text'];
+function campaignRow(c) {
+  return { id: c.id, tag: c.tag, name: c.name, audience: c.audience, benefit: c.benefit, channel: c.channel, place: c.place,
+           headline: c.headline, body: c.body, cta: c.cta, createdAt: c.created_at, archived: !!c.archived_at };
+}
+async function adminCreateCampaign(ctx) {
+  const admin = await requireAdmin(ctx);
+  const b = await readJson(ctx.request), db = ctx.env.DB;
+  const tag = String(b.tag || '');
+  if (!/^[a-z0-9][a-z0-9_-]{1,23}$/.test(tag)) throw new HttpError(400, 'A link tag needs 2 to 24 lowercase letters, numbers, or dashes.');
+  const row = { id: crypto.randomUUID(), tag, name: text(b.name, 80, 'Name', true), audience: oneOf(b.audience, CAMPAIGN_AUDIENCES, 'Audience'),
+    benefit: oneOf(b.benefit, CAMPAIGN_BENEFITS, 'Benefit'), channel: oneOf(b.channel, CAMPAIGN_CHANNELS, 'Format'), place: text(b.place, 40, 'Place'),
+    headline: text(b.headline, 90, 'Headline', true), body: text(b.body, 220, 'Text'), cta: text(b.cta, 40, 'Button'), created_at: Date.now() };
+  if (await db.prepare('SELECT 1 FROM campaigns WHERE tag = ?').bind(tag).first()) throw new HttpError(409, 'Another asset already uses that link tag. Change it so results stay separate.');
+  await db.batch([
+    db.prepare('INSERT INTO campaigns (id, tag, name, audience, benefit, channel, place, headline, body, cta, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+      .bind(row.id, tag, row.name, row.audience, row.benefit, row.channel, row.place, row.headline, row.body, row.cta, admin.id, row.created_at),
+    audit(db, admin, 'campaign_created', row.id, tag)
+  ]);
+  return json({ campaign: campaignRow(row) }, 201);
+}
+async function adminCampaignAction(ctx, id) {
+  const admin = await requireAdmin(ctx);
+  const b = await readJson(ctx.request), db = ctx.env.DB;
+  const action = oneOf(b.action, ['archive', 'restore'], 'Action');
+  if (!await db.prepare('SELECT 1 FROM campaigns WHERE id = ?').bind(id).first()) throw new HttpError(404, 'That asset no longer exists.');
+  await db.batch([
+    db.prepare('UPDATE campaigns SET archived_at = ? WHERE id = ?').bind(action === 'archive' ? Date.now() : null, id),
+    audit(db, admin, 'campaign_' + action, id, '')
+  ]);
+  return json({ ok: true });
+}
+
 // 95% Wilson score interval, which stays sensible at small counts.
 function wilson(k, n) {
   if (!n) return [0, 0];
@@ -1903,7 +2382,7 @@ function publicUser(u) {
 }
 function privateUser(u) {
   return Object.assign(publicUser(u), {
-    email: u.email, emailVerified: !!u.email_verified_at, isAdmin: !!u.is_admin, verificationStatus: u.verification_status
+    email: u.email, emailVerified: !!u.email_verified_at, isAdmin: !!u.is_admin, verificationStatus: u.verification_status, suggestions: !u.no_nudges
   });
 }
 
