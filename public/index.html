@@ -2531,20 +2531,30 @@
 
   // The Traction dashboard is a separate file that only admins download.
   var traction = null;
-  function loadTraction(){
+  function loadTraction(demo){
     if(traction){ traction.load(); return; }
     if(!document.querySelector('link[href="/traction.css"]')){ var css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/traction.css'; document.head.appendChild(css); }
-    var need = window.GNTraction ? [] : ['/traction-assets.js', '/traction-coach.js', '/traction-outreach.js', '/traction.js'];
+    var need = (window.GNTraction ? [] : ['/traction-assets.js', '/traction-coach.js', '/traction-outreach.js', '/traction.js']).concat(demo && !window.GNDemo ? ['/traction-demo.js'] : []);
     (function next(){
       var src = need.shift();
       if(!src){
-        traction = window.GNTraction({ state:state, esc:esc, api:api, run:run, render:render, toast:toast, val:val, statTile:statTile, barChart:barChart, dataTable:dataTable, rateRow:rateRow, localDay:localDay,
-          orgCount:function(){ return REAL_ORGS.length; }, orgs:allOrgs, regionOf:regionOf, causesFor:function(c){ return HELP_CATS[c] || []; },
+        traction = window.GNTraction({ demo:!!demo, state:demo ? { user:{ id:'demo', displayName:'' }, admin:{ overview:null } } : state, esc:esc, api:demo ? window.GNDemo() : api, run:run, render:render, toast:toast, val:val, statTile:statTile, barChart:barChart, dataTable:dataTable, rateRow:rateRow, localDay:localDay,
+          orgCount:function(){ return REAL_ORGS.length; }, orgs:demo ? function(){ return REAL_ORGS; } : allOrgs, regionOf:regionOf, causesFor:function(c){ return HELP_CATS[c] || []; },
           adminView:function(v){ state.adminView = v; loadAdmin(); render(); } });
         traction.load(); return;
       }
       var s = document.createElement('script'); s.src = src; s.onload = next; s.onerror = function(){ toast('Can’t load the dashboard. Check your connection and refresh.'); }; document.head.appendChild(s);
     })();
+  }
+  // A public, sample-data copy of the dashboard for anyone deciding whether it would help their own site.
+  function startDemo(){
+    if(traction){ traction.stop(); traction = null; }
+    state.view = 'demo'; render(); loadTraction(true); window.scrollTo(0, 0);
+  }
+  function renderDemo(){
+    return '<main class="tx-demo"><div class="tx-demo-top"><div class="wordmark"><span class="dot"></span><span>Global Neighbors</span></div><a class="btn btn-ghost btn-sm" href="/start" style="text-decoration:none;">Visit the site</a></div>'
+      + '<div class="tx-demo-note"><b>Traction dashboard demo.</b> Every person, post, and number here is made up, except the reference organizations. Click anything: nothing is sent or saved.</div>'
+      + (traction ? traction.render() : '<div class="empty">Loading…</div>') + '</main>';
   }
   function loadAdmin(){
     var a = state.admin;
@@ -2583,6 +2593,7 @@
   // Links from emails arrive as #/verify/<token> or #/reset/<token>; the fragment never reaches server logs.
   function handleHashLink(){
     // Buttons on the landing page (/start) link here.
+    if(location.hash==='#/dashboard-demo'){ if(state.view!=='demo') startDemo(); return true; }
     var lp = location.hash.match(/^#\/(join|join-org|login|guest)$/);
     if(lp){
       history.replaceState(null, '', location.pathname + location.search);
@@ -3122,7 +3133,7 @@
     // Background refreshes (notifications, stats) must not steal focus from someone typing.
     var active = document.activeElement, focusId = active && root.contains(active) && active.id ? active.id : null, sel = null;
     if(focusId){ try{ sel = [active.selectionStart, active.selectionEnd]; }catch(err){} }
-    root.innerHTML = state.view==='landing' ? renderLanding() : state.view==='auth' ? renderAuth() : renderApp();
+    root.innerHTML = state.view==='demo' ? renderDemo() : state.view==='landing' ? renderLanding() : state.view==='auth' ? renderAuth() : renderApp();
     Object.keys(keep).forEach(function(id){
       var el = document.getElementById(id);
       if(el && el.getAttribute('data-search')===null && !el.hasAttribute('data-studio') && el.type!=='range') el.value = keep[id];
@@ -3132,7 +3143,7 @@
       if(again){ again.focus(); if(sel && sel[0]!=null){ try{ again.setSelectionRange(sel[0], sel[1]); }catch(err){} } }
     }
     if(state.modal==='image-edit') drawCrop();
-    if(traction && state.tab==='admin' && state.adminView==='traction') traction.after();
+    if(traction && (state.view==='demo' || (state.tab==='admin' && state.adminView==='traction'))) traction.after();
   }
 
   /* ============ EVENTS ============ */

@@ -4,7 +4,7 @@
 window.GNTraction = function(app){
   "use strict";
   var esc = app.esc, A = window.GNAssets, state = app.state;
-  var T = { data:null, error:'', out:null, step:'today', tip:0, tipOff:false, cat:'', ideas:6, since:null, audience:'elder', present:false, page:0, editSprint:false, picked:{}, confirming:null, studio:null, showArchived:false };
+  var T = { data:null, error:'', out:null, step:'today', tip:0, tipOff:false, hide:false, mins:0, report:false, cat:'', ideas:6, since:null, audience:'elder', present:false, page:0, editSprint:false, picked:{}, confirming:null, studio:null, showArchived:false };
   var LIVE = /^(localhost|127\.|\[::1\])/.test(location.hostname) ? 'https://global-neighbors.pages.dev' : location.origin;
   var DAY = 86400000;
   var METRICS = { visits:'Welcome page visits', signups:'New members', orgs:'New organizations', active:'Active members', posts:'Posts', replies:'Replies between neighbors', commitments:'Commitments', completed:'Neighbors helped' };
@@ -12,7 +12,7 @@ window.GNTraction = function(app){
   var PLACES = { 'cta:elder':'Older adults', 'cta:need':'People who need help', 'cta:offer':'People offering help', 'cta:org':'Nonprofits and NGOs' };
 
   function plural(n, one, many){ return n + ' ' + (n===1 ? one : many || one + 's'); }
-  function link(tag){ return LIVE + '/start?src=' + tag; }
+  function link(tag){ return LIVE + '/start?src=' + (app.demo ? 'demo' : tag); }
   function dateOf(ms){ return new Date(ms).toLocaleDateString(undefined, { month:'short', day:'numeric' }); }
   function pct(x){ return Math.round(100 * x) + '%'; }
   var sig = '';
@@ -21,12 +21,25 @@ window.GNTraction = function(app){
     return Promise.all([app.api('GET', 'admin/traction'), app.api('GET', 'admin/outreach')]).then(function(r){
       var s = JSON.stringify([r[0].totals, r[0].current, r[0].queue, r[0].campaigns, r[0].untracked, r[0].sprint, r[0].feedback, r[1]]);
       if(quiet && s===sig && T.data) return;
-      sig = s; T.data = r[0]; T.out = r[1]; T.error = ''; remember(); app.render();
+      sig = s; T.data = r[0]; T.out = r[1]; T.error = ''; if(T.hide) mask(); remember(); app.render();
     }, function(err){ if(!quiet || !T.data){ T.error = err.message; app.render(); } });
   }
+  // For sharing a screen: swaps names, post titles, places, and contacts for neutral labels before anything is drawn.
+  function maskLead(l, i){ return Object.assign(l, { name:'Prospect ' + (i + 1), place:'', contact:'', notes:'' }); }
+  function mask(){
+    var n = 0, seen = {}, who = function(p){ p.name = seen[p.id] = seen[p.id] || 'Member ' + (++n); };
+    T.data.queue.forEach(function(q, i){ q.title = 'Post ' + (i + 1); q.poster = 'a member'; q.place = ''; q.people.forEach(who); });
+    T.data.topics = T.data.topics.map(function(){ return 'a topic'; });
+    Object.keys(T.out.segments).forEach(function(k){ T.out.segments[k].forEach(who); });
+    T.out.leads.forEach(maskLead);
+    T.out.coach.forEach(function(c){ if(c.key==='contactleads' || c.key==='followups') c.title = 'Contacted a prospect'; });
+  }
+  // Anything that would copy, edit, or open a real person's details waits until names are back on.
+  var NAMED = /^tx-(out-email|draft-copy|lead-(new|kind|edit|add|copy|done|ask|remove))$/;
   // What changed since this admin's last visit. Kept in this browser only; a gap of four hours starts a new visit.
   var remembered = false;
   function remember(){
+    if(app.demo) return;
     var k = 'gn_traction_' + state.user.id, now = T.data.now, old = null;
     try{ old = JSON.parse(localStorage.getItem(k)); }catch(err){}
     var prev = old && old.at ? (now - old.at > 4 * 3600000 ? { at:old.at, totals:old.totals } : old.prev) : null;
@@ -49,11 +62,12 @@ window.GNTraction = function(app){
   }
   // Best benefit so far, once there's enough to compare.
   function winner(){ return T.data.benefits.filter(function(x){ return x.visits >= 10 && x.click.count && x.benefit !== 'custom'; }).sort(function(x, y){ return y.click.rate - x.click.rate; })[0]; }
-  var H = { ready:ready, balance:balance, topPlace:topPlace, winner:winner, plural:plural, dateOf:dateOf, link:link, copy:copy, load:load, METRICS:METRICS };
+  var H = { maskLead:function(l){ return T.hide ? maskLead(l, T.out.leads.map(function(x){ return x.id; }).indexOf(l.id)) : l; }, ready:ready, balance:balance, topPlace:topPlace, winner:winner, plural:plural, dateOf:dateOf, link:link, copy:copy, load:load, METRICS:METRICS };
   var coach = window.GNCoach(app, T, H), outreach = window.GNOutreach(app, T, H);
   // The few suggestions that are safe to show a room: no names of people or prospects.
   function moves(){ return coach.list().filter(function(x){ return !x.priv; }).slice(0, 4); }
   function follow(g){
+    if(app.demo && (g.admin || g.href)){ app.toast('This opens another admin screen on the real site.'); return; }
     if(g.admin){ app.adminView(g.admin); return; }
     if(g.sprint){ T.editSprint = true; app.render(); var f = document.getElementById('tx-sname'); f.scrollIntoView({ block:'center' }); f.focus(); return; }
     if(g.step==='build'){
@@ -108,12 +122,44 @@ window.GNTraction = function(app){
     var h = new Date().getHours(), name = String(state.user.displayName || '').trim().split(/\s+/)[0];
     var now = l.filter(function(x){ return x.live; }), quick = now.slice(0, 3).sort(function(a, b){ return parseInt(a.time, 10) - parseInt(b.time, 10); })[0], d = T.data;
     var line = now.length ? plural(now.length, 'suggestion') + ' from today’s numbers. ' + (quick ? 'A good place to start takes about ' + quick.time + '.' : '') : 'Nothing is stuck right now. Here are a few fresh ways to grow.';
-    return '<section class="tx-hi"><div><h3>' + (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + ', ' + esc(name) + '</h3><p>' + line + '</p><p class="tx-hi-sub">' + plural(d.totals.completed, 'neighbor') + ' helped so far, ' + plural(d.totals.signups, 'member') + ', and ' + plural(d.totals.replies, 'reply', 'replies') + ' between neighbors.</p></div><canvas id="tx-hi-street" aria-hidden="true"></canvas></section>';
+    return '<section class="tx-hi"><div><h3>' + (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + (app.demo ? '' : ', ' + esc(name)) + '</h3><p>' + line + '</p><p class="tx-hi-sub">' + plural(d.totals.completed, 'neighbor') + ' helped so far, ' + plural(d.totals.signups, 'member') + ', and ' + plural(d.totals.replies, 'reply', 'replies') + ' between neighbors.</p></div><canvas id="tx-hi-street" aria-hidden="true"></canvas></section>';
   }
   function since(){
     if(!T.since || !T.since.totals) return '';
     var up = Object.keys(METRICS).filter(function(k){ return k !== 'active' && T.data.totals[k] > T.since.totals[k]; });
     return '<section class="card tx-since"><b>Since you were last here, ' + esc(dateOf(T.since.at)) + ':</b> ' + (up.length ? up.map(function(k){ return '<span><em>+' + (T.data.totals[k] - T.since.totals[k]) + '</em> ' + METRICS[k].toLowerCase() + '</span>'; }).join('') : 'no new activity yet. Reaching out is the quickest way to change that.') + '</section>';
+  }
+  /* ----- the numbers at a glance, and the one step losing the most people ----- */
+  function spark(key){
+    var v = T.data.weeks.map(function(w){ return w[key]; }), max = Math.max.apply(null, v.concat([1])), pts = v.map(function(y, i){ return [(2 + i * 96 / (v.length - 1)).toFixed(1), (26 - 22 * y / max).toFixed(1)]; }), end = pts[pts.length - 1];
+    return '<svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts.map(function(p){ return p.join(','); }).join(' ') + '" vector-effect="non-scaling-stroke"/></svg><i class="tx-dot" style="top:' + (100 * end[1] / 30).toFixed(1) + '%"></i>';
+  }
+  function glance(){
+    var d = T.data, s = d.sprint;
+    return '<div class="tx-glance">' + [['signups','New members'],['active','Active members'],['replies','Replies between neighbors'],['completed','Neighbors helped']].map(function(x){
+      return '<section class="card tx-kpi" data-tip="' + esc(x[1] + ': ' + d.current[x[0]] + ' now, ' + d.previous[x[0]] + ' in the same length of time before') + '"><span>' + x[1] + '</span><b>' + d.current[x[0]] + '</b><small>' + delta(x[0]) + ' from before</small><div class="tx-spark">' + spark(x[0]) + '</div></section>'; }).join('') + '</div><p class="hint tx-glance-note">' + (s ? 'This sprint so far, against the same length of time before it.' : 'Last 14 days, against the 14 days before.') + ' Lines show the last 12 weeks.</p>';
+  }
+  var FIX = [null, ['Help members take a first step', { step:'outreach', tab:'members', seg:'firstpost' }], ['Match people to waiting posts', { step:'want', at:'tx-queue' }], ['Move conversations to a yes', { step:'want', at:'tx-queue' }], ['Confirm finished help', { step:'want', at:'tx-queue' }]];
+  function bottleneck(){
+    var i = leakIndex(), f = T.data.funnel; if(i < 1) return '';
+    var a = f[STEPS[i-1][0]], b = f[STEPS[i][0]];
+    return '<section class="card tx-neck"><div><div class="tx-meta">Your biggest bottleneck</div><h4>' + b + ' of ' + a + ' go from “' + STEPS[i-1][1].toLowerCase() + '” to “' + STEPS[i][1].toLowerCase() + '”</h4><p>That’s the step losing the largest share of people. Fix it before bringing in more.</p></div><button class="btn btn-secondary btn-sm" data-action="tx-fix">' + FIX[i][0] + '</button></section>';
+  }
+  function plan(all){
+    var left = T.mins, out = [];
+    all.forEach(function(x){ var m = parseInt(x.time, 10) || 5; if(m <= left && out.length < 5){ out.push(x); left -= m; } });
+    return out;
+  }
+  /* ----- a report to send to a boss, board, or team. No names, posts, or places. ----- */
+  function report(){
+    var d = T.data, done = T.out.coach.filter(function(c){ return c.status==='done' && c.at >= d.window.from && c.key !== 'contactleads' && c.key !== 'followups'; }), r = { sent:0, back:0 };
+    T.out.results.forEach(function(x){ r.sent += x.sent; r.back += x.returned; });
+    return ['Global Neighbors traction report' + (app.demo ? ' (sample data)' : ''), dateOf(d.window.from) + ' to ' + dateOf(Math.min(d.now, d.window.to)), '', 'RESULTS'].concat(readout().slice(0, -1).map(function(l){ return '• ' + l; }),
+      ['', 'WHAT WE DID'], d.campaigns.length ? ['• Marketing assets being tracked: ' + d.campaigns.filter(function(c){ return !c.archived; }).length + '.'] : [], r.sent ? ['• Contacted ' + plural(r.sent, 'member') + ' so far. ' + r.back + ' came back within 14 days.'] : [], done.map(function(c){ return '• Acted on: ' + c.title + '.'; }),
+      !d.campaigns.length && !r.sent && !done.length ? ['• Nothing logged yet in this period.'] : [], ['', 'WHAT’S NEXT'], moves().slice(0, 3).map(function(m){ return '• ' + m.title + '.'; })).join('\n');
+  }
+  function reportCard(){
+    return '<section class="card tx-report"><div class="tx-item-top"><h3 class="viz-title">Report</h3><button class="link-btn" data-action="tx-report">Close</button></div><pre class="tx-caption">' + esc(report()) + '</pre><div class="card-actions" style="margin-top:.8rem;"><button class="btn btn-primary btn-sm" data-action="tx-report-copy">Copy report</button><button class="btn btn-ghost btn-sm" data-action="tx-results-card">Download results image</button><button class="btn btn-ghost btn-sm" data-action="tx-csv">Download CSV</button></div><p class="hint" style="margin-top:.5rem;">Leaves out names, posts, and places, so it’s safe to send to your team.</p></section>';
   }
   function starter(){
     var d = T.data, sent = d.nudges.length || T.out.results.length;
@@ -143,7 +189,10 @@ window.GNTraction = function(app){
   }
   function today(){
     var begin = starter(), all = coach.list(), top = all.slice(0, 3), rest = all.slice(3).filter(function(x){ return !T.cat || x.cat===T.cat; });
-    return hero(all) + since() + '<div class="tx-sec"><h3>Start here</h3><p>Ranked by what helps neighbors most right now.</p></div><div class="tx-tips top">' + top.map(function(x, i){ return tipCard(x, !i); }).join('') + '</div>'
+    var mine = T.mins ? plan(all) : top, used = 0; mine.forEach(function(x){ used += parseInt(x.time, 10) || 5; });
+    if(T.mins) rest = all.filter(function(x){ return mine.indexOf(x) < 0 && (!T.cat || x.cat===T.cat); });
+    return hero(all) + since() + glance() + bottleneck() + '<div class="tx-sec tx-item-top"><div><h3>' + (T.mins ? 'Your ' + T.mins + '-minute plan' : 'Start here') + '</h3><p>' + (T.mins ? plural(mine.length, 'action') + ', about ' + used + ' minutes in total.' : 'Ranked by what helps neighbors most right now.') + '</p></div><div class="toolbar" style="margin:0;"><span class="toolbar-label">I have</span>' + [[0,'Any time'],[5,'5 min'],[15,'15 min'],[30,'30 min']].map(function(m){ return '<button class="chip' + (T.mins===m[0] ? ' active' : '') + '" data-action="tx-mins" data-value="' + m[0] + '">' + m[1] + '</button>'; }).join('') + '</div></div>'
+      + '<div class="tx-tips' + (mine.length===3 ? ' top' : '') + '">' + mine.map(function(x, i){ return tipCard(x, !i); }).join('') + '</div>'
       + '<div class="tx-today"><div>' + pulse() + (begin ? log() : '') + '</div><div>' + (begin || log()) + '</div></div>'
       + '<div class="tx-sec"><h3>More ways to grow</h3><p>New suggestions appear as your numbers change, with fresh ideas every day.</p></div><div class="toolbar">'
       + [['','All']].concat(Object.keys(coach.CATS).map(function(k){ return [k, coach.CATS[k]]; })).map(function(c){ return '<button class="chip' + (T.cat===c[0] ? ' active' : '') + '" data-action="tx-cat" data-value="' + c[0] + '">' + c[1] + '</button>'; }).join('') + '</div>'
@@ -160,7 +209,8 @@ window.GNTraction = function(app){
     }
     return '<div class="tx-head"><div><h3>' + esc(s ? s.name : 'Traction') + '</h3><p>' + esc(when) + '</p></div>'
       + '<div class="tx-head-actions"><button class="btn btn-ghost btn-sm" data-action="tx-edit-sprint">' + (s ? 'Edit sprint' : 'Set sprint goals') + '</button>'
-      + '<button class="btn btn-ghost btn-sm" data-action="tx-refresh">Refresh</button><button class="btn btn-secondary btn-sm" data-action="tx-present">Present</button></div></div>'
+      + '<button class="btn btn-ghost btn-sm" data-action="tx-hide" aria-pressed="' + T.hide + '">' + (T.hide ? 'Show names' : 'Hide names') + '</button><button class="btn btn-ghost btn-sm" data-action="tx-refresh">Refresh</button><button class="btn btn-ghost btn-sm" data-action="tx-report">Report</button><button class="btn btn-secondary btn-sm" data-action="tx-present">Present</button></div></div>'
+      + (T.hide ? '<div class="tx-hidden">Names, post titles, places, and contacts are hidden, so you can share your screen.</div>' : '') + (T.report ? reportCard() : '')
       + (T.editSprint ? sprintForm() : '')
       + '<div class="tx-steps" role="tablist" aria-label="Traction screens">' + [['today','Today','☀\uFE0E'],['frame','Frame a unique benefit','1'],['build','Build marketing assets','2'],['results','Display results','3'],['want','Find what people want','4'],['outreach','Outreach','✉\uFE0E']].map(function(x){
           return '<button role="tab" aria-selected="' + (T.step===x[0]) + '" data-action="tx-step" data-step="' + x[0] + '"><i aria-hidden="true">' + x[2] + '</i><span>' + x[1] + '</span></button>'; }).join('') + '</div>'
@@ -451,7 +501,12 @@ window.GNTraction = function(app){
     var max = Math.max.apply(null, rows.map(function(x){ return Math.max(x.asks, x.offers); }).concat([1])), wait = d.queue.filter(function(q){ return q.kind==='match'; }), m = wait.filter(function(q){ return q.people.length; });
     return '<h2>It tells you what to do next.</h2><p class="tx-sub">The dashboard finds where help is stuck, who could unstick it, and what to market when nobody can.</p><div class="tx-pcols" style="margin-top:2rem;"><section class="tx-pwant"><h3>What neighbors ask for and offer</h3>'
       + (rows.length ? rows.map(function(x){ return demandRow(x, max); }).join('') + '<div class="tx-key"><span><i></i>Requests</span><span><i class="s2"></i>Offers</span></div>' : '<p class="tx-sub">No posts yet.</p>') + '</section><section><h3>Next best moves</h3><ol class="tx-pmoves">'
-      + moves().map(function(x){ return '<li><b>' + esc(x.title) + '</b><span>' + esc(x.why) + '</span></li>'; }).join('') + '</ol><p class="tx-sub">' + plural(wait.length, 'post') + ' waiting for a first reply, ' + m.length + ' with a likely match.</p></section></div>';
+      + moves().map(function(x){ return '<li><b>' + esc(x.title) + '</b><span>' + esc(x.why) + '</span></li>'; }).join('') + '</ol><p class="tx-sub">' + plural(wait.length, 'post') + ' waiting for a first reply, ' + m.length + ' with a likely match.</p></section></div>' + tryIt();
+  }
+  function tryIt(){
+    var url = LIVE + '/#/dashboard-demo', m = A.qr(url), n = m.length, d = '';
+    for(var y = 0; y < n; y++) for(var x = 0; x < n; x++) if(m[y][x]) d += 'M' + (x + 4) + ' ' + (y + 4) + 'h1v1h-1z';
+    return '<div class="tx-try"><svg viewBox="0 0 ' + (n + 8) + ' ' + (n + 8) + '" role="img" aria-label="QR code for the dashboard demo" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="' + d + '" fill="#0B1F33"/></svg><div><b>Try the dashboard yourself</b><span>Scan for a demo with sample data. No account needed.</span></div></div>';
   }
   function present(){
     return '<div class="tx-present" role="dialog" aria-modal="true" aria-label="Presentation"><header><div class="wordmark"><span class="dot"></span><span>Global Neighbors</span></div><button class="btn btn-ghost btn-sm" data-action="tx-present-close">Close</button></header>'
@@ -470,10 +525,16 @@ window.GNTraction = function(app){
 
   function click(action, el){
     var v = el.getAttribute('data-value'), c;
+    if(T.hide && NAMED.test(action)){ app.toast('Turn names back on to do that.'); return; }
     if(outreach.click(action, el)) return;
     if(action==='tx-step') go(el.getAttribute('data-step'));
     else if(action==='tx-refresh'){ T.data = null; T.out = null; app.render(); load(); }
     else if(action==='tx-page'){ T.page = +v; app.render(); drawShown(); }
+    else if(action==='tx-hide'){ T.hide = !T.hide; T.draft = null; T.leadForm = null; T.leadMsg = null; T.leadRemove = null; T.confirming = null; T.outConfirm = false; T.near = null; sig = ''; T.data = null; T.out = null; app.render(); load(); }
+    else if(action==='tx-mins'){ T.mins = +v; app.render(); }
+    else if(action==='tx-fix') follow(FIX[leakIndex()][1]);
+    else if(action==='tx-report'){ T.report = !T.report; app.render(); }
+    else if(action==='tx-report-copy') copy(report(), 'Report copied. Paste it in an email or message.');
     else if(action==='tx-do'){ c = tip(el.getAttribute('data-key')); if(c) follow(c.go); }
     else if(action==='tx-done') answer(el.getAttribute('data-key'), 'done');
     else if(action==='tx-later') answer(el.getAttribute('data-key'), 'later');

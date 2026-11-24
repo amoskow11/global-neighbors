@@ -168,7 +168,7 @@ window.GNOutreach = function(app, T, H){
   }
 
   /* ============ EVENTS ============ */
-  function put(saved){ var i = T.out.leads.map(function(l){ return l.id; }).indexOf(saved.id), old = i > -1 ? T.out.leads[i] : null; if(old){ saved.visits = old.visits; saved.joins = old.joins; T.out.leads[i] = saved; } else T.out.leads.unshift(saved); }
+  function put(saved){ saved = H.maskLead(saved); var i = T.out.leads.map(function(l){ return l.id; }).indexOf(saved.id), old = i > -1 ? T.out.leads[i] : null; if(old){ saved.visits = old.visits; saved.joins = old.joins; T.out.leads[i] = saved; } else T.out.leads.unshift(saved); }
   function saveLead(id, body, msg){ app.run(app.api('POST', 'admin/leads' + (id ? '/' + id : ''), body).then(function(r){ put(r.lead); if(msg) app.toast(msg); })); }
   function inDays(n){ return app.localDay(new Date(Date.now() + n * 86400000)); }
   function showForm(f){ T.leadForm = f; app.render(); var el = document.getElementById('tx-l-name'); if(el){ el.scrollIntoView({ block:'center' }); el.focus(); } }
